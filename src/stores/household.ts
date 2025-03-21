@@ -1,17 +1,17 @@
 import { defineStore } from "pinia";
-import { getHouseholds } from "../api";
+import { getHousehold } from "../api";
 import type { Household } from "../types";
 
 export const useHouseholdStore = defineStore("household", {
   state: () => ({
-    households: [] as Household[],
+    household: null as Household | null,
   }),
   actions: {
-    async fetchHouseholds() {
+    async fetchHousehold() {
       try {
-        this.households = await getHouseholds();
+        this.household = await getHousehold() || null;
       } catch (error) {
-        console.error("Error fetching households:", error);
+        console.error("Error fetching household:", error);
       }
     },
   },
