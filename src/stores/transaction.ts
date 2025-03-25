@@ -1,5 +1,10 @@
 import { defineStore } from "pinia";
-import { getTransactions, addTransaction, saveTransaction } from "../api";
+import {
+  getTransactions,
+  addTransaction,
+  saveTransaction,
+  getSummary,
+} from "../api";
 import type { Transaction, Category, Sub_Category } from "../types";
 
 export const useTransactionStore = defineStore("transaction", {
@@ -15,6 +20,10 @@ export const useTransactionStore = defineStore("transaction", {
       income: [] as Sub_Category[],
       transfers: [] as Sub_Category[],
     },
+    summary: {
+      categories: null,
+      net_incomes: null,
+    },
   }),
   actions: {
     async fetchTransactions(type: string) {
@@ -29,6 +38,14 @@ export const useTransactionStore = defineStore("transaction", {
           });
         }
         this.getCategories();
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+      }
+    },
+
+    async fetchSummary() {
+      try {
+        this.summary = await getSummary(1, 1);
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }

@@ -31,6 +31,21 @@ export const getAccounts = async (): Promise<Account[]> => {
   return response.data;
 };
 
+// Fetch summary
+export const getSummary = async (
+  user_id: number,
+  household_id: number
+): Promise<Account[]> => {
+  const data = {
+    user_id: user_id,
+    household_id: household_id,
+  };
+  const response = await api.get<Account[]>("/transactions/summary", {
+    params: data,
+  });
+  return response.data;
+};
+
 // Fetch transactions
 export const getTransactions = async (
   user_id: number,
@@ -43,7 +58,9 @@ export const getTransactions = async (
     type: type,
   };
   try {
-    const response = await api.post<Transaction[]>("/transactions/", data);
+    const response = await api.get<Transaction[]>("/transactions/", {
+      params: data,
+    });
     return response.data;
   } catch (error) {
     console.log(error);
@@ -55,7 +72,10 @@ export const getTransactions = async (
 export const addTransaction = async (
   transaction: Omit<Transaction, "id">
 ): Promise<Transaction> => {
-  const response = await api.post<Transaction>("/transactions/add", transaction);
+  const response = await api.post<Transaction>(
+    "/transactions/add",
+    transaction
+  );
   return response.data;
 };
 
