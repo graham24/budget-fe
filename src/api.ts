@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Household, User, Transaction } from "./types";
+import type { Household, User, Transaction, Account } from "./types";
 
 // Create Axios instance
 const api = axios.create({
@@ -15,7 +15,7 @@ export default api;
 
 // Fetch households
 export const getHousehold = async (): Promise<Household> => {
-  const response = await api.post<Household>("/household/", {user_id: 1});
+  const response = await api.post<Household>("/household/", { user_id: 1 });
   return response.data;
 };
 
@@ -25,18 +25,29 @@ export const getUsers = async (): Promise<User[]> => {
   return response.data;
 };
 
+// Fetch accounts
+export const getAccounts = async (): Promise<Account[]> => {
+  const response = await api.post<Account[]>("/accounts/", { user_id: 1 });
+  return response.data;
+};
+
 // Fetch transactions
-export const getTransactions = async (): Promise<Transaction[]> => {
+export const getTransactions = async (
+  user_id: number,
+  household_id: number,
+  type: string
+): Promise<Transaction[]> => {
   const data = {
-    user_id: 1,
-    household_id: 1,
+    user_id: user_id,
+    household_id: household_id,
+    type: type,
   };
   try {
     const response = await api.post<Transaction[]>("/transactions/", data);
     return response.data;
   } catch (error) {
     console.log(error);
-    return false;
+    return null;
   }
 };
 
@@ -44,6 +55,17 @@ export const getTransactions = async (): Promise<Transaction[]> => {
 export const addTransaction = async (
   transaction: Omit<Transaction, "id">
 ): Promise<Transaction> => {
-  const response = await api.post<Transaction>("/transactions/", transaction);
+  const response = await api.post<Transaction>("/transactions/add", transaction);
+  return response.data;
+};
+
+// Save (update) a transaction
+export const saveTransaction = async (
+  transaction: Transaction
+): Promise<Transaction> => {
+  const response = await api.put<Transaction>(
+    `/transactions/save`,
+    transaction
+  );
   return response.data;
 };

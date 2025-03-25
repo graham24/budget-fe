@@ -1,36 +1,78 @@
-<script>
-export default {
+<script setup>
+import { computed } from "vue";
+import { useTransactionStore } from "../stores/transaction";
+
+const transactionStore = useTransactionStore();
+
+defineOptions({
   name: "TransactionRow",
-  props: {
-    transaction: {
-      type: Object,
-      required: true,
-    },
+});
+const props = defineProps({
+  transaction: {
+    type: Object,
+    required: true,
   },
-  computed: {
-    formattedDate() {
-      const date = new Date(this.transaction.date);
-      return date.toLocaleDateString();
-    },
+  account: {
+    type: Object,
+    required: true,
   },
-};
+  categories: {
+    type: Object,
+    required: true,
+  },
+  sub_categories: {
+    type: Object,
+    required: true,
+  },
+  type: {
+    type: String,
+    required: true,
+  },
+});
+const formattedDate = computed(() => {
+  return new Date(props.transaction.date).toLocaleDateString();
+});
 </script>
 
 <template>
   <div class="transaction-row">
     <div>{{ formattedDate }}</div>
     <div>{{ transaction.description }}</div>
-    <div>{{ transaction.category }}</div>
-    <div>{{ transaction.sub_category }}</div>
+    <div>
+      <input
+        :list="`${type}-category`"
+        v-model="transaction.category"
+        @blur="transactionStore.saveTransaction(transaction)"
+      />
+      <datalist :id="`${type}-category`">
+        <option
+          v-for="category in categories"
+          :value="category.description"
+        ></option>
+      </datalist>
+    </div>
+    <div>
+      <input
+        :list="`${type}-sub-category`"
+        v-model="transaction.sub_category"
+        @blur="transactionStore.saveTransaction(transaction)"
+      />
+      <datalist :id="`${type}-sub-category`">
+        <option
+          v-for="sub_category in sub_categories"
+          :value="sub_category.description"
+        ></option>
+      </datalist>
+    </div>
     <div>{{ transaction.amount }}</div>
-    <div>{{ transaction.account_id }}</div>
+    <div>{{ account.description }}</div>
   </div>
 </template>
 
 <style scoped>
 .transaction-row {
   display: grid;
-  grid-template-columns: 1fr 3fr 2fr 2fr 1fr 1fr;
+  grid-template-columns: 1fr 3fr 1fr 1fr 1fr 1fr;
   border: 1px solid lightslategray;
   background-color: gray;
   color: whitesmoke;
