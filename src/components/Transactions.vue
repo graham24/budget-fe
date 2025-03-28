@@ -43,8 +43,9 @@ onMounted(() => {
 
 const filteredTransactions = computed(() => {
   const searchTerm = searchQuery.value.toLocaleLowerCase();
-  return transactionStore.transactions.all_transactions.filter(
-    (transaction) => {
+  const result = {};
+  for (const group in groupedTransactions.value) {
+    result[group] = groupedTransactions.value[group].filter((transaction) => {
       return (
         transaction.description.toLowerCase().includes(searchTerm) ||
         transaction.category.toLowerCase().includes(searchTerm) ||
@@ -53,15 +54,16 @@ const filteredTransactions = computed(() => {
           .description.toLowerCase()
           .includes(searchTerm)
       );
-    }
-  );
+    });
+  }
+  return result;
 });
 </script>
 
 <template>
-  <div>
+  <div class="container">
     <details
-      v-for="(transactions, name, index) in groupedTransactions"
+      v-for="(transactions, name, index) in filteredTransactions"
       :open="index === 0"
     >
       <summary class="table-title">
@@ -87,7 +89,10 @@ const filteredTransactions = computed(() => {
                 @blur="transactionStore.saveTransaction(item)"
               />
               <datalist :id="name + '-categories'">
-                <option v-for="category in transactionStore.categories[name]" :value="category['name']"></option>
+                <option
+                  v-for="category in transactionStore.categories[name]"
+                  :value="category['name']"
+                ></option>
               </datalist>
             </td>
             <td>
@@ -98,7 +103,9 @@ const filteredTransactions = computed(() => {
               />
               <datalist :id="name + '-sub-categories'">
                 <option
-                  v-for="subCategory in transactionStore.categories[name].find(cat => cat.name === item.category)?.sub_categories || []"
+                  v-for="subCategory in transactionStore.categories[name].find(
+                    (cat) => cat.name === item.category
+                  )?.sub_categories || []"
                   :key="subCategory"
                   :value="subCategory"
                 ></option>
@@ -126,5 +133,10 @@ const filteredTransactions = computed(() => {
 table {
   text-align: left;
   margin: 10px;
+  min-width: 1280px;
+}
+th,
+td {
+  text-align: left;
 }
 </style>
