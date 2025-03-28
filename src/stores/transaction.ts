@@ -37,7 +37,7 @@ export const useTransactionStore = defineStore("transaction", {
             return new Date(b.date).getTime() - new Date(a.date).getTime();
           });
         }
-        this.getCategories();
+        // this.getCategories();
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }
@@ -51,30 +51,30 @@ export const useTransactionStore = defineStore("transaction", {
       }
     },
 
-    getCategories() {
-      for (const key in this.transactions) {
-        this.transactions[key].forEach((transaction) => {
-          if (
-            !this.categories[key].some(
-              (cat) => cat.description === transaction.category
-            )
-          ) {
-            const category: Category = { description: transaction.category };
-            this.categories[key].push(category);
-          }
-          if (
-            !this.sub_categories[key].some(
-              (subCat) => subCat.description === transaction.sub_category
-            )
-          ) {
-            const sub_category: Sub_Category = {
-              description: transaction.sub_category,
-            };
-            this.sub_categories[key].push(sub_category);
-          }
-        });
-      }
-    },
+    // getCategories() {
+    //   for (const key in this.transactions) {
+    //     this.transactions[key].forEach((transaction) => {
+    //       if (
+    //         !this.categories[key].some(
+    //           (cat) => cat.description === transaction.category
+    //         )
+    //       ) {
+    //         const category: Category = { description: transaction.category };
+    //         this.categories[key].push(category);
+    //       }
+    //       if (
+    //         !this.sub_categories[key].some(
+    //           (subCat) => subCat.description === transaction.sub_category
+    //         )
+    //       ) {
+    //         const sub_category: Sub_Category = {
+    //           description: transaction.sub_category,
+    //         };
+    //         this.sub_categories[key].push(sub_category);
+    //       }
+    //     });
+    //   }
+    // },
     async createTransaction(transaction: Omit<Transaction, "id">) {
       try {
         const newTransaction = await addTransaction(transaction);
@@ -84,22 +84,8 @@ export const useTransactionStore = defineStore("transaction", {
       }
     },
     async saveTransaction(transaction: Transaction) {
-      var transactions = null;
-      if (transaction.category === "Transfer") {
-        transactions = this.transactions.transfers;
-      } else if (transaction.amount >= 0) {
-        transactions = this.transactions.income;
-      } else if (transaction.amount < 0) {
-        transactions = this.transactions.expenses;
-      }
       try {
-        const index = transactions.findIndex((t) => t.id === transaction.id);
-        if (index !== -1) {
-          await saveTransaction(transaction);
-          transactions[index] = transaction;
-        } else {
-          console.warn("Transaction not found, unable to save.");
-        }
+        await saveTransaction(transaction);
       } catch (error) {
         console.error("Error saving transaction:", error);
       }

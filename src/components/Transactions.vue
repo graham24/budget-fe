@@ -1,17 +1,10 @@
 <script setup>
 import { useTransactionStore } from "../stores/transaction";
 import { useAccountStore } from "../stores/account";
-import { onMounted } from "vue";
-import { ref } from "vue";
 import TransactionRow from "./TransactionRow.vue";
 
-const loading = ref(true);
 const transactionStore = useTransactionStore();
 
-onMounted(async () => {
-  await Promise.all([transactionStore.fetchTransactions()]);
-  loading.value = false;
-});
 defineOptions({
   methods: {
     getAccount(account_id) {
@@ -27,7 +20,7 @@ defineOptions({
 
 <template>
   <div>
-    <div v-if="transactionStore.transactions">
+    <!-- <div v-if="transactionStore.transactions">
       <div v-for="(type, key, index) in transactionStore.transactions">
         <div :class="key">
           <details>
@@ -57,7 +50,7 @@ defineOptions({
     </div>
     <div v-else>
       <div>Loading Transactions......</div>
-    </div>
+    </div> -->
   </div>
 </template>
 

@@ -3,6 +3,8 @@ import { defineComponent } from "vue";
 import { ref } from "vue";
 import { onMounted } from "vue";
 import Transactions from "../components/Transactions.vue";
+import NetIncome from "../components/NetIncome.vue";
+import Categories from "../components/Categories.vue";
 import { useHouseholdStore } from "../stores/household";
 import { useAccountStore } from "../stores/account";
 import { useTransactionStore } from "../stores/transaction";
@@ -13,12 +15,18 @@ const transactionsStore = useTransactionStore();
 const loading = ref(true);
 
 onMounted(async () => {
-  await Promise.all([
-    householdStore.fetchHousehold(),
-    accountsStore.fetchAccounts(),
-    transactionsStore.fetchSummary(),
-  ]);
-  loading.value = false;
+  try {
+    await Promise.all([
+      householdStore.fetchHousehold(),
+      accountsStore.fetchAccounts(),
+      transactionsStore.fetchSummary(),
+      transactionsStore.fetchTransactions(),
+    ]);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    loading.value = false;
+  }
 });
 defineOptions({
   components: {
@@ -28,25 +36,34 @@ defineOptions({
 </script>
 
 <template>
-  <div>
+  <div id="home">
     <div v-if="!loading">
       <h1>{{ householdStore.household.household.name }} Transactions</h1>
-      <div v v-for="period in transactionsStore.summary.net_incomes">
-        <span>{{ period.date }}</span
-        >: <span>${{ period.net }}</span> -
-        <span>Income: ${{ period.income }}</span
-        >, <span>Expenses: ${{ period.income }}</span>
+      <div class="widgets">
+        <NetIncome />
+        <!-- <Categories /> -->
       </div>
-      <div v v-for="period in transactionsStore.summary.categories">
-        <span>{{ period.date }}</span>
-        <div v v-for="category in period.income">
-          <span>{{ category.category }}</span
-          >: <span>${{ category.amount }}</span>
-        </div>
-        <!-- <span>{{period.date}}</span>: <span>{{ period.expenses }}</span> -->
-      </div>
-      <Transactions />
+      <!-- <Transactions /> -->
     </div>
     <div v-else><h1>Loading....</h1></div>
   </div>
 </template>
+
+<style>
+#home {
+  width: 100%;
+}
+.widgets {
+  display: flex;
+  column-gap: 10px;
+}
+.widget {
+  border: 2px solid white;
+  padding: 5px;
+  margin: 5px;
+  border-radius: 5%;
+}
+.widget-title {
+  font-size: 1.1em;
+}
+</style>
