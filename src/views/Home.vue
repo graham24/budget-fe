@@ -43,7 +43,7 @@ defineOptions({
         <NetIncome />
         <!-- <Categories /> -->
       </div>
-      <!-- <Transactions /> -->
+      <Transactions />
     </div>
     <div v-else><h1>Loading....</h1></div>
   </div>

@@ -1,73 +1,130 @@
 <script setup>
+import { ref, computed, onMounted } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 import { useAccountStore } from "../stores/account";
 import TransactionRow from "./TransactionRow.vue";
 
+const groupedTransactions = ref({ expenses: [], income: [], transfers: [] });
 const transactionStore = useTransactionStore();
+const searchQuery = ref("");
+const headers = [
+  "Date",
+  "Description",
+  "Category",
+  "Sub-Category",
+  "Account",
+  "Amount",
+];
 
-defineOptions({
-  methods: {
-    getAccount(account_id) {
-      const accountsStore = useAccountStore();
-      const account = accountsStore.accounts?.accounts?.find(
-        (acc) => acc.id === account_id
+function getAccount(account_id) {
+  const accountsStore = useAccountStore();
+  const account = accountsStore.accounts?.accounts?.find(
+    (acc) => acc.id === account_id
+  );
+  return account ? account : "Unknown Account";
+}
+
+function groupTransactions() {
+  const groups = groupedTransactions.value;
+  transactionStore.transactions.all_transactions.forEach((transaction) => {
+    if (transaction.category === "Transfer") {
+      groups["transfers"].push(transaction);
+    } else if (transaction.amount >= 0) {
+      groups["income"].push(transaction);
+    } else if (transaction.amount < 0) {
+      groups["expenses"].push(transaction);
+    }
+  });
+}
+
+onMounted(() => {
+  groupTransactions();
+});
+
+const filteredTransactions = computed(() => {
+  const searchTerm = searchQuery.value.toLocaleLowerCase();
+  return transactionStore.transactions.all_transactions.filter(
+    (transaction) => {
+      return (
+        transaction.description.toLowerCase().includes(searchTerm) ||
+        transaction.category.toLowerCase().includes(searchTerm) ||
+        transaction.sub_category.toLowerCase().includes(searchTerm) ||
+        getAccount(transaction.account_id)
+          .description.toLowerCase()
+          .includes(searchTerm)
       );
-      return account ? account : "Unknown Account";
-    },
-  },
+    }
+  );
 });
 </script>
 
 <template>
   <div>
-    <!-- <div v-if="transactionStore.transactions">
-      <div v-for="(type, key, index) in transactionStore.transactions">
-        <div :class="key">
-          <details>
-            <summary class="transaction-name">{{ key.charAt(0).toUpperCase() + key.slice(1) }}</summary>
-            <div class="transaction-row-header">
-              <div>Date</div>
-              <div>Description</div>
-              <div>Category</div>
-              <div>Sub-category</div>
-              <div>Amount</div>
-              <div>Account</div>
-            </div>
-            <div>
-              <TransactionRow
-                v-for="transaction in type"
-                :key="transaction.id"
-                :transaction="transaction"
-                :account="getAccount(transaction.account_id)"
-                :categories="transactionStore.categories[key]"
-                :sub_categories="transactionStore.sub_categories[key]"
-                :type="key"
-              />
-            </div>
-          </details>
-        </div>
+    <details
+      v-for="(transactions, name, index) in groupedTransactions"
+      :open="index === 0"
+    >
+      <summary class="table-title">
+        {{ name.charAt(0).toUpperCase() + name.slice(1) }}
+      </summary>
+      <div class="search-bar">
+        <input type="text" v-model="searchQuery" placeholder="Search..." />
       </div>
-    </div>
-    <div v-else>
-      <div>Loading Transactions......</div>
-    </div> -->
+      <table class="transactions-table">
+        <thead>
+          <tr>
+            <th v-for="header in headers" :key="header">{{ header }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in transactions" :key="item.id">
+            <td>{{ formatDate(item.date) }}</td>
+            <td>{{ item.description }}</td>
+            <td>
+              <input
+                :list="name + '-categories'"
+                v-model="item.category"
+                @blur="transactionStore.saveTransaction(item)"
+              />
+              <datalist :id="name + '-categories'">
+                <option v-for="category in transactionStore.categories[name]" :value="category['name']"></option>
+              </datalist>
+            </td>
+            <td>
+              <input
+                :list="name + '-sub-categories'"
+                v-model="item.sub_category"
+                @blur="transactionStore.saveTransaction(item)"
+              />
+              <datalist :id="name + '-sub-categories'">
+                <option
+                  v-for="subCategory in transactionStore.categories[name].find(cat => cat.name === item.category)?.sub_categories || []"
+                  :key="subCategory"
+                  :value="subCategory"
+                ></option>
+              </datalist>
+            </td>
+            <td>{{ getAccount(item.account_id).description }}</td>
+            <td>{{ formatCurrency(item.amount) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
   </div>
 </template>
 
 <style scoped>
-.transaction-row-header {
-  display: grid;
-  grid-template-columns: 1fr 3fr 1fr 1fr 1fr 1fr;
-  padding: 10px;
-  margin: 5px;
-}
-.transaction-row-header div {
-  flex: 1;
+.table-title {
   text-align: left;
-  font-weight: 700;
+  font-size: 1.3em;
+  margin: 10px;
 }
-.transaction-name {
+.search-bar {
   text-align: left;
-  font-size: 1.5em;
+  margin: 10px;
+}
+table {
+  text-align: left;
+  margin: 10px;
 }
 </style>
