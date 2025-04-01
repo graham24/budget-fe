@@ -44,7 +44,6 @@ export const useTransactionStore = defineStore("transaction", {
         }
         this.getCategories();
         this.getNetIncomes();
-        console.log(this.categories)
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }

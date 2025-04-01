@@ -1,8 +1,10 @@
 <script setup>
 import { computed } from "vue";
 import { useTransactionStore } from "../stores/transaction";
+import { useUserStore } from "../stores/user";
 
 const transactionStore = useTransactionStore();
+const userStore = useUserStore();
 
 defineOptions({
   name: "TransactionRow",
@@ -32,6 +34,10 @@ const props = defineProps({
 const formattedDate = computed(() => {
   return new Date(props.transaction.date).toLocaleDateString();
 });
+
+function getUser(userId) {
+  return userStore.users.users.find(user => user.id === userId);
+}
 </script>
 
 <template>

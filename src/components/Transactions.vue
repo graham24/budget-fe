@@ -3,9 +3,11 @@ import { ref, computed, onMounted } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 import { useAccountStore } from "../stores/account";
 import TransactionRow from "./TransactionRow.vue";
+import { useUserStore } from "../stores/user";
 
 const groupedTransactions = ref({ expenses: [], income: [], transfers: [] });
 const transactionStore = useTransactionStore();
+const userStore = useUserStore();
 const searchQuery = ref("");
 const headers = [
   "Date",
@@ -52,12 +54,18 @@ const filteredTransactions = computed(() => {
         transaction.sub_category.toLowerCase().includes(searchTerm) ||
         getAccount(transaction.account_id)
           .description.toLowerCase()
+          .includes(searchTerm) ||
+        getUser(getAccount(transaction.account_id).user_id)
+          .first_name.toLowerCase()
           .includes(searchTerm)
       );
     });
   }
   return result;
 });
+function getUser(userId) {
+  return userStore.users.users.find((user) => user.id === userId);
+}
 </script>
 
 <template>
@@ -111,7 +119,10 @@ const filteredTransactions = computed(() => {
                 ></option>
               </datalist>
             </td>
-            <td>{{ getAccount(item.account_id).description }}</td>
+            <td>
+              {{ getUser(getAccount(item.account_id).user_id).first_name }}:
+              {{ getAccount(item.account_id).description }}
+            </td>
             <td>{{ formatCurrency(item.amount) }}</td>
           </tr>
         </tbody>
@@ -129,6 +140,9 @@ const filteredTransactions = computed(() => {
 .search-bar {
   text-align: left;
   margin: 10px;
+}
+details {
+  min-width: 1280px;
 }
 table {
   text-align: left;

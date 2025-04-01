@@ -1,9 +1,10 @@
 import axios from "axios";
 import type { Household, User, Transaction, Account } from "./types";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Create Axios instance
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "http://192.168.1.2:5000/api",
   headers: {
     "Content-Type": "application/json",
     // Authorization: "Bearer your-token",
@@ -21,7 +22,9 @@ export const getHousehold = async (): Promise<Household> => {
 
 // Fetch users
 export const getUsers = async (): Promise<User[]> => {
-  const response = await api.get<User[]>("/users/");
+  const response = await api.get<User[]>("/users/", {
+    params: { house_hold_id: 1 },
+  });
   return response.data;
 };
 
@@ -87,5 +90,21 @@ export const saveTransaction = async (
     `/transactions/save`,
     transaction
   );
+  return response.data;
+};
+
+export const uploadTransactions = async (
+  accountId: Number,
+  importFile: File
+): Promise<any> => {
+  const formData = new FormData();
+  formData.append("accountId", accountId.toString());
+  formData.append("importFile", importFile);
+
+  const response = await api.post(`/transactions/upload`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };

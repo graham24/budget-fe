@@ -2,21 +2,42 @@
 import { computed } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 const transactionStore = useTransactionStore();
-
-defineOptions({
-  methods: {
-    formatDate(date) {
-      const options = { year: "numeric", month: "long" };
-      return new Date(date).toLocaleDateString(undefined, options);
-    },
-    formatCurrency(amount) {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-    },
-  },
-});
+function getCategoryTotals(transactions) {
+  const categoryTotals = {};
+  const endDate = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1
+  );
+  const startDate = new Date(endDate);
+  startDate.setMonth(startDate.getMonth() - 1);
+  transactions.forEach((transaction) => {
+    const transactionDate = new Date(
+      new Date(transaction.date).setMinutes(
+        new Date(transaction.date).getMinutes() +
+          new Date(transaction.date).getTimezoneOffset()
+      )
+    );
+    if (transactionDate < endDate && transactionDate >= startDate) {
+      if (!categoryTotals[transaction.category]) {
+        categoryTotals[transaction.category] = 0;
+      }
+      categoryTotals[transaction.category] += transaction.amount;
+    }
+  });
+  const sortedCategoryTotals = Object.entries(categoryTotals)
+    .sort(([, a], [, b]) => {
+      if (a < 0 && b < 0) {
+        return a - b; // Sort negatives in ascending order
+      }
+      return b - a; // Sort positives in descending order
+    })
+    .reduce((acc, [key, value]) => {
+      acc[key] = value;
+      return acc;
+    }, {});
+  return sortedCategoryTotals;
+}
 </script>
 <template>
   <div class="categories widget">
@@ -24,17 +45,28 @@ defineOptions({
       <div class="widget-title">
         <span
           >{{
-            formatDate(transactionStore.summary.categories[0].date)
+            formatDate(
+                  new Date(
+                    new Date().getFullYear(),
+                    new Date().getMonth(),
+                    1
+                  ).setMonth(new Date().getMonth() - 1)
+                )
           }}
           Income</span
         >
       </div>
       <div
         :class="['category-rows']"
-        v-for="income in [...transactionStore.summary.categories[0].income].sort((a, b) => b.amount - a.amount)"
+        v-for="(value, category) in getCategoryTotals(
+          transactionStore.transactions.all_transactions.filter(
+            (transaction) =>
+              transaction.amount >= 0 && transaction.category !== 'Transfer'
+          )
+        )"
       >
-        <div>{{ income.category }}</div>
-        <div>{{ formatCurrency(income.amount) }}</div>
+        <div>{{ category }}</div>
+        <div>{{ formatCurrency(value) }}</div>
       </div>
     </div>
     <div class="spacer"></div>
@@ -42,17 +74,28 @@ defineOptions({
       <div class="widget-title">
         <span
           >{{
-            formatDate(transactionStore.summary.categories[0].date)
+            formatDate(
+                  new Date(
+                    new Date().getFullYear(),
+                    new Date().getMonth(),
+                    1
+                  ).setMonth(new Date().getMonth() - 1)
+                )
           }}
           Expenses</span
         >
       </div>
-    <div
-      :class="['category-rows']"
-      v-for="expense in [...transactionStore.summary.categories[0].expenses].sort((a, b) => a.amount - b.amount)"
+      <div
+        :class="['category-rows']"
+        v-for="(value, category) in getCategoryTotals(
+          transactionStore.transactions.all_transactions.filter(
+            (transaction) =>
+              transaction.amount < 0 && transaction.category !== 'Transfer'
+          )
+        )"
       >
-        <div>{{ expense.category }}</div>
-        <div>{{ formatCurrency(expense.amount) }}</div>
+        <div>{{ category }}</div>
+        <div>{{ formatCurrency(value) }}</div>
       </div>
     </div>
   </div>
@@ -60,9 +103,9 @@ defineOptions({
 
 <style scoped>
 .categories {
-    display: flex;
-    column-gap: 10px;
-    text-align: left;
+  display: flex;
+  column-gap: 10px;
+  text-align: left;
 }
 .category-rows {
   display: grid;
