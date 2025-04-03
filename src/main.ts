@@ -1,12 +1,21 @@
-import { createApp } from "vue";
-import "./style.css";
+/**
+ * main.ts
+ *
+ * Bootstraps Vuetify and other plugins then mounts the App`
+ */
+
+// Plugins
+import { registerPlugins } from "@/plugins";
+
+// Components
 import App from "./App.vue";
+
+// Composables
+import { createApp } from "vue";
 import { createPinia } from "pinia";
-import router from "./router.ts";
 
 const app = createApp(App);
 app.use(createPinia());
-app.use(router);
 
 interface FormatDate {
   (date: string | number | Date): string;
@@ -32,4 +41,6 @@ interface FormatCurrency {
       currency: "USD",
     }).format(amount);
   }) as FormatCurrency),
-  app.mount("#app");
+  registerPlugins(app);
+
+app.mount("#app");

@@ -18,6 +18,7 @@ export interface Transaction {
   sub_category: string;
   amount: number;
   user_id: number;
+  type: string;
 }
 
 export interface Account {
@@ -25,9 +26,8 @@ export interface Account {
   description: string;
   type: string;
   bank: string;
-  user_id: number
+  user_id: number;
 }
-
 
 export interface Category {
   description: string;

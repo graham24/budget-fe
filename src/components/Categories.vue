@@ -4,13 +4,9 @@ import { useTransactionStore } from "../stores/transaction";
 const transactionStore = useTransactionStore();
 function getCategoryTotals(transactions) {
   const categoryTotals = {};
-  const endDate = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    1
-  );
+  const endDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const startDate = new Date(endDate);
-  startDate.setMonth(startDate.getMonth() - 1);
+  startDate.setMonth(startDate.getMonth() - 2);
   transactions.forEach((transaction) => {
     const transactionDate = new Date(
       new Date(transaction.date).setMinutes(
@@ -46,12 +42,12 @@ function getCategoryTotals(transactions) {
         <span
           >{{
             formatDate(
-                  new Date(
-                    new Date().getFullYear(),
-                    new Date().getMonth(),
-                    1
-                  ).setMonth(new Date().getMonth() - 1)
-                )
+              new Date(
+                new Date().getFullYear(),
+                new Date().getMonth(),
+                1
+              ).setMonth(new Date().getMonth() - 2)
+            )
           }}
           Income</span
         >
@@ -75,12 +71,12 @@ function getCategoryTotals(transactions) {
         <span
           >{{
             formatDate(
-                  new Date(
-                    new Date().getFullYear(),
-                    new Date().getMonth(),
-                    1
-                  ).setMonth(new Date().getMonth() - 1)
-                )
+              new Date(
+                new Date().getFullYear(),
+                new Date().getMonth(),
+                1
+              ).setMonth(new Date().getMonth() - 2)
+            )
           }}
           Expenses</span
         >

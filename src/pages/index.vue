@@ -43,13 +43,13 @@ defineOptions({
   <div id="home">
     <div v-if="!loading">
       <h1>{{ householdStore.household.household.name }} Transactions</h1>
-      <div class="import-popup">
+      <!-- <div class="import-popup">
         <PopUp buttonText="Import" :component="ImportForm" />
-      </div>
-      <div class="widgets">
+      </div> -->
+      <!-- <div class="widgets">
         <NetIncome />
         <Categories />
-      </div>
+      </div> -->
       <Transactions />
     </div>
     <div v-else><h1>Loading....</h1></div>

@@ -59,6 +59,7 @@ export const useTransactionStore = defineStore("transaction", {
 
     getNetIncomes() {
       const calculateDateRanges = (monthsAgo: number) => {
+        monthsAgo += 1 // TODO: Remove
         const endDate = new Date(
           new Date().getFullYear(),
           new Date().getMonth() - monthsAgo,

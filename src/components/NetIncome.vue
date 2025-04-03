@@ -35,7 +35,7 @@ defineOptions({
                     new Date().getFullYear(),
                     new Date().getMonth(),
                     1
-                  ).setMonth(new Date().getMonth() - (key + 1))
+                  ).setMonth(new Date().getMonth() - (key + 2))
                 )
               }}
               <span v-if="key === 0">Net Income<br /></span>
