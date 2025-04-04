@@ -101,7 +101,7 @@ export const uploadTransactions = async (
   formData.append("accountId", accountId.toString());
   formData.append("importFile", importFile);
 
-  const response = await api.post(`/transactions/upload`, formData, {
+  const response = await api.post(`/transactions/upload/`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

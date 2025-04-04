@@ -4,7 +4,7 @@ import { ref } from "vue";
 import { onMounted } from "vue";
 import Transactions from "../components/Transactions.vue";
 import ImportForm from "../components/ImportForm.vue";
-import PopUp from "../components/common/PopUp.vue";
+import Dialog from "../components/common/Dialog.vue";
 import NetIncome from "../components/NetIncome.vue";
 import Categories from "../components/Categories.vue";
 import { useHouseholdStore } from "../stores/household";
@@ -17,6 +17,7 @@ const accountsStore = useAccountStore();
 const transactionsStore = useTransactionStore();
 const userStore = useUserStore();
 const loading = ref(true);
+const showDialog = ref(false);
 
 onMounted(async () => {
   try {
@@ -41,18 +42,45 @@ defineOptions({
 
 <template>
   <div id="home">
-    <div v-if="!loading">
-      <h1>{{ householdStore.household.household.name }} Transactions</h1>
-      <!-- <div class="import-popup">
-        <PopUp buttonText="Import" :component="ImportForm" />
-      </div> -->
-      <!-- <div class="widgets">
-        <NetIncome />
-        <Categories />
-      </div> -->
-      <Transactions />
-    </div>
-    <div v-else><h1>Loading....</h1></div>
+    <v-container v-if="!loading">
+      <v-row>
+        <v-col>
+          <v-card>
+            <h1>{{ householdStore.household.household.name }} Transactions</h1>
+          </v-card>
+        </v-col>
+        <v-col>
+          <v-card class="import-dialog">
+            <v-btn @click="showDialog = true">Import Transactions</v-btn>
+            <Dialog v-model="showDialog" title="Import Transactions">
+              <ImportForm />
+            </Dialog>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="auto">
+          <v-card>
+            <NetIncome />
+          </v-card>
+        </v-col>
+        <v-col>
+          <v-card>
+            <Categories />
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
+          <v-card>
+            <Transactions />
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+    <v-container v-else
+      ><v-card><h1>Loading....</h1></v-card></v-container
+    >
   </div>
 </template>
 

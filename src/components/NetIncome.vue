@@ -19,30 +19,103 @@ defineOptions({
 });
 </script>
 <template>
-  <div class="widget">
-    <div>
-      <div
-        :class="['previous-months']"
-        v-for="(value, key) in transactionStore.net_incomes"
-        :key="key"
+  <v-container>
+    <v-row>
+      <v-col>
+        <h1>
+          {{
+            formatDate(
+              new Date(
+                new Date().getFullYear(),
+                new Date().getMonth(),
+                1
+              ).setMonth(new Date().getMonth() - 2)
+            )
+          }}
+          Net Income
+        </h1>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col
+        :class="[
+          transactionStore.net_incomes[0]['income'] +
+            transactionStore.net_incomes[0]['expenses'] >=
+          0
+            ? 'positive'
+            : 'negative',
+        ]"
       >
-        <div>
-          <span :class="key === 0 ? 'widget-title' : ''">
-            <span
-              >{{
-                formatDate(
-                  new Date(
-                    new Date().getFullYear(),
-                    new Date().getMonth(),
-                    1
-                  ).setMonth(new Date().getMonth() - (key + 2))
-                )
-              }}
-              <span v-if="key === 0">Net Income<br /></span>
-              <span v-else>: </span>
+        {{
+          formatCurrency(
+            transactionStore.net_incomes[0]["income"] +
+              transactionStore.net_incomes[0]["expenses"]
+          )
+        }}
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col class="positive">
+        {{ formatCurrency(transactionStore.net_incomes[0]["income"]) }}
+      </v-col>
+      <v-col class="negative">
+        {{ formatCurrency(transactionStore.net_incomes[0]["expenses"]) }}
+      </v-col>
+    </v-row>
+    <v-row v-for="(value, key) in transactionStore.net_incomes" :key="key">
+      <v-col
+        >{{
+          formatDate(
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              1
+            ).setMonth(new Date().getMonth() - (key + 2))
+          )
+        }}:
+        <span :class="[
+          transactionStore.net_incomes[key]['income'] +
+            transactionStore.net_incomes[key]['expenses'] >=
+          0
+            ? 'positive'
+            : 'negative',
+        ]">{{
+          formatCurrency(
+            transactionStore.net_incomes[key]["income"] +
+              transactionStore.net_incomes[key]["expenses"]
+          )
+        }}</span></v-col
+      >
+    </v-row>
+  </v-container>
+  <!-- <v-card>
+    <v-row
+      :class="['previous-months']"
+      v-for="(value, key) in transactionStore.net_incomes"
+      :key="key"
+    >
+      <v-container>
+        <v-row>
+          <v-col>
+            <span :class="key === 0 ? 'widget-title' : ''">
+              <span
+                >{{
+                  formatDate(
+                    new Date(
+                      new Date().getFullYear(),
+                      new Date().getMonth(),
+                      1
+                    ).setMonth(new Date().getMonth() - (key + 2))
+                  )
+                }}
+                <span v-if="key === 0">Net Income<br /></span>
+                <span v-else>: </span>
+              </span>
             </span>
-          </span>
-          <span
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col
             :class="[
               key === 0 ? 'net' : '',
               transactionStore.net_incomes[key]['income'] +
@@ -58,19 +131,23 @@ defineOptions({
                   transactionStore.net_incomes[key]["expenses"]
               )
             }}
-          </span>
-          <div class="income-expenses" v-if="key === 0">
+          </v-col>
+        </v-row>
+        <v-row class="income-expenses" v-if="key === 0">
+          <v-col>
             <span class="income">{{
               formatCurrency(transactionStore.net_incomes[key]["income"])
             }}</span>
+          </v-col>
+          <v-col>
             <span class="expenses">{{
               formatCurrency(transactionStore.net_incomes[key]["expenses"])
             }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-row>
+  </v-card> -->
 </template>
 
 <style scoped>
@@ -85,11 +162,11 @@ defineOptions({
   font-size: 1.2em;
 }
 .income,
-.net-positive {
+.positive {
   color: green;
 }
 .expenses,
-.net-negative {
+.negative {
   color: red;
 }
 .previous-months {

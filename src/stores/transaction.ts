@@ -177,6 +177,7 @@ export const useTransactionStore = defineStore("transaction", {
       }
     },
     async saveTransaction(transaction: Transaction) {
+      // TODO: If there is a new category or sub-category, add it
       try {
         await saveTransaction(transaction);
       } catch (error) {
