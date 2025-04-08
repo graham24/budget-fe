@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { uploadTransactions } from "../api";
+import { useTransactionStore } from "./transaction";
 
 export const useImportStore = defineStore("import", {
   state: () => ({
@@ -13,7 +14,12 @@ export const useImportStore = defineStore("import", {
         if (this.accountId !== null) {
           if (this.importFile) {
             this.importedTransactions =
-              (await uploadTransactions(this.accountId, this.importFile)) || null;
+              (await uploadTransactions(this.accountId, this.importFile).then(() => {
+                this.importFile = null;
+                const transactionStore = useTransactionStore();
+                transactionStore.transactions.all_transactions.push(this.importedTransactions)
+                return this.importedTransactions;
+              })) || null;
           } else {
             console.error("Import file is null. Cannot upload transactions.");
           }

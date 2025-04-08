@@ -29,6 +29,7 @@ export const useTransactionStore = defineStore("transaction", {
       { income: 0, expenses: 0 },
       { income: 0, expenses: 0 },
     ],
+    monthsAgo: 0 as number,
   }),
   actions: {
     async fetchTransactions(type: string) {
@@ -59,10 +60,9 @@ export const useTransactionStore = defineStore("transaction", {
 
     getNetIncomes() {
       const calculateDateRanges = (monthsAgo: number) => {
-        monthsAgo += 1 // TODO: Remove
         const endDate = new Date(
           new Date().getFullYear(),
-          new Date().getMonth() - monthsAgo,
+          new Date().getMonth() - (monthsAgo + this.monthsAgo),
           1
         );
         const startDate = new Date(endDate);

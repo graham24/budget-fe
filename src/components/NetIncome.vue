@@ -29,7 +29,9 @@ defineOptions({
                 new Date().getFullYear(),
                 new Date().getMonth(),
                 1
-              ).setMonth(new Date().getMonth() - 2)
+              ).setMonth(
+                new Date().getMonth() - (transactionStore.monthsAgo + 1)
+              )
             )
           }}
           Net Income
@@ -39,8 +41,12 @@ defineOptions({
     <v-row>
       <v-col
         :class="[
-          transactionStore.net_incomes[0]['income'] +
-            transactionStore.net_incomes[0]['expenses'] >=
+          transactionStore.net_incomes[0 + transactionStore.monthsAgo][
+            'income'
+          ] +
+            transactionStore.net_incomes[0 + transactionStore.monthsAgo][
+              'expenses'
+            ] >=
           0
             ? 'positive'
             : 'negative',
@@ -48,43 +54,72 @@ defineOptions({
       >
         {{
           formatCurrency(
-            transactionStore.net_incomes[0]["income"] +
-              transactionStore.net_incomes[0]["expenses"]
+            transactionStore.net_incomes[0 + transactionStore.monthsAgo][
+              "income"
+            ] +
+              transactionStore.net_incomes[0 + transactionStore.monthsAgo][
+                "expenses"
+              ]
           )
         }}
       </v-col>
     </v-row>
     <v-row>
       <v-col class="positive">
-        {{ formatCurrency(transactionStore.net_incomes[0]["income"]) }}
+        {{
+          formatCurrency(
+            transactionStore.net_incomes[0 + transactionStore.monthsAgo][
+              "income"
+            ]
+          )
+        }}
       </v-col>
       <v-col class="negative">
-        {{ formatCurrency(transactionStore.net_incomes[0]["expenses"]) }}
+        {{
+          formatCurrency(
+            transactionStore.net_incomes[0 + transactionStore.monthsAgo][
+              "expenses"
+            ]
+          )
+        }}
       </v-col>
     </v-row>
     <v-row v-for="(value, key) in transactionStore.net_incomes" :key="key">
-      <v-col
+      <v-col v-if="key !== 0 && transactionStore.net_incomes[key + transactionStore.monthsAgo]"
         >{{
           formatDate(
             new Date(
               new Date().getFullYear(),
               new Date().getMonth(),
               1
-            ).setMonth(new Date().getMonth() - (key + 2))
+            ).setMonth(
+              new Date().getMonth() - (key + transactionStore.monthsAgo + 1)
+            )
           )
         }}:
-        <span :class="[
-          transactionStore.net_incomes[key]['income'] +
-            transactionStore.net_incomes[key]['expenses'] >=
-          0
-            ? 'positive'
-            : 'negative',
-        ]">{{
-          formatCurrency(
-            transactionStore.net_incomes[key]["income"] +
-              transactionStore.net_incomes[key]["expenses"]
-          )
-        }}</span></v-col
+        <span
+          :class="[
+            transactionStore.net_incomes[key + transactionStore.monthsAgo][
+              'income'
+            ] +
+              transactionStore.net_incomes[key + transactionStore.monthsAgo][
+                'expenses'
+              ] >=
+            0
+              ? 'positive'
+              : 'negative',
+          ]"
+          >{{
+            formatCurrency(
+              transactionStore.net_incomes[key + transactionStore.monthsAgo][
+                "income"
+              ] +
+                transactionStore.net_incomes[key + transactionStore.monthsAgo][
+                  "expenses"
+                ]
+            )
+          }}</span
+        ></v-col
       >
     </v-row>
   </v-container>

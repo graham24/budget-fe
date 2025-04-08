@@ -5,6 +5,7 @@
  */
 
 // Plugins
+import '@mdi/font/css/materialdesignicons.css'
 import vuetify from './vuetify'
 import router from '../router'
 

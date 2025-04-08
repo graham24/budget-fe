@@ -3,6 +3,7 @@ import { ref, shallowRef } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 import { useAccountStore } from "../stores/account";
 import { useUserStore } from "../stores/user";
+// import DayJsAdapter from '@date-io/dayjs'
 
 const search = ref("");
 const transactionStore = useTransactionStore();
@@ -20,12 +21,18 @@ const headers = [
   { key: "amount", title: "Amount" },
   // { title: "Actions", key: "actions", align: "end", sortable: false },
 ];
+const showDatePicker = ref(false);
+const selectedDates = ref(null);
+// const endDate = ref(new Date());
 
 function saveTransaction(transaction) {
   const index = transactionStore.transactions.all_transactions.findIndex(
     (transaction) => transaction.id === transaction.id
   );
   transactionStore.saveTransaction(transaction);
+  // setTimeout(() => {
+  //   console.log("Transaction saved after delay");
+  // }, 5000);
   if (transaction.category === "Transfer") {
     transaction.type = "Transfer";
   } else if (transaction.amount >= 0) {
@@ -46,10 +53,40 @@ function getAccount(account_id) {
 function getUser(userId) {
   return userStore.users.users.find((user) => user.id === userId);
 }
+function selectDates() {
+  if (selectedDates.value.length > 1) {
+    console.log(
+      "Selected dates:",
+      selectedDates.value[0],
+      selectedDates.value[selectedDates.value.length - 1]
+    );
+    setTimeout(() => {
+      showDatePicker.value = !showDatePicker.value;
+    }, 500);
+  }
+}
 </script>
 
 <template>
   <div class="container">
+    <div class="position-relative">
+      <div>
+        <v-icon
+          class="position-absolute right-0 top-0"
+          style="z-index: 2"
+          @click="showDatePicker = !showDatePicker"
+          >mdi-calendar-blank</v-icon
+        >
+        <v-date-picker
+          v-if="showDatePicker"
+          v-model="selectedDates"
+          v-on:update:model-value="selectDates()"
+          multiple="range"
+          class="position-absolute top-0 right-0"
+          style="z-index: 1"
+        ></v-date-picker>
+      </div>
+    </div>
     <div class="data-table">
       <v-card title="Transactions" flat>
         <template v-slot:text>
@@ -68,7 +105,42 @@ function getUser(userId) {
           :headers="headers"
           :group-by="[{ key: 'type' }]"
           show-group-by
+          density="compact"
         >
+          <template
+            v-slot:group-header="{ item, columns, toggleGroup, isGroupOpen }"
+          >
+            <tr>
+              <td :colspan="columns.length">
+                <div class="d-flex align-center">
+                  <v-btn
+                    :icon="isGroupOpen(item) ? '$expand' : '$next'"
+                    color="medium-emphasis"
+                    density="comfortable"
+                    size="small"
+                    variant="outlined"
+                    @click="toggleGroup(item)"
+                  ></v-btn>
+
+                  <span class="ms-4"
+                    >{{ item.value }} ({{ item.items.length }})
+                    {{
+                      formatCurrency(
+                        item.items.reduce(
+                          (total, currentItem) =>
+                            total + currentItem.raw.amount,
+                          0
+                        )
+                      )
+                    }}
+                  </span>
+                </div>
+              </td>
+            </tr>
+          </template>
+          <template v-slot:item.value="{ item }">
+            {{ formatCurrency(item.value) }}
+          </template>
           <template v-slot:item.category="{ item }">
             <v-combobox
               v-model="item.category"

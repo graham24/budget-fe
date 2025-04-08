@@ -50,6 +50,12 @@ defineOptions({
           </v-card>
         </v-col>
         <v-col>
+          <v-btn @click="transactionsStore.monthsAgo += 1"
+            >Previous Month</v-btn
+          >
+          <v-btn @click="transactionsStore.monthsAgo -= 1">Next Month</v-btn>
+        </v-col>
+        <v-col>
           <v-card class="import-dialog">
             <v-btn @click="showDialog = true">Import Transactions</v-btn>
             <Dialog v-model="showDialog" title="Import Transactions">
