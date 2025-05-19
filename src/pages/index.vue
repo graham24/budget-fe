@@ -44,7 +44,7 @@ defineOptions({
   <div id="home">
     <v-container v-if="!loading">
       <v-row>
-        <v-col>
+        <v-col md="auto">
           <v-card>
             <h1>{{ householdStore.household.household.name }} Transactions</h1>
           </v-card>

@@ -17,12 +17,13 @@ const headers = [
   { key: "category", title: "Category" },
   { key: "sub_category", title: "Sub-Category" },
   { key: "account_name", title: "Account Name" },
-  { key: "account_id", title: "Account ID" },
+  // { key: "account_id", title: "Account ID" },
   { key: "amount", title: "Amount" },
   // { title: "Actions", key: "actions", align: "end", sortable: false },
 ];
 const showDatePicker = ref(false);
 const selectedDates = ref(null);
+const searchTerm = ref(null);
 // const endDate = ref(new Date());
 
 function saveTransaction(transaction) {
@@ -65,6 +66,36 @@ function selectDates() {
     }, 500);
   }
 }
+function filteredItems() {
+  if (!searchTerm.value) {
+    return transactionStore.transactions.all_transactions;
+  }
+  const query = searchTerm.value.toLocaleLowerCase();
+  const options = {
+    year: "numeric",
+    month: "long",
+  };
+      
+  return transactionStore.transactions.all_transactions.filter(
+    (transaction) => {
+      return (
+        new Date(transaction.date).toLocaleDateString(undefined, options) +
+        transaction.date +
+        transaction.description +
+        transaction.category +
+        transaction.sub_category +
+        (getAccount(transaction.account_id).description +
+          ": " +
+          getUser(getAccount(transaction.account_id).user_id).first_name) +
+        " (" +
+        transaction.account_id +
+        ")"
+      )
+        .toLowerCase()
+        .includes(query);
+    }
+  );
+}
 </script>
 
 <template>
@@ -91,7 +122,7 @@ function selectDates() {
       <v-card title="Transactions" flat>
         <template v-slot:text>
           <v-text-field
-            v-model="search"
+            v-model="searchTerm"
             label="Search"
             prepend-inner-icon="mdi-magnify"
             variant="outlined"
@@ -100,8 +131,7 @@ function selectDates() {
           ></v-text-field>
         </template>
         <v-data-table
-          :items="transactionStore.transactions.all_transactions"
-          :search="search"
+          :items="filteredItems()"
           :headers="headers"
           :group-by="[{ key: 'type' }]"
           show-group-by
@@ -146,6 +176,7 @@ function selectDates() {
               v-model="item.category"
               @blur="saveTransaction(item)"
               density="compact"
+              variant="plain"
               :items="
                 transactionStore.categories[item.type.toLowerCase()].map(
                   (category) => category.name
@@ -158,6 +189,7 @@ function selectDates() {
               v-model="item.sub_category"
               @blur="saveTransaction(item)"
               density="compact"
+              variant="plain"
               :items="
                 transactionStore.categories[item.type.toLowerCase()].find(
                   (cat) => cat.name === item.category

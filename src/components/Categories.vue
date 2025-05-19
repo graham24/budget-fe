@@ -22,7 +22,7 @@ const transactionStore = useTransactionStore();
               )
             }}
             Income
-            <CategoryTable :type="'income'" />
+            <CategoryTable :type="'Income'" />
           </v-card>
         </v-col>
         <v-col>
@@ -39,7 +39,7 @@ const transactionStore = useTransactionStore();
               )
             }}
             Expenses
-            <CategoryTable :type="'expenses'" />
+            <CategoryTable :type="'Expenses'" />
           </v-card>
         </v-col>
       </v-row>

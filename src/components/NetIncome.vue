@@ -3,20 +3,6 @@ import { useTransactionStore } from "../stores/transaction";
 
 const transactionStore = useTransactionStore();
 
-defineOptions({
-  methods: {
-    formatDate(date) {
-      const options = { year: "numeric", month: "long" };
-      return new Date(date).toLocaleDateString(undefined, options);
-    },
-    formatCurrency(amount) {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-    },
-  },
-});
 </script>
 <template>
   <v-container>

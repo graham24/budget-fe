@@ -11,19 +11,13 @@ const props = defineProps({
 
 function getSubCategoryTotalsComputed() {
   const type = props.type;
+  console.log(type)
   const sub_categories = [];
   var transactions = null;
-  if (type == "income") {
-    transactions = transactionStore.transactions.all_transactions.filter(
-      (transaction) =>
-        transaction.amount >= 0 && transaction.category !== "Transfer"
-    );
-  } else {
-    transactions = transactionStore.transactions.all_transactions.filter(
-      (transaction) =>
-        transaction.amount < 0 && transaction.category !== "Transfer"
-    );
-  }
+  transactions = transactionStore.transactions.all_transactions.filter(
+    (transaction) =>
+      transaction.type == type
+  );
 
   const endDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   endDate.setMonth(endDate.getMonth() - transactionStore.monthsAgo);
@@ -100,7 +94,7 @@ function getSubCategoryTotalsComputed() {
       }
     }
 
-    if (type == "income") {
+    if (type == "Income") {
       sub_categories.sort((a, b) => b.value - a.value);
     } else {
       sub_categories.sort((a, b) => a.value - b.value);
@@ -110,7 +104,7 @@ function getSubCategoryTotalsComputed() {
 }
 
 function getChange(total) {
-  if (props.type == "income") {
+  if (props.type == "Income") {
     return total;
   } else {
     return -total;
@@ -120,7 +114,7 @@ function getChange(total) {
 <template>
   <div>
     <v-data-table
-      :items="getSubCategoryTotalsComputed('income')"
+      :items="getSubCategoryTotalsComputed()"
       :headers="[
         { title: 'Category', value: 'category' },
         { title: 'Sub Category', value: 'sub_category' },
@@ -140,7 +134,6 @@ function getChange(total) {
           <td>
             <div class="d-flex align-center">
               <v-btn
-                v-if="item.items.length > 1"
                 :icon="isGroupOpen(item) ? '$expand' : '$next'"
                 color="medium-emphasis"
                 density="comfortable"
@@ -148,18 +141,18 @@ function getChange(total) {
                 variant="outlined"
                 @click="toggleGroup(item)"
               ></v-btn>
-              <span class="ms-4" v-if="item.items.length > 1"
+              <span class="ms-4"
                 >{{ item.value }} <span>({{ item.items.length }})</span></span
               >
             </div>
           </td>
           <td>
-            <span v-if="item.items.length === 1">{{ item.value }}</span>
+            <!-- <span v-if="item.items.length === 1">{{ item.value }}</span> -->
           </td>
           <td>
-            <span v-if="item.items.length === 1">{{
+            <!-- <span v-if="item.items.length === 1">{{
               item.items[0].raw.sub_category
-            }}</span>
+            }}</span> -->
           </td>
           <td>
             {{
