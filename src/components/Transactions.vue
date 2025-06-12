@@ -19,6 +19,7 @@ const headers = [
   { key: "account_name", title: "Account Name" },
   // { key: "account_id", title: "Account ID" },
   { key: "amount", title: "Amount" },
+  { key: "need", title: "Need" },
   // { title: "Actions", key: "actions", align: "end", sortable: false },
 ];
 const showDatePicker = ref(false);
@@ -75,7 +76,7 @@ function filteredItems() {
     year: "numeric",
     month: "long",
   };
-      
+
   return transactionStore.transactions.all_transactions.filter(
     (transaction) => {
       return (
@@ -89,7 +90,8 @@ function filteredItems() {
           getUser(getAccount(transaction.account_id).user_id).first_name) +
         " (" +
         transaction.account_id +
-        ")"
+        ")" +
+        transaction.need
       )
         .toLowerCase()
         .includes(query);
@@ -170,6 +172,16 @@ function filteredItems() {
           </template>
           <template v-slot:item.value="{ item }">
             {{ formatCurrency(item.value) }}
+          </template>
+          <template v-slot:item.need="{ item }">
+            <div v-if="item.type === 'Expenses'">
+              <v-checkbox
+                v-model="item.need"
+                @change="saveTransaction(item)"
+                density="compact"
+                hide-details
+              ></v-checkbox>
+            </div>
           </template>
           <template v-slot:item.category="{ item }">
             <v-combobox
