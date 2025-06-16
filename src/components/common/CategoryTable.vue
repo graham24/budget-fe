@@ -1,5 +1,8 @@
 <script setup>
+import { computed } from "vue";
+
 import { useTransactionStore } from "../../stores/transaction";
+import { ca } from "vuetify/locale";
 
 const transactionStore = useTransactionStore();
 const props = defineProps({
@@ -9,99 +12,89 @@ const props = defineProps({
   },
 });
 
-function getSubCategoryTotalsComputed() {
+function getTransactions() {
   const type = props.type;
-  console.log(type)
-  const sub_categories = [];
-  var transactions = null;
-  transactions = transactionStore.transactions.all_transactions.filter(
-    (transaction) =>
-      transaction.type == type
-  );
-
   const endDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   endDate.setMonth(endDate.getMonth() - transactionStore.monthsAgo);
   const startDate = new Date(endDate);
   startDate.setMonth(startDate.getMonth() - 1);
-
-  const previousEndDate = startDate;
-  const previousStartDate = new Date(previousEndDate);
+  const previousStartDate = new Date(startDate);
   previousStartDate.setMonth(previousStartDate.getMonth() - 1);
 
-  transactions.forEach((transaction) => {
-    const transactionDate = new Date(
-      new Date(transaction.date).setMinutes(
-        new Date(transaction.date).getMinutes() +
-          new Date(transaction.date).getTimezoneOffset()
-      )
-    );
-    if (transactionDate < endDate && transactionDate >= startDate) {
-      const existingCategory = sub_categories.find(
-        (item) => item.category === transaction.category
+  let transactions = [];
+  let previousTransactions = [];
+  let all_transactions = transactionStore.transactions.all_transactions;
+  all_transactions.forEach((transaction) => {
+    if (transaction.type == type) {
+      const transactionDate = new Date(
+        new Date(transaction.date).setMinutes(
+          new Date(transaction.date).getMinutes() +
+            new Date(transaction.date).getTimezoneOffset()
+        )
       );
-      if (existingCategory) {
-        const existingSubCategory = sub_categories.find(
-          (item) => item.sub_category === transaction.sub_category
-        );
-        if (existingSubCategory) {
-          existingSubCategory.value += transaction.amount;
-        } else {
-          sub_categories.push({
-            category: transaction.category,
-            sub_category: transaction.sub_category,
-            value: transaction.amount,
-            previous_value: 0,
-          });
-        }
-      } else {
-        sub_categories.push({
-          category: transaction.category,
-          sub_category: transaction.sub_category,
-          value: transaction.amount,
-          previous_value: 0,
-        });
+      if (startDate <= transactionDate && transactionDate < endDate) {
+        transactions.push(transaction);
       }
-    }
-
-    if (
-      transactionDate < previousEndDate &&
-      transactionDate >= previousStartDate
-    ) {
-      const existingCategory = sub_categories.find(
-        (item) => item.category === transaction.category
-      );
-      if (existingCategory) {
-        const existingSubCategory = sub_categories.find(
-          (item) => item.sub_category === transaction.sub_category
-        );
-        if (existingSubCategory) {
-          existingSubCategory.previous_value += transaction.amount;
-        } else {
-          sub_categories.push({
-            category: transaction.category,
-            sub_category: transaction.sub_category,
-            value: 0,
-            previous_value: transaction.amount,
-          });
-        }
-      } else {
-        sub_categories.push({
-          category: transaction.category,
-          sub_category: transaction.sub_category,
-          value: 0,
-          previous_value: transaction.amount,
-        });
+      if (previousStartDate <= transactionDate && transactionDate < startDate) {
+        previousTransactions.push(transaction);
       }
-    }
-
-    if (type == "Income") {
-      sub_categories.sort((a, b) => b.value - a.value);
-    } else {
-      sub_categories.sort((a, b) => a.value - b.value);
     }
   });
-  return sub_categories;
+  return { transactions, previousTransactions };
 }
+
+function getCategoryTotals() {
+  const { transactions, previousTransactions } = getTransactions();
+  const allTransactions = [...transactions, ...previousTransactions];
+  let totals = [];
+
+  // Add Categories
+  allTransactions.forEach((transaction) => {
+    const category = transaction.category;
+    const subCategory = transaction.sub_category;
+
+    let categoryObj = totals.find(
+      (cat) => cat.category === category && cat.subCategory === subCategory
+    );
+
+    if (!categoryObj) {
+      categoryObj = {
+        category: category,
+        subCategory: subCategory,
+        value: 0,
+        previousValue: 0,
+      };
+      totals.push(categoryObj);
+    }
+  });
+
+  transactions.forEach((transaction) => {
+    const category = transaction.category;
+    const subCategory = transaction.sub_category;
+    const amount = transaction.amount;
+
+    let categoryObj = totals.find(
+      (cat) => cat.category === category && cat.subCategory === subCategory
+    );
+
+    categoryObj.value += amount;
+  });
+
+  previousTransactions.forEach((transaction) => {
+    const category = transaction.category;
+    const subCategory = transaction.sub_category;
+    const amount = transaction.amount;
+
+    let categoryObj = totals.find(
+      (cat) => cat.category === category && cat.subCategory === subCategory
+    );
+
+    categoryObj.previousValue += amount;
+  });
+  return totals;
+}
+
+const categoryTotals = computed(() => getCategoryTotals());
 
 function getChange(total) {
   if (props.type == "Income") {
@@ -114,12 +107,12 @@ function getChange(total) {
 <template>
   <div>
     <v-data-table
-      :items="getSubCategoryTotalsComputed()"
+      :items="categoryTotals"
       :headers="[
         { title: 'Category', value: 'category' },
-        { title: 'Sub Category', value: 'sub_category' },
+        { title: 'Sub Category', value: 'subCategory' },
         { title: 'Current Month', value: 'value' },
-        { title: 'Previous Month', value: 'previous_value' },
+        { title: 'Previous Month', value: 'previousValue' },
         { title: 'Change', value: 'change' },
       ]"
       :group-by="[{ key: 'category' }]"
@@ -168,8 +161,7 @@ function getChange(total) {
             {{
               formatCurrency(
                 item.items.reduce(
-                  (total, currentItem) =>
-                    total + currentItem.raw.previous_value,
+                  (total, currentItem) => total + currentItem.raw.previousValue,
                   0
                 )
               )
@@ -185,7 +177,7 @@ function getChange(total) {
                 ) -
                   item.items.reduce(
                     (total, currentItem) =>
-                      total + currentItem.raw.previous_value,
+                      total + currentItem.raw.previousValue,
                     0
                   ) >=
                 0
@@ -201,7 +193,7 @@ function getChange(total) {
                     ) -
                       item.items.reduce(
                         (total, currentItem) =>
-                          total + currentItem.raw.previous_value,
+                          total + currentItem.raw.previousValue,
                         0
                       )
                   )
@@ -214,16 +206,16 @@ function getChange(total) {
       <template v-slot:item.value="{ item }">
         {{ formatCurrency(item.value) }}
       </template>
-      <template v-slot:item.previous_value="{ item }">
-        {{ formatCurrency(item.previous_value) }}
+      <template v-slot:item.previousValue="{ item }">
+        {{ formatCurrency(item.previousValue) }}
       </template>
       <template v-slot:item.change="{ item }">
         <span
           :class="[
             props.type == 'income' ? 'income' : 'expense',
-            item.value - item.previous_value >= 0 ? 'positive' : 'negative',
+            item.value - item.previousValue >= 0 ? 'positive' : 'negative',
           ]"
-          >{{ formatCurrency(item.value - item.previous_value) }}</span
+          >{{ formatCurrency(item.value - item.previousValue) }}</span
         >
       </template>
     </v-data-table>
