@@ -4,7 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Create Axios instance
 const api = axios.create({
-  baseURL: "http://192.168.1.2:5000/api",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
     // Authorization: "Bearer your-token",
