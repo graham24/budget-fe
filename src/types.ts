@@ -7,8 +7,11 @@ export interface Household {
 
 export interface User {
   id: number;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
+  created: string;
+  modified: string;
 }
 
 export interface Transaction {

@@ -12,6 +12,7 @@
     "lint": "eslint . --fix"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.12.2",
     "axios": "^1.8.4",
     "core-js": "^3.37.1",
     "material-design-icons-iconfont": "^6.7.0",

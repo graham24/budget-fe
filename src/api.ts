@@ -14,6 +14,13 @@ const api = axios.create({
 
 export default api;
 
+
+// Login
+export const login = async (token: string, data: any): Promise<User> => {
+  const response = await api.post<User>("/auth/login/", { token, data });
+  return response.data;
+};
+
 // Fetch households
 export const getHousehold = async (): Promise<Household> => {
   const response = await api.post<Household>("/household/", { user_id: 1 });

@@ -9,6 +9,8 @@ import { registerPlugins } from "@/plugins";
 
 // Components
 import App from "./App.vue";
+import vue3GoogleLogin from "vue3-google-login";
+
 
 // Composables
 import { createApp } from "vue";
@@ -16,6 +18,9 @@ import { createPinia } from "pinia";
 
 const app = createApp(App);
 app.use(createPinia());
+app.use(vue3GoogleLogin, {
+  clientId: "YOUR_GOOGLE_CLIENT_ID",
+});
 
 interface FormatDate {
   (date: string | number | Date): string;
