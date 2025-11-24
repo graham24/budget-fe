@@ -2,7 +2,6 @@
 import { computed } from "vue";
 
 import { useTransactionStore } from "../../stores/transaction";
-import { ca } from "vuetify/locale";
 
 const transactionStore = useTransactionStore();
 const props = defineProps({
@@ -10,120 +9,161 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  need: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-function getTransactions() {
-  const type = props.type;
-  const endDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  endDate.setMonth(endDate.getMonth() - transactionStore.monthsAgo);
-  const startDate = new Date(endDate);
-  startDate.setMonth(startDate.getMonth() - 1);
-  const previousStartDate = new Date(startDate);
-  previousStartDate.setMonth(previousStartDate.getMonth() - 1);
+function getMonthRanges(months = 3) {
+  const base = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const offset = transactionStore.monthsAgo ?? 0;
 
-  let transactions = [];
-  let previousTransactions = [];
-  let all_transactions = transactionStore.transactions.all_transactions;
-  all_transactions.forEach((transaction) => {
-    if (transaction.type == type) {
-      const transactionDate = new Date(
-        new Date(transaction.date).setMinutes(
-          new Date(transaction.date).getMinutes() +
-            new Date(transaction.date).getTimezoneOffset()
-        )
-      );
-      if (startDate <= transactionDate && transactionDate < endDate) {
-        transactions.push(transaction);
-      }
-      if (previousStartDate <= transactionDate && transactionDate < startDate) {
-        previousTransactions.push(transaction);
-      }
-    }
+  return Array.from({ length: months }, (_, index) => {
+    const endDate = new Date(base);
+    endDate.setMonth(endDate.getMonth() - (offset + index));
+    const startDate = new Date(endDate);
+    startDate.setMonth(startDate.getMonth() - 1);
+    return { key: `month${index + 1}`, startDate, endDate };
   });
-  return { transactions, previousTransactions };
 }
 
-function getCategoryTotals() {
-  const { transactions, previousTransactions } = getTransactions();
-  const allTransactions = [...transactions, ...previousTransactions];
-  let totals = [];
+const monthRanges = computed(() => getMonthRanges());
+const monthLabels = computed(() =>
+  monthRanges.value.map((range) =>
+    range.startDate.toLocaleString(undefined, {
+      month: "long",
+      year: "numeric",
+    })
+  )
+);
 
-  // Add Categories
-  allTransactions.forEach((transaction) => {
-    const category = transaction.category;
-    const subCategory = transaction.sub_category;
+function normalizeDate(dateString) {
+  const date = new Date(dateString);
+  return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+}
 
-    let categoryObj = totals.find(
-      (cat) => cat.category === category && cat.subCategory === subCategory
-    );
+function matchesType(transaction) {
+  if (transaction.type) {
+    return (transaction.type.toLowerCase() === props.type.toLowerCase() && transaction.need === props.need);
+  }
+  if (props.type.toLowerCase() === "income") return transaction.amount >= 0;
+  if (props.type.toLowerCase() === "expenses") return transaction.amount < 0;
+  return true;
+}
 
-    if (!categoryObj) {
-      categoryObj = {
-        category: category,
-        subCategory: subCategory,
-        value: 0,
-        previousValue: 0,
-      };
-      totals.push(categoryObj);
-    }
-  });
+function buildCategoryMap(ranges) {
+  const categoryMap = {};
+  const transactions = transactionStore.transactions?.all_transactions ?? [];
 
   transactions.forEach((transaction) => {
-    const category = transaction.category;
-    const subCategory = transaction.sub_category;
-    const amount = transaction.amount;
+    if (!matchesType(transaction)) return;
 
-    let categoryObj = totals.find(
-      (cat) => cat.category === category && cat.subCategory === subCategory
+    const transactionDate = normalizeDate(transaction.date);
+    const range = ranges.find(
+      ({ startDate, endDate }) =>
+        transactionDate >= startDate && transactionDate < endDate
     );
 
-    categoryObj.value += amount;
+    if (!range) return;
+
+    const category =
+      categoryMap[transaction.category] ??
+      (categoryMap[transaction.category] = {
+        category: transaction.category,
+        month1: 0,
+        month2: 0,
+        month3: 0,
+        subCategories: {},
+      });
+
+    category[range.key] += transaction.amount;
+
+    const subCategoryKey = transaction.sub_category ?? "Uncategorized";
+    const subCategory =
+      category.subCategories[subCategoryKey] ??
+      (category.subCategories[subCategoryKey] = {
+        category: transaction.category,
+        subCategory: subCategoryKey,
+        month1: 0,
+        month2: 0,
+        month3: 0,
+      });
+
+    subCategory[range.key] += transaction.amount;
   });
 
-  previousTransactions.forEach((transaction) => {
-    const category = transaction.category;
-    const subCategory = transaction.sub_category;
-    const amount = transaction.amount;
+  return categoryMap;
+}
 
-    let categoryObj = totals.find(
-      (cat) => cat.category === category && cat.subCategory === subCategory
+const categoryMap = computed(() => buildCategoryMap(monthRanges.value));
+
+const categoryTotals = computed(() => {
+  const isIncome = props.type?.toLowerCase() === "income";
+  const categorySort = (a, b) =>
+    isIncome
+      ? calculateAverage(b) - calculateAverage(a)
+      : calculateAverage(a) - calculateAverage(b);
+
+  return Object.values(categoryMap.value)
+    .sort(categorySort)
+    .flatMap((category) =>
+      Object.values(category.subCategories).sort(categorySort)
     );
+});
 
-    categoryObj.previousValue += amount;
-  });
-  return totals;
+function calculateAverage(item) {
+  return (item.month1 + item.month2 + item.month3) / 3;
 }
 
-const categoryTotals = computed(() => getCategoryTotals());
-
-function getChange(total) {
-  if (props.type == "Income") {
-    return total;
-  } else {
-    return -total;
-  }
+function sumField(items, key) {
+  return items.reduce((total, currentItem) => {
+    const value = currentItem.raw?.[key] ?? 0;
+    return total + value;
+  }, 0);
 }
+
+const totalsRow = computed(() =>
+  categoryTotals.value.reduce(
+    (totals, current) => ({
+      ...totals,
+      month1: totals.month1 + (current.month1 ?? 0),
+      month2: totals.month2 + (current.month2 ?? 0),
+      month3: totals.month3 + (current.month3 ?? 0),
+    }),
+    { subCategory: "Totals", month1: 0, month2: 0, month3: 0 }
+  )
+);
+
+const headers = computed(() => {
+  const [month1Label, month2Label, month3Label] = monthLabels.value;
+  return [
+    // { title: "Category", value: "category" },
+    { title: "Sub Category", value: "subCategory" },    
+    { title: month3Label ?? "Month 3", value: "month3" },
+    { title: month2Label ?? "Month 2", value: "month2" },
+    { title: month1Label ?? "Month 1", value: "month1" },
+    { title: "Average", value: "average" },
+  ];
+});
 </script>
+
 <template>
-  <div>
+  <div class="category-table-wrapper">
     <v-data-table
       :items="categoryTotals"
-      :headers="[
-        { title: 'Category', value: 'category' },
-        { title: 'Sub Category', value: 'subCategory' },
-        { title: 'Current Month', value: 'value' },
-        { title: 'Previous Month', value: 'previousValue' },
-        { title: 'Change', value: 'change' },
-      ]"
-      :group-by="[{ key: 'category' }]"
+      :headers="headers"
+      :group-by="[{ key: 'category', name: 'Category' }]"
       hide-default-footer
       :items-per-page="-1"
       density="compact"
+      class="category-table"
     >
-      <template
-        v-slot:group-header="{ item, columns, toggleGroup, isGroupOpen }"
-      >
-        <tr>
+      <template v-slot:header.data-table-group>
+        <div>Category</div>
+      </template>
+      <template v-slot:group-header="{ item, toggleGroup, isGroupOpen }">
+        <tr class="group-row">
           <td>
             <div class="d-flex align-center">
               <v-btn
@@ -134,89 +174,57 @@ function getChange(total) {
                 variant="outlined"
                 @click="toggleGroup(item)"
               ></v-btn>
-              <span class="ms-4"
-                >{{ item.value }} <span>({{ item.items.length }})</span></span
-              >
+              <span class="ms-4">
+                {{ item.value }}
+                <span class="text-caption">({{ item.items.length }})</span>
+              </span>
             </div>
           </td>
+          <td class="text-caption text-medium-emphasis"></td>
           <td>
-            <!-- <span v-if="item.items.length === 1">{{ item.value }}</span> -->
+            {{ formatCurrency(sumField(item.items, "month3")) }}
           </td>
           <td>
-            <!-- <span v-if="item.items.length === 1">{{
-              item.items[0].raw.sub_category
-            }}</span> -->
+            {{ formatCurrency(sumField(item.items, "month2")) }}
           </td>
           <td>
-            {{
-              formatCurrency(
-                item.items.reduce(
-                  (total, currentItem) => total + currentItem.raw.value,
-                  0
-                )
-              )
-            }}
+            
+            {{ formatCurrency(sumField(item.items, "month1")) }}
           </td>
           <td>
             {{
               formatCurrency(
-                item.items.reduce(
-                  (total, currentItem) => total + currentItem.raw.previousValue,
-                  0
-                )
+                calculateAverage({
+                  month1: sumField(item.items, "month1"),
+                  month2: sumField(item.items, "month2"),
+                  month3: sumField(item.items, "month3"),
+                })
               )
             }}
-          </td>
-          <td>
-            <span
-              :class="[
-                props.type == 'income' ? 'income' : 'expense',
-                item.items.reduce(
-                  (total, currentItem) => total + currentItem.raw.value,
-                  0
-                ) -
-                  item.items.reduce(
-                    (total, currentItem) =>
-                      total + currentItem.raw.previousValue,
-                    0
-                  ) >=
-                0
-                  ? 'positive'
-                  : 'negative',
-              ]"
-              >{{
-                formatCurrency(
-                  getChange(
-                    item.items.reduce(
-                      (total, currentItem) => total + currentItem.raw.value,
-                      0
-                    ) -
-                      item.items.reduce(
-                        (total, currentItem) =>
-                          total + currentItem.raw.previousValue,
-                        0
-                      )
-                  )
-                )
-              }}
-            </span>
           </td>
         </tr>
       </template>
-      <template v-slot:item.value="{ item }">
-        {{ formatCurrency(item.value) }}
+      <template v-slot:item.month1="{ item }">
+        {{ formatCurrency(item.month1) }}
       </template>
-      <template v-slot:item.previousValue="{ item }">
-        {{ formatCurrency(item.previousValue) }}
+      <template v-slot:item.month2="{ item }">
+        {{ formatCurrency(item.month2) }}
       </template>
-      <template v-slot:item.change="{ item }">
-        <span
-          :class="[
-            props.type == 'income' ? 'income' : 'expense',
-            item.value - item.previousValue >= 0 ? 'positive' : 'negative',
-          ]"
-          >{{ formatCurrency(item.value - item.previousValue) }}</span
-        >
+      <template v-slot:item.month3="{ item }">
+        {{ formatCurrency(item.month3) }}
+      </template>
+      <template v-slot:item.average="{ item }">
+        {{ formatCurrency(calculateAverage(item)) }}
+      </template>
+      <template v-slot:body.append>
+        <tr class="totals-row">
+          <td></td>
+          <td>Totals</td>
+          <td>{{ formatCurrency(totalsRow.month3) }}</td>
+          <td>{{ formatCurrency(totalsRow.month2) }}</td>
+          <td>{{ formatCurrency(totalsRow.month1) }}</td>
+          <td>{{ formatCurrency(calculateAverage(totalsRow)) }}</td>
+        </tr>
       </template>
     </v-data-table>
   </div>
@@ -229,5 +237,31 @@ function getChange(total) {
 .income.positive,
 .expense.positive {
   color: green;
+}
+.totals-row {
+  font-weight: 700;
+}
+.category-table :deep(.v-data-table__th) {
+  background: rgba(var(--v-theme-primary), 0.05);
+  font-weight: 700;
+}
+.category-table :deep(.v-data-table__tr:nth-child(even)) {
+  background: rgba(var(--v-theme-primary), 0.02);
+}
+.category-table :deep(td) {
+  border-color: rgba(var(--v-theme-outline), 0.25);
+}
+.group-row {
+  background: rgba(var(--v-theme-primary), 0.08);
+}
+.totals-row td {
+  border-top: 2px solid rgba(var(--v-theme-outline), 0.4);
+}
+.category-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+.category-table :deep(table) {
+  min-width: 560px;
 }
 </style>

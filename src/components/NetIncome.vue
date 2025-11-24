@@ -1,196 +1,116 @@
 <script setup>
+import { computed } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 
 const transactionStore = useTransactionStore();
 
+const focusMonth = computed(
+  () => transactionStore.net_incomes[transactionStore.monthsAgo] ?? null
+);
+
+const netValue = computed(() => {
+  if (!focusMonth.value) return 0;
+  return (
+    (focusMonth.value["income"] ?? 0) + (focusMonth.value["expenses"] ?? 0)
+  );
+});
 </script>
 <template>
-  <v-container>
-    <v-row>
-      <v-col>
-        <h1>
-          {{
-            formatDate(
-              new Date(
-                new Date().getFullYear(),
-                new Date().getMonth(),
-                1
-              ).setMonth(
-                new Date().getMonth() - (transactionStore.monthsAgo + 1)
-              )
-            )
-          }}
-          Net Income
-        </h1>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col
-        :class="[
-          transactionStore.net_incomes[0 + transactionStore.monthsAgo][
-            'income'
-          ] +
-            transactionStore.net_incomes[0 + transactionStore.monthsAgo][
-              'expenses'
-            ] >=
-          0
-            ? 'positive'
-            : 'negative',
-        ]"
-      >
+  <div class="net-wrapper">
+    <div class="net-header">
+      <div class="muted text-caption">Focus month</div>
+      <div class="text-h6 font-weight-bold">
         {{
-          formatCurrency(
-            transactionStore.net_incomes[0 + transactionStore.monthsAgo][
-              "income"
-            ] +
-              transactionStore.net_incomes[0 + transactionStore.monthsAgo][
-                "expenses"
-              ]
-          )
-        }}
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col class="positive">
-        {{
-          formatCurrency(
-            transactionStore.net_incomes[0 + transactionStore.monthsAgo][
-              "income"
-            ]
-          )
-        }}
-      </v-col>
-      <v-col class="negative">
-        {{
-          formatCurrency(
-            transactionStore.net_incomes[0 + transactionStore.monthsAgo][
-              "expenses"
-            ]
-          )
-        }}
-      </v-col>
-    </v-row>
-    <v-row v-for="(value, key) in transactionStore.net_incomes" :key="key">
-      <v-col v-if="key !== 0 && transactionStore.net_incomes[key + transactionStore.monthsAgo]"
-        >{{
           formatDate(
             new Date(
               new Date().getFullYear(),
               new Date().getMonth(),
               1
             ).setMonth(
-              new Date().getMonth() - (key + transactionStore.monthsAgo + 1)
+              new Date().getMonth() - (transactionStore.monthsAgo + 1)
             )
           )
-        }}:
-        <span
-          :class="[
-            transactionStore.net_incomes[key + transactionStore.monthsAgo][
-              'income'
-            ] +
-              transactionStore.net_incomes[key + transactionStore.monthsAgo][
-                'expenses'
-              ] >=
-            0
-              ? 'positive'
-              : 'negative',
-          ]"
-          >{{
-            formatCurrency(
-              transactionStore.net_incomes[key + transactionStore.monthsAgo][
-                "income"
-              ] +
-                transactionStore.net_incomes[key + transactionStore.monthsAgo][
-                  "expenses"
-                ]
-            )
-          }}</span
-        ></v-col
-      >
-    </v-row>
-  </v-container>
-  <!-- <v-card>
-    <v-row
-      :class="['previous-months']"
-      v-for="(value, key) in transactionStore.net_incomes"
-      :key="key"
+        }}
+      </div>
+    </div>
+    <div
+      class="net-highlight"
+      :class="[
+        netValue >= 0 ? 'positive' : 'negative',
+      ]"
     >
-      <v-container>
-        <v-row>
-          <v-col>
-            <span :class="key === 0 ? 'widget-title' : ''">
-              <span
-                >{{
-                  formatDate(
-                    new Date(
-                      new Date().getFullYear(),
-                      new Date().getMonth(),
-                      1
-                    ).setMonth(new Date().getMonth() - (key + 2))
-                  )
-                }}
-                <span v-if="key === 0">Net Income<br /></span>
-                <span v-else>: </span>
-              </span>
-            </span>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col
-            :class="[
-              key === 0 ? 'net' : '',
-              transactionStore.net_incomes[key]['income'] +
-                transactionStore.net_incomes[key]['expenses'] >=
-              0
-                ? 'net-positive'
-                : 'net-negative',
-            ]"
-          >
-            {{
-              formatCurrency(
-                transactionStore.net_incomes[key]["income"] +
-                  transactionStore.net_incomes[key]["expenses"]
-              )
-            }}
-          </v-col>
-        </v-row>
-        <v-row class="income-expenses" v-if="key === 0">
-          <v-col>
-            <span class="income">{{
-              formatCurrency(transactionStore.net_incomes[key]["income"])
-            }}</span>
-          </v-col>
-          <v-col>
-            <span class="expenses">{{
-              formatCurrency(transactionStore.net_incomes[key]["expenses"])
-            }}</span>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-row>
-  </v-card> -->
+      <div class="label muted">Net income</div>
+      <div class="value">
+        {{ formatCurrency(netValue) }}
+      </div>
+    </div>
+    <div class="pill-row">
+      <span class="amount-chip positive">
+        Income:
+        {{ formatCurrency(focusMonth?.income ?? 0) }}
+      </span>
+      <span class="amount-chip negative">
+        Expenses:
+        {{ formatCurrency(focusMonth?.expenses ?? 0) }}
+      </span>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.net {
-  font-size: 3em;
-  font-weight: 700;
-}
-.income-expenses {
-  display: flex;
-  justify-content: center;
-  column-gap: 10px;
-  font-size: 1.2em;
-}
-.income,
 .positive {
-  color: green;
+  color: rgb(var(--v-theme-success));
 }
-.expenses,
 .negative {
-  color: red;
+  color: rgb(var(--v-theme-error));
 }
-.previous-months {
-  font-size: 0.9em;
+.net-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.net-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.net-highlight {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(var(--v-theme-primary), 0.05);
+  border: 1px solid rgba(var(--v-theme-outline), 0.3);
+}
+.net-highlight .label {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+.net-highlight .value {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+.pill-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.amount-chip {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(var(--v-theme-outline), 0.1);
+  font-weight: 600;
+}
+.history {
+  border-top: 1px solid rgba(var(--v-theme-outline), 0.2);
+  padding-top: 8px;
+  display: grid;
+  gap: 6px;
+}
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+.muted {
+  color: rgba(var(--v-theme-on-background), 0.65);
 }
 </style>

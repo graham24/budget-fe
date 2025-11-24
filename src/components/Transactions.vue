@@ -3,6 +3,8 @@ import { ref, shallowRef } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 import { useAccountStore } from "../stores/account";
 import { useUserStore } from "../stores/user";
+import SurfaceCard from "./common/SurfaceCard.vue";
+import SectionHeader from "./common/SectionHeader.vue";
 // import DayJsAdapter from '@date-io/dayjs'
 
 const search = ref("");
@@ -121,139 +123,156 @@ function filteredItems() {
       </div>
     </div>
     <div class="data-table">
-      <v-card title="Transactions" flat>
-        <template v-slot:text>
-          <v-text-field
-            v-model="searchTerm"
-            label="Search"
-            prepend-inner-icon="mdi-magnify"
-            variant="outlined"
-            hide-details
-            single-line
-          ></v-text-field>
-        </template>
-        <v-data-table
-          :items="filteredItems()"
-          :headers="headers"
-          :group-by="[{ key: 'type' }]"
-          show-group-by
-          density="compact"
-        >
-          <template
-            v-slot:group-header="{ item, columns, toggleGroup, isGroupOpen }"
+      <SurfaceCard class="transactions-card" padding="10px 12px">
+        <SectionHeader label="All activity" title="Transactions">
+          <template #actions>
+            <v-text-field
+              v-model="searchTerm"
+              label="Search transactions"
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              hide-details
+              single-line
+              density="comfortable"
+              class="search-input"
+            ></v-text-field>
+          </template>
+        </SectionHeader>
+        <div class="table-wrapper">
+          <v-data-table
+            :items="filteredItems()"
+            :headers="headers"
+            :group-by="[{ key: 'type' }]"
+            show-group-by
+            density="compact"
+            class="elevated-table"
           >
-            <tr>
-              <td :colspan="columns.length">
-                <div class="d-flex align-center">
-                  <v-btn
-                    :icon="isGroupOpen(item) ? '$expand' : '$next'"
-                    color="medium-emphasis"
-                    density="comfortable"
-                    size="small"
-                    variant="outlined"
-                    @click="toggleGroup(item)"
-                  ></v-btn>
+            <template
+              v-slot:group-header="{ item, columns, toggleGroup, isGroupOpen }"
+            >
+              <tr>
+                <td :colspan="columns.length">
+                  <div class="d-flex align-center">
+                    <v-btn
+                      :icon="isGroupOpen(item) ? '$expand' : '$next'"
+                      color="medium-emphasis"
+                      density="comfortable"
+                      size="small"
+                      variant="outlined"
+                      @click="toggleGroup(item)"
+                    ></v-btn>
 
-                  <span class="ms-4"
-                    >{{ item.value }} ({{ item.items.length }})
-                    {{
-                      formatCurrency(
-                        item.items.reduce(
-                          (total, currentItem) =>
-                            total + currentItem.raw.amount,
-                          0
+                    <span class="ms-4"
+                      >{{ item.value }} ({{ item.items.length }})
+                      {{
+                        formatCurrency(
+                          item.items.reduce(
+                            (total, currentItem) =>
+                              total + currentItem.raw.amount,
+                            0
+                          )
                         )
-                      )
-                    }}
-                  </span>
-                </div>
-              </td>
-            </tr>
-          </template>
-          <template v-slot:item.value="{ item }">
-            {{ formatCurrency(item.value) }}
-          </template>
-          <template v-slot:item.need="{ item }">
-            <div v-if="item.type === 'Expenses'">
-              <v-checkbox
-                v-model="item.need"
-                @change="saveTransaction(item)"
+                      }}
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </template>
+            <template v-slot:item.value="{ item }">
+              {{ formatCurrency(item.value) }}
+            </template>
+            <template v-slot:item.need="{ item }">
+              <div v-if="item.type === 'Expenses'">
+                <v-checkbox
+                  v-model="item.need"
+                  @change="saveTransaction(item)"
+                  density="compact"
+                  hide-details
+                ></v-checkbox>
+              </div>
+            </template>
+            <template v-slot:item.category="{ item }">
+              <v-combobox
+                v-model="item.category"
+                @blur="saveTransaction(item)"
                 density="compact"
-                hide-details
-              ></v-checkbox>
-            </div>
-          </template>
-          <template v-slot:item.category="{ item }">
-            <v-combobox
-              v-model="item.category"
-              @blur="saveTransaction(item)"
-              density="compact"
-              variant="plain"
-              :items="
-                transactionStore.categories[item.type.toLowerCase()].map(
-                  (category) => category.name
-                )
-              "
-            ></v-combobox>
-          </template>
-          <template v-slot:item.sub_category="{ item }">
-            <v-combobox
-              v-model="item.sub_category"
-              @blur="saveTransaction(item)"
-              density="compact"
-              variant="plain"
-              :items="
-                transactionStore.categories[item.type.toLowerCase()].find(
-                  (cat) => cat.name === item.category
-                )?.sub_categories
-              "
-            ></v-combobox>
-          </template>
-          <template v-slot:item.account_name="{ item }">
-            {{ getAccount(item.account_id).description }}:
-            {{ getUser(getAccount(item.account_id).user_id).first_name }}
-            ({{ item.account_id }})
-          </template>
-          <template v-slot:item.date="{ item }">
-            {{ formatDate(item.date) }}
-          </template>
-          <template v-slot:item.amount="{ item }">
-            {{ formatCurrency(item.amount) }}
-          </template>
-          <template v-slot:group.header="item">
-            <td :colspan="headers.length">
-              <v-btn icon @click="item.toggle">
-                <v-icon>{{ item.isOpen ? "mdi-minus" : "mdi-plus" }}</v-icon>
-              </v-btn>
-              {{ item.group }}
-            </td>
-          </template>
-        </v-data-table>
-      </v-card>
+                variant="plain"
+                :items="
+                  transactionStore.categories[item.type.toLowerCase()].map(
+                    (category) => category.name
+                  )
+                "
+              ></v-combobox>
+            </template>
+            <template v-slot:item.sub_category="{ item }">
+              <v-combobox
+                v-model="item.sub_category"
+                @blur="saveTransaction(item)"
+                density="compact"
+                variant="plain"
+                :items="
+                  transactionStore.categories[item.type.toLowerCase()].find(
+                    (cat) => cat.name === item.category
+                  )?.sub_categories
+                "
+              ></v-combobox>
+            </template>
+            <template v-slot:item.account_name="{ item }">
+              {{ getAccount(item.account_id).description }}:
+              {{ getUser(getAccount(item.account_id).user_id).first_name }}
+              ({{ item.account_id }})
+            </template>
+            <template v-slot:item.date="{ item }">
+              {{ formatDate(item.date) }}
+            </template>
+            <template v-slot:item.amount="{ item }">
+              {{ formatCurrency(item.amount) }}
+            </template>
+            <template v-slot:group.header="item">
+              <td :colspan="headers.length">
+                <v-btn icon @click="item.toggle">
+                  <v-icon>{{ item.isOpen ? "mdi-minus" : "mdi-plus" }}</v-icon>
+                </v-btn>
+                {{ item.group }}
+              </td>
+            </template>
+          </v-data-table>
+        </div>
+      </SurfaceCard>
     </div>
   </div>
 </template>
 
 <style scoped>
-.table-title {
-  text-align: left;
-  font-size: 1.3em;
-  margin: 10px;
+.search-input {
+  min-width: 260px;
 }
-.search-bar {
-  text-align: left;
-  margin: 10px;
+.elevated-table :deep(.v-data-table__tr:nth-child(even)) {
+  background: rgba(var(--v-theme-primary), 0.02);
 }
-details {
-  min-width: 1280px;
+.elevated-table :deep(td) {
+  border-color: rgba(var(--v-theme-outline), 0.25);
 }
-table {
-  text-align: left;
-  margin: 10px;
-  min-width: 1280px;
+.elevated-table :deep(.v-data-table-footer) {
+  border-top: 1px solid rgba(var(--v-theme-outline), 0.25);
 }
-th,
-td {
-  text-align: left;
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+.table-wrapper :deep(table) {
+  min-width: 900px;
+}
+.table-wrapper :deep(.v-data-table__wrapper) {
+  overflow: visible;
+}
+.container {
+  position: relative;
+}
+
+@media (max-width: 960px) {
+  .search-input {
+    min-width: 100%;
+  }
 }
 </style>

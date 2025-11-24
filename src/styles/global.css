@@ -1,0 +1,77 @@
+/* Card-like container helpers */
+.card {
+  background: linear-gradient(
+      135deg,
+      rgba(var(--v-theme-primary), 0.04),
+      rgba(var(--v-theme-primary), 0)
+    ),
+    rgb(var(--v-theme-surface));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--pad);
+  border: 1px solid rgba(var(--v-theme-outline), 0.5);
+}
+
+.card--sm {
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  padding: 12px;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-theme-outline), 0.4);
+}
+
+/* Tables */
+.table {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-theme-outline), 0.4);
+}
+
+.table thead th {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: rgb(var(--v-theme-secondary));
+  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.5);
+  background: rgba(var(--v-theme-primary), 0.06);
+}
+
+.table tbody tr {
+  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.3);
+}
+
+.table tbody tr:hover {
+  background: rgba(var(--v-theme-primary), 0.05);
+}
+
+/* Utility spacing */
+.stack > * + * { margin-top: var(--gap); }
+.hstack { display:flex; gap: var(--gap); align-items:center; }
+.vstack { display:flex; flex-direction:column; gap: var(--gap); }
+.grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+.grid-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
+
+@media (max-width: 960px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+/* Charts container */
+.chart {
+  background: rgb(var(--v-theme-surface));
+  border-radius: var(--radius);
+  padding: var(--pad);
+  box-shadow: var(--shadow);
+}
+
+/* Buttons */
+.btn-primary {
+  background: rgb(var(--v-theme-primary));
+  color: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.btn-primary:hover { filter: brightness(0.95); }
+
+.muted {
+  color: rgba(var(--v-theme-on-background), 0.65);
+}

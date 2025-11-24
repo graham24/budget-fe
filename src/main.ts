@@ -11,6 +11,9 @@ import { registerPlugins } from "@/plugins";
 import App from "./App.vue";
 import vue3GoogleLogin from "vue3-google-login";
 
+// Global styles
+import "@/styles/tokens.css";
+import "@/styles/global.css";
 
 // Composables
 import { createApp } from "vue";

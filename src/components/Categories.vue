@@ -1,6 +1,8 @@
 <script setup>
 import CategoryTable from "./common/CategoryTable.vue";
 import { useTransactionStore } from "../stores/transaction";
+import SurfaceCard from "./common/SurfaceCard.vue";
+import SectionHeader from "./common/SectionHeader.vue";
 
 const transactionStore = useTransactionStore();
 </script>
@@ -8,39 +10,32 @@ const transactionStore = useTransactionStore();
   <div>
     <v-container>
       <v-row>
-        <v-col cols="auto">
-          <v-card>
-            {{
-              formatDate(
-                new Date(
-                  new Date().getFullYear(),
-                  new Date().getMonth(),
-                  1
-                ).setMonth(
-                  new Date().getMonth() - (transactionStore.monthsAgo + 1)
-                )
-              )
-            }}
-            Income
+        <v-col cols="12">
+          <SurfaceCard class="category-card" padding="14px 14px 10px">
+            <SectionHeader
+              label="Income"
+              title="Primary earnings"
+            />
             <CategoryTable :type="'Income'" />
-          </v-card>
+          </SurfaceCard>
         </v-col>
-        <v-col>
-          <v-card>
-            {{
-              formatDate(
-                new Date(
-                  new Date().getFullYear(),
-                  new Date().getMonth(),
-                  1
-                ).setMonth(
-                  new Date().getMonth() - (transactionStore.monthsAgo + 1)
-                )
-              )
-            }}
-            Expenses
-            <CategoryTable :type="'Expenses'" />
-          </v-card>
+        <v-col cols="12">
+          <SurfaceCard class="category-card" padding="14px 14px 10px">
+            <SectionHeader
+              label="Must-Haves"
+              title="Rent, utilities, groceries"
+            />
+            <CategoryTable :type="'Expenses'" :need="true" />
+          </SurfaceCard>
+        </v-col>
+        <v-col cols="12">
+          <SurfaceCard class="category-card" padding="14px 14px 10px">
+            <SectionHeader
+              label="Nice-to-Haves"
+              title="Dining out, travel, fun"
+            />
+            <CategoryTable :type="'Expenses'" :need="false" />
+          </SurfaceCard>
         </v-col>
       </v-row>
     </v-container>
