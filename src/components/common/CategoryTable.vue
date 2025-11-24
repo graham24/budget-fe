@@ -1,6 +1,5 @@
 <script setup>
-import { computed } from "vue";
-
+import { computed, watch } from "vue";
 import { useTransactionStore } from "../../stores/transaction";
 
 const transactionStore = useTransactionStore();
@@ -15,116 +14,126 @@ const props = defineProps({
   },
 });
 
-function getMonthRanges(months = 3) {
-  const base = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  const offset = transactionStore.monthsAgo ?? 0;
-
-  return Array.from({ length: months }, (_, index) => {
-    const endDate = new Date(base);
-    endDate.setMonth(endDate.getMonth() - (offset + index));
-    const startDate = new Date(endDate);
-    startDate.setMonth(startDate.getMonth() - 1);
-    return { key: `month${index + 1}`, startDate, endDate };
-  });
-}
-
-const monthRanges = computed(() => getMonthRanges());
-const monthLabels = computed(() =>
-  monthRanges.value.map((range) =>
-    range.startDate.toLocaleString(undefined, {
-      month: "long",
-      year: "numeric",
-    })
-  )
+watch(
+  () => transactionStore.transactions?.all_transactions ?? [],
+  (txs) => {
+    if (txs.length) categoryTotals();
+  },
+  { immediate: true, deep: true }
 );
 
-function normalizeDate(dateString) {
-  const date = new Date(dateString);
-  return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-}
+function categoryTotals() {
+  const month1End = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1
+  );
+  const month1Start = new Date(month1End);
+  month1Start.setMonth(month1Start.getMonth() - 1);
 
-function matchesType(transaction) {
-  if (transaction.type) {
-    return (transaction.type.toLowerCase() === props.type.toLowerCase() && transaction.need === props.need);
-  }
-  if (props.type.toLowerCase() === "income") return transaction.amount >= 0;
-  if (props.type.toLowerCase() === "expenses") return transaction.amount < 0;
-  return true;
-}
+  const month2End = new Date(month1Start);
+  const month2Start = new Date(month2End);
+  month2Start.setMonth(month2End.getMonth() - 1);
 
-function buildCategoryMap(ranges) {
-  const categoryMap = {};
+  const month3End = new Date(month2Start);
+  const month3Start = new Date(month3End);
+  month3Start.setMonth(month3End.getMonth() - 1);
+
+  const categories = [];
+  const getCategory = (name) => {
+    let cat = categories.find((c) => c.category === name);
+    if (!cat) {
+      cat = {
+        category: name,
+        month1: 0,
+        month2: 0,
+        month3: 0,
+        subCategories: [],
+      };
+      categories.push(cat);
+    }
+    return cat;
+  };
+
+  const getSubCategory = (cat, subName) => {
+    const key = subName ?? "Uncategorized";
+    let sub = cat.subCategories.find((s) => s.subCategory === key);
+    if (!sub) {
+      sub = {
+        category: cat.category,
+        subCategory: key,
+        month1: 0,
+        month2: 0,
+        month3: 0,
+      };
+      cat.subCategories.push(sub);
+    }
+    return sub;
+  };
+
   const transactions = transactionStore.transactions?.all_transactions ?? [];
-
   transactions.forEach((transaction) => {
-    if (!matchesType(transaction)) return;
-
-    const transactionDate = normalizeDate(transaction.date);
-    const range = ranges.find(
-      ({ startDate, endDate }) =>
-        transactionDate >= startDate && transactionDate < endDate
-    );
-
-    if (!range) return;
-
-    const category =
-      categoryMap[transaction.category] ??
-      (categoryMap[transaction.category] = {
-        category: transaction.category,
-        month1: 0,
-        month2: 0,
-        month3: 0,
-        subCategories: {},
-      });
-
-    category[range.key] += transaction.amount;
-
-    const subCategoryKey = transaction.sub_category ?? "Uncategorized";
-    const subCategory =
-      category.subCategories[subCategoryKey] ??
-      (category.subCategories[subCategoryKey] = {
-        category: transaction.category,
-        subCategory: subCategoryKey,
-        month1: 0,
-        month2: 0,
-        month3: 0,
-      });
-
-    subCategory[range.key] += transaction.amount;
+    if (transaction.type === props.type) {
+      if (transaction.type != "Income" && transaction.need != props.need) {
+        return;
+      }
+      const cat = getCategory(transaction.category);
+      const subRow = getSubCategory(cat, transaction.sub_category);
+      const transactionDate = new Date(transaction.date);
+      if (transactionDate >= month1Start && transactionDate < month1End) {
+        subRow.month1 += transaction.amount;
+        cat.month1 += transaction.amount;
+      }
+      if (transactionDate >= month2Start && transactionDate < month2End) {
+        subRow.month2 += transaction.amount;
+        cat.month2 += transaction.amount;
+      }
+      if (transactionDate >= month3Start && transactionDate < month3End) {
+        subRow.month3 += transaction.amount;
+        cat.month3 += transaction.amount;
+      }
+    }
   });
-
-  return categoryMap;
+  return categories;
 }
 
-const categoryMap = computed(() => buildCategoryMap(monthRanges.value));
-
-const categoryTotals = computed(() => {
+const categoryRows = computed(() => {
+  const categories = categoryTotals().sort(
+    (a, b) => (b.month1 ?? 0) - (a.month1 ?? 0)
+  );
   const isIncome = props.type?.toLowerCase() === "income";
-  const categorySort = (a, b) =>
+  const metric = (item) => Math.abs(item.month1 ?? 0);
+
+  const sortedCategories = [...categories].sort((a, b) =>
     isIncome
-      ? calculateAverage(b) - calculateAverage(a)
-      : calculateAverage(a) - calculateAverage(b);
+      ? (b.month1 ?? 0) - (a.month1 ?? 0)
+      : (a.month1 ?? 0) - (b.month1 ?? 0)
+  );
 
-  return Object.values(categoryMap.value)
-    .sort(categorySort)
-    .flatMap((category) =>
-      Object.values(category.subCategories).sort(categorySort)
-    );
+  return sortedCategories
+    .map((cat) => ({
+      ...cat,
+      subCategories: [...cat.subCategories].sort((a, b) =>
+        isIncome
+          ? (b.month1 ?? 0) - (a.month1 ?? 0)
+          : metric(b) - metric(a)
+      ),
+    }))
+    .flatMap((cat) => cat.subCategories);
 });
-
 function calculateAverage(item) {
   return (item.month1 + item.month2 + item.month3) / 3;
 }
 
 function sumField(items, key) {
   return items.reduce((total, currentItem) => {
-    const value = currentItem.raw?.[key] ?? 0;
+    const value = currentItem.raw?.[key] ?? currentItem[key] ?? 0;
     return total + value;
   }, 0);
 }
 
 const totalsRow = computed(() =>
-  categoryTotals.value.reduce(
+  categoryRows.value.reduce(
     (totals, current) => ({
       ...totals,
       month1: totals.month1 + (current.month1 ?? 0),
@@ -134,24 +143,35 @@ const totalsRow = computed(() =>
     { subCategory: "Totals", month1: 0, month2: 0, month3: 0 }
   )
 );
-
-const headers = computed(() => {
-  const [month1Label, month2Label, month3Label] = monthLabels.value;
-  return [
-    // { title: "Category", value: "category" },
-    { title: "Sub Category", value: "subCategory" },    
-    { title: month3Label ?? "Month 3", value: "month3" },
-    { title: month2Label ?? "Month 2", value: "month2" },
-    { title: month1Label ?? "Month 1", value: "month1" },
-    { title: "Average", value: "average" },
-  ];
-});
+const month1 = new Date(
+  new Date().getFullYear(),
+  new Date().getMonth() - 1,
+  1
+)
+const month2 = new Date(
+  new Date().getFullYear(),
+  month1.getMonth() - 1,
+  1
+)
+const month3 = new Date(
+  new Date().getFullYear(),
+  month2.getMonth() - 1,
+  1
+)
+const headers = [
+  // { title: "Category", value: "category" },
+  { title: "Sub Category", value: "subCategory" },
+  { title: month3.toLocaleString(undefined, { month: "long" }), value: "month3" },
+  { title: month2.toLocaleString(undefined, { month: "long" }), value: "month2" },
+  { title: month1.toLocaleString(undefined, { month: "long" }), value: "month1" },
+  { title: "Average", value: "average" },
+];
 </script>
 
 <template>
   <div class="category-table-wrapper">
     <v-data-table
-      :items="categoryTotals"
+      :items="categoryRows"
       :headers="headers"
       :group-by="[{ key: 'category', name: 'Category' }]"
       hide-default-footer
@@ -188,7 +208,6 @@ const headers = computed(() => {
             {{ formatCurrency(sumField(item.items, "month2")) }}
           </td>
           <td>
-            
             {{ formatCurrency(sumField(item.items, "month1")) }}
           </td>
           <td>
