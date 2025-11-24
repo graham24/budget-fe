@@ -21,6 +21,7 @@ declare module 'vue' {
     SavingsRate: typeof import('./src/components/SavingsRate.vue')['default']
     SectionHeader: typeof import('./src/components/common/SectionHeader.vue')['default']
     SurfaceCard: typeof import('./src/components/common/SurfaceCard.vue')['default']
+    TransactionReviewDialog: typeof import('./src/components/TransactionReviewDialog.vue')['default']
     TransactionRow: typeof import('./src/components/TransactionRow.vue')['default']
     Transactions: typeof import('./src/components/Transactions.vue')['default']
   }

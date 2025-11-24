@@ -5,6 +5,7 @@ import { useAccountStore } from "../stores/account";
 import { useUserStore } from "../stores/user";
 import SurfaceCard from "./common/SurfaceCard.vue";
 import SectionHeader from "./common/SectionHeader.vue";
+import TransactionReviewDialog from "./TransactionReviewDialog.vue";
 // import DayJsAdapter from '@date-io/dayjs'
 
 const search = ref("");
@@ -27,6 +28,7 @@ const headers = [
 const showDatePicker = ref(false);
 const selectedDates = ref(null);
 const searchTerm = ref(null);
+const showReviewDialog = ref(false);
 // const endDate = ref(new Date());
 
 function saveTransaction(transaction) {
@@ -126,6 +128,14 @@ function filteredItems() {
       <SurfaceCard class="transactions-card" padding="10px 12px">
         <SectionHeader label="All activity" title="Transactions">
           <template #actions>
+            <v-btn
+              color="primary"
+              variant="flat"
+              prepend-icon="mdi-eye-check"
+              @click="showReviewDialog = true"
+            >
+              Review
+            </v-btn>
             <v-text-field
               v-model="searchTerm"
               label="Search transactions"
@@ -240,6 +250,10 @@ function filteredItems() {
         </div>
       </SurfaceCard>
     </div>
+    <TransactionReviewDialog
+      v-model="showReviewDialog"
+      :transactions="transactionStore.transactions.all_transactions"
+    />
   </div>
 </template>
 
