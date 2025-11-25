@@ -16,8 +16,8 @@ export default api;
 
 
 // Login
-export const login = async (token: string, data: any): Promise<User> => {
-  const response = await api.post<User>("/auth/login/", { token, data });
+export const login = async (): Promise<User> => {
+  const response = await api.post<User>("/auth/login/");
   return response.data;
 };
 

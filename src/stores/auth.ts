@@ -7,9 +7,9 @@ export const useAuthStore = defineStore("auth", {
     user: null as User | null,
   }),
   actions: {
-    async login(token: string, data: any) {
+    async login() {
       try {
-        const user_response = await login(token, data);
+        const user_response = await login();
         this.user = user_response;
         localStorage.setItem("user", JSON.stringify(user_response));
       } catch (error) {

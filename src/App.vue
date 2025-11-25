@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <div v-if="!authStore.user" class="auth-landing">
+    <!-- <div v-if="!authStore.user" class="auth-landing">
       <SurfaceCard class="auth-card" tag="section">
         <div class="text-center mb-6">
           <p class="pill">Welcome back</p>
@@ -25,8 +25,8 @@
           </div>
         </div>
       </SurfaceCard>
-    </div>
-    <div v-else class="app-frame">
+    </div> -->
+    <div class="app-frame">
       <SurfaceCard class="app-header" tag="header" padding="14px 18px">
         <div class="d-flex align-center ga-3">
           <div class="brand-mark">
@@ -83,11 +83,7 @@ onMounted(() => {
   if (storedUser) {
     authStore.verifyUser(JSON.parse(storedUser));
   } else {
-    window.handleCredentialResponse = (response) => {
-      const token = response.credential;
-      const data = parseJwt(token);
-      authStore.login(token, data);
-    };
+    authStore.login();
   }
 });
 
