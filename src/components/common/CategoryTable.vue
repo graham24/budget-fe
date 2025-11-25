@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch } from "vue";
+import { computed } from "vue";
 import { useTransactionStore } from "../../stores/transaction";
 
 const transactionStore = useTransactionStore();
@@ -14,93 +14,9 @@ const props = defineProps({
   },
 });
 
-watch(
-  () => transactionStore.transactions?.all_transactions ?? [],
-  (txs) => {
-    if (txs.length) categoryTotals();
-  },
-  { immediate: true, deep: true }
-);
-
-function categoryTotals() {
-  const month1End = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    1
-  );
-  const month1Start = new Date(month1End);
-  month1Start.setMonth(month1Start.getMonth() - 1);
-
-  const month2End = new Date(month1Start);
-  const month2Start = new Date(month2End);
-  month2Start.setMonth(month2End.getMonth() - 1);
-
-  const month3End = new Date(month2Start);
-  const month3Start = new Date(month3End);
-  month3Start.setMonth(month3End.getMonth() - 1);
-
-  const categories = [];
-  const getCategory = (name) => {
-    let cat = categories.find((c) => c.category === name);
-    if (!cat) {
-      cat = {
-        category: name,
-        month1: 0,
-        month2: 0,
-        month3: 0,
-        subCategories: [],
-      };
-      categories.push(cat);
-    }
-    return cat;
-  };
-
-  const getSubCategory = (cat, subName) => {
-    const key = subName ?? "Uncategorized";
-    let sub = cat.subCategories.find((s) => s.subCategory === key);
-    if (!sub) {
-      sub = {
-        category: cat.category,
-        subCategory: key,
-        month1: 0,
-        month2: 0,
-        month3: 0,
-      };
-      cat.subCategories.push(sub);
-    }
-    return sub;
-  };
-
-  const transactions = transactionStore.transactions?.all_transactions ?? [];
-  transactions.forEach((transaction) => {
-    if (transaction.type === props.type) {
-      if (transaction.type != "Income" && transaction.need != props.need) {
-        return;
-      }
-      const cat = getCategory(transaction.category);
-      const subRow = getSubCategory(cat, transaction.sub_category);
-      const transactionDate = new Date(transaction.date);
-      if (transactionDate >= month1Start && transactionDate < month1End) {
-        subRow.month1 += transaction.amount;
-        cat.month1 += transaction.amount;
-      }
-      if (transactionDate >= month2Start && transactionDate < month2End) {
-        subRow.month2 += transaction.amount;
-        cat.month2 += transaction.amount;
-      }
-      if (transactionDate >= month3Start && transactionDate < month3End) {
-        subRow.month3 += transaction.amount;
-        cat.month3 += transaction.amount;
-      }
-    }
-  });
-  return categories;
-}
-
 const categoryRows = computed(() => {
-  const categories = categoryTotals().sort(
-    (a, b) => (b.month1 ?? 0) - (a.month1 ?? 0)
-  );
+  const categories =
+    transactionStore.categoryTotals?.(props.type, props.need) ?? [];
   const isIncome = props.type?.toLowerCase() === "income";
   const metric = (item) => Math.abs(item.month1 ?? 0);
 
