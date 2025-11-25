@@ -1,10 +1,5 @@
 import { defineStore } from "pinia";
-import {
-  getTransactions,
-  addTransaction,
-  saveTransaction,
-  getSummary,
-} from "../api";
+import { getTransactions, addTransaction, saveTransaction } from "../api";
 import type { Transaction, Category, Sub_Category } from "../types";
 
 export const useTransactionStore = defineStore("transaction", {
@@ -25,11 +20,14 @@ export const useTransactionStore = defineStore("transaction", {
       net_incomes: null,
     },
     net_incomes: [
-      { income: 0, expenses: 0 },
-      { income: 0, expenses: 0 },
-      { income: 0, expenses: 0 },
+      { income: 0, expensesNeed: 0, expensesWant: 0 },
+      { income: 0, expensesNeed: 0, expensesWant: 0 },
+      { income: 0, expensesNeed: 0, expensesWant: 0 },
     ],
     monthsAgo: 0 as number,
+    income: [] as any[],
+    expensesNeed: [] as any[],
+    expensesWant: [] as any[],
   }),
   actions: {
     categoryTotals(type: string, need?: boolean) {
@@ -96,14 +94,35 @@ export const useTransactionStore = defineStore("transaction", {
           if (transactionDate >= month1Start && transactionDate < month1End) {
             subRow.month1 += transaction.amount;
             cat.month1 += transaction.amount;
+            if (type === "Income") {
+              this.net_incomes[0].income += transaction.amount;
+            } else if (type == 'Expenses' && need) {
+              this.net_incomes[0].expensesNeed += transaction.amount;
+            } else {
+              this.net_incomes[0].expensesWant += transaction.amount;
+            }
           }
           if (transactionDate >= month2Start && transactionDate < month2End) {
             subRow.month2 += transaction.amount;
             cat.month2 += transaction.amount;
+            if (type === "Income") {
+              this.net_incomes[1].income += transaction.amount;
+            } else if (type == "Expenses" && need) {
+              this.net_incomes[1].expensesNeed += transaction.amount;
+            } else {
+              this.net_incomes[1].expensesWant += transaction.amount;
+            }
           }
           if (transactionDate >= month3Start && transactionDate < month3End) {
             subRow.month3 += transaction.amount;
             cat.month3 += transaction.amount;
+            if (type === "Income") {
+              this.net_incomes[2].income += transaction.amount;
+            } else if (type == "Expenses" && need) {
+              this.net_incomes[2].expensesNeed += transaction.amount;
+            } else {
+              this.net_incomes[2].expensesWant += transaction.amount;
+            }
           }
         }
       });
@@ -120,8 +139,9 @@ export const useTransactionStore = defineStore("transaction", {
             return new Date(b.date).getTime() - new Date(a.date).getTime();
           });
         }
-        // this.getCategories();
-        // this.getNetIncomes();
+        this.income = this.categoryTotals("Income", false);
+        this.expensesNeed = this.categoryTotals("Expenses", true);
+        this.expensesWant = this.categoryTotals("Expenses", false);
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }

@@ -15,9 +15,11 @@ const props = defineProps({
 });
 
 const categoryRows = computed(() => {
-  const categories =
-    transactionStore.categoryTotals?.(props.type, props.need) ?? [];
   const isIncome = props.type?.toLowerCase() === "income";
+  let transactionType =
+    props.type?.toLowerCase() + (isIncome ? "" : props.need ? "Need" : "Want");
+  const categories = transactionStore[transactionType];
+
   const metric = (item) => Math.abs(item.month1 ?? 0);
 
   const sortedCategories = [...categories].sort((a, b) =>
@@ -30,9 +32,7 @@ const categoryRows = computed(() => {
     .map((cat) => ({
       ...cat,
       subCategories: [...cat.subCategories].sort((a, b) =>
-        isIncome
-          ? (b.month1 ?? 0) - (a.month1 ?? 0)
-          : metric(b) - metric(a)
+        isIncome ? (b.month1 ?? 0) - (a.month1 ?? 0) : metric(b) - metric(a)
       ),
     }))
     .flatMap((cat) => cat.subCategories);
@@ -59,27 +59,24 @@ const totalsRow = computed(() =>
     { subCategory: "Totals", month1: 0, month2: 0, month3: 0 }
   )
 );
-const month1 = new Date(
-  new Date().getFullYear(),
-  new Date().getMonth() - 1,
-  1
-)
-const month2 = new Date(
-  new Date().getFullYear(),
-  month1.getMonth() - 1,
-  1
-)
-const month3 = new Date(
-  new Date().getFullYear(),
-  month2.getMonth() - 1,
-  1
-)
+const month1 = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+const month2 = new Date(new Date().getFullYear(), month1.getMonth() - 1, 1);
+const month3 = new Date(new Date().getFullYear(), month2.getMonth() - 1, 1);
 const headers = [
   // { title: "Category", value: "category" },
   { title: "Sub Category", value: "subCategory" },
-  { title: month3.toLocaleString(undefined, { month: "long" }), value: "month3" },
-  { title: month2.toLocaleString(undefined, { month: "long" }), value: "month2" },
-  { title: month1.toLocaleString(undefined, { month: "long" }), value: "month1" },
+  {
+    title: month3.toLocaleString(undefined, { month: "long" }),
+    value: "month3",
+  },
+  {
+    title: month2.toLocaleString(undefined, { month: "long" }),
+    value: "month2",
+  },
+  {
+    title: month1.toLocaleString(undefined, { month: "long" }),
+    value: "month1",
+  },
   { title: "Average", value: "average" },
 ];
 </script>

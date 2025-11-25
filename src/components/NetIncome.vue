@@ -4,16 +4,7 @@ import { useTransactionStore } from "../stores/transaction";
 
 const transactionStore = useTransactionStore();
 
-const focusMonth = computed(
-  () => transactionStore.net_incomes[transactionStore.monthsAgo] ?? null
-);
-
-const netValue = computed(() => {
-  if (!focusMonth.value) return 0;
-  return (
-    (focusMonth.value["income"] ?? 0) + (focusMonth.value["expenses"] ?? 0)
-  );
-});
+const netValue = computed(() => transactionStore.net_incomes[transactionStore.monthsAgo].income + transactionStore.net_incomes[transactionStore.monthsAgo].expensesNeed + transactionStore.net_incomes[transactionStore.monthsAgo].expensesWant)
 </script>
 <template>
   <div class="net-wrapper">
@@ -47,11 +38,11 @@ const netValue = computed(() => {
     <div class="pill-row">
       <span class="amount-chip positive">
         Income:
-        {{ formatCurrency(focusMonth?.income ?? 0) }}
+        {{ formatCurrency(transactionStore.net_incomes[transactionStore.monthsAgo].income ?? 0) }}
       </span>
       <span class="amount-chip negative">
         Expenses:
-        {{ formatCurrency(focusMonth?.expenses ?? 0) }}
+        {{ formatCurrency(transactionStore.net_incomes[transactionStore.monthsAgo].expensesNeed + transactionStore.net_incomes[transactionStore.monthsAgo].expensesWant ?? 0) }}
       </span>
     </div>
   </div>

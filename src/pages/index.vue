@@ -88,6 +88,7 @@ const focusMonthLabel = computed(() => {
             variant="text"
             color="primary"
             prepend-icon="mdi-chevron-left"
+            :disabled="true ? transactionsStore.monthsAgo >= 2 : false"
             @click="transactionsStore.monthsAgo += 1"
             >Previous</v-btn
           >
@@ -95,6 +96,7 @@ const focusMonthLabel = computed(() => {
             variant="text"
             color="primary"
             prepend-icon="mdi-chevron-right"
+            :disabled="true ? transactionsStore.monthsAgo <= 0 : false"
             @click="transactionsStore.monthsAgo -= 1"
             >Next</v-btn
           >

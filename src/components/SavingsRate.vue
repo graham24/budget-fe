@@ -11,7 +11,7 @@ const focusMonth = computed(
 const netValue = computed(() => {
   const focus = focusMonth.value;
   if (!focus) return 0;
-  return (focus["income"] ?? 0) + (focus["expenses"] ?? 0);
+  return (focus["income"] ?? 0) + (focus["expensesNeed"] + focus["expensesWant"]);
 });
 
 const savingsRate = computed(() => {

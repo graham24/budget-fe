@@ -1,51 +1,94 @@
-<script setup>
-import { computed } from "vue";
+<script setup lang="ts">
+import { computed, ref } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 
 const transactionStore = useTransactionStore();
+const mode = ref<"net" | "income" | "expensesNeed" | "expensesWant">("net");
+const width = 120;
+const height = 60;
+const padding = 6;
 
-const netTrend = computed(() => {
+const seriesMap = computed(() => {
   const baseIndex = transactionStore.monthsAgo;
-  const trend = [];
-  for (let i = 0; i < 3; i++) {
+  const income: { label: string; value: number }[] = [];
+  const expensesNeed: { label: string; value: number }[] = [];
+  const expensesWant: { label: string; value: number }[] = [];
+  const net: { label: string; value: number }[] = [];
+
+  const monthLabel = (offset: number) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - (baseIndex + offset + 1));
+    return d.toLocaleString(undefined, { month: "short", year: "numeric" });
+  };
+
+  // build from oldest to newest so the sparkline runs left-to-right chronologically
+  for (let i = 2; i >= 0; i--) {
     const entry = transactionStore.net_incomes?.[baseIndex + i];
     if (!entry) continue;
-    trend.push((entry["income"] ?? 0) + (entry["expenses"] ?? 0));
+    const inc = entry.income ?? 0;
+    const need = entry.expensesNeed ?? entry.expenses ?? 0;
+    const want = entry.expensesWant ?? 0;
+    const label = monthLabel(i);
+    income.push({ label, value: inc });
+    expensesNeed.push({ label, value: need });
+    expensesWant.push({ label, value: want });
+    net.push({ label, value: inc + need + want });
   }
-  return trend;
+
+  return { net, income, expensesNeed, expensesWant };
 });
 
+const currentSeries = computed(
+  () => seriesMap.value[mode.value] ?? []
+);
 const trendDelta = computed(() => {
-  if (netTrend.value.length < 2) return 0;
-  const latest = netTrend.value[0];
-  const previous = netTrend.value[1];
-  return latest - previous;
+  if (currentSeries.value.length < 2) return 0;
+  return currentSeries.value[0].value - currentSeries.value[1].value;
+});
+
+const plottedPoints = computed(() => {
+  const points = currentSeries.value;
+  if (!points.length) return [];
+  const values = points.map((p) => p.value);
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const range = Math.max(max - min, 1);
+
+  return points.map((point, idx) => {
+    const x = (idx / Math.max(points.length - 1, 1)) * width;
+    const usableHeight = height - padding * 2;
+    const y = height - padding - ((point.value - min) / range) * usableHeight;
+    return { ...point, x, y };
+  });
 });
 </script>
 
 <template>
-  <div class="trend-wrapper" v-if="netTrend.length">
+  <div class="trend-wrapper" v-if="currentSeries.length">
     <div class="sparkline-header">
-      <span class="muted text-caption">Trend (3 months)</span>
-      <span class="delta" :class="trendDelta >= 0 ? 'positive' : 'negative'">
-        {{ trendDelta >= 0 ? "+" : "" }}{{ formatCurrency(trendDelta) }}
-      </span>
+      <div class="muted text-caption">Trend (3 months)</div>
+      <div class="controls">
+        <v-btn-toggle v-model="mode" density="compact" mandatory color="primary">
+          <v-btn value="net" text="Net" />
+          <v-btn value="income" text="Income" />
+          <v-btn value="expensesNeed" text="Needs" />
+          <v-btn value="expensesWant" text="Wants" />
+        </v-btn-toggle>
+        <span class="delta" :class="trendDelta >= 0 ? 'positive' : 'negative'">
+          {{ trendDelta >= 0 ? "+" : "" }}{{ formatCurrency(trendDelta) }}
+        </span>
+      </div>
     </div>
-    <svg class="sparkline" viewBox="0 0 120 36" preserveAspectRatio="none">
+    <svg
+      class="sparkline"
+      :viewBox="`0 0 ${width} ${height}`"
+      preserveAspectRatio="none"
+    >
       <polyline
-        :points="netTrend
-          .map((value, idx, arr) => {
-            const x = (idx / Math.max(arr.length - 1, 1)) * 120;
-            const max = Math.max(...arr);
-            const min = Math.min(...arr);
-            const range = Math.max(max - min, 1);
-            const y = 36 - ((value - min) / range) * 30 - 3;
-            return `${x},${y}`;
-          })
-          .join(' ')"
+        :points="plottedPoints.map((p) => `${p.x},${p.y}`).join(' ')"
         fill="none"
         stroke="currentColor"
-        :class="netTrend[0] >= netTrend[netTrend.length - 1] ? 'negative' : 'positive'"
+        :class="plottedPoints[0].value >= plottedPoints[plottedPoints.length - 1].value ? 'negative' : 'positive'"
         stroke-width="2.5"
         stroke-linecap="round"
         stroke-linejoin="round"
@@ -65,10 +108,16 @@ const trendDelta = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .sparkline {
   width: 100%;
-  height: 36px;
+  height: 70px;
 }
 .delta {
   font-weight: 700;
