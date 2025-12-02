@@ -8,6 +8,7 @@ const importStore = useImportStore();
 const accountsStore = useAccountStore();
 const userStore = useUserStore();
 const loading = ref(false);
+const emit = defineEmits(["update:isOpen"]);
 
 function selectFile(event) {
   console.log(event.target.files);

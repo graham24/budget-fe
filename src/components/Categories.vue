@@ -16,7 +16,7 @@ const transactionStore = useTransactionStore();
               label="Income"
               title="Primary earnings"
             />
-            <CategoryTable :type="'Income'" />
+            <CategoryTable :type="'income'" />
           </SurfaceCard>
         </v-col>
         <v-col cols="12">
@@ -25,7 +25,7 @@ const transactionStore = useTransactionStore();
               label="Must-Haves"
               title="Rent, utilities, groceries"
             />
-            <CategoryTable :type="'Expenses'" :need="true" />
+            <CategoryTable :type="'expenses'" :need="true" />
           </SurfaceCard>
         </v-col>
         <v-col cols="12">
@@ -34,7 +34,7 @@ const transactionStore = useTransactionStore();
               label="Nice-to-Haves"
               title="Dining out, travel, fun"
             />
-            <CategoryTable :type="'Expenses'" :need="false" />
+            <CategoryTable :type="'expenses'" :need="false" />
           </SurfaceCard>
         </v-col>
       </v-row>

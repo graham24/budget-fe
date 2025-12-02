@@ -22,6 +22,9 @@ export interface Transaction {
   amount: number;
   user_id: number;
   type: string;
+  need: boolean;
+  date: string;
+  account_id: number;
 }
 
 export interface Account {

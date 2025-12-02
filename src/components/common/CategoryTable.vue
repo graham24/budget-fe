@@ -14,29 +14,83 @@ const props = defineProps({
   },
 });
 
-const categoryRows = computed(() => {
-  const isIncome = props.type?.toLowerCase() === "income";
-  let transactionType =
-    props.type?.toLowerCase() + (isIncome ? "" : props.need ? "Need" : "Want");
-  const categories = transactionStore[transactionType];
+const month1 = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+const month2 = new Date(new Date().getFullYear(), month1.getMonth() - 1, 1);
+const month3 = new Date(new Date().getFullYear(), month2.getMonth() - 1, 1);
 
-  const metric = (item) => Math.abs(item.month1 ?? 0);
-
-  const sortedCategories = [...categories].sort((a, b) =>
-    isIncome
-      ? (b.month1 ?? 0) - (a.month1 ?? 0)
-      : (a.month1 ?? 0) - (b.month1 ?? 0)
-  );
-
-  return sortedCategories
-    .map((cat) => ({
-      ...cat,
-      subCategories: [...cat.subCategories].sort((a, b) =>
-        isIncome ? (b.month1 ?? 0) - (a.month1 ?? 0) : metric(b) - metric(a)
-      ),
-    }))
-    .flatMap((cat) => cat.subCategories);
+const transactions = computed(() => {
+  if (props.type?.toLowerCase() === "income") {
+    return transactionStore.incomeTransactions;
+  } else {
+    return props.need
+      ? transactionStore.expenseNeedTransactions
+      : transactionStore.expenseWantTransactions;
+  }
 });
+
+const categoryRows = computed(() => {
+  const rows = [];
+  transactions.value.forEach((transaction) => {
+    let row = rows.find(
+      (cat) =>
+        cat.category === transaction.category &&
+        cat.subCategory === transaction.sub_category
+    );
+    if (!row) {
+      rows.push({
+        category: transaction.category,
+        subCategory: transaction.sub_category,
+        month1: 0,
+        month2: 0,
+        month3: 0,
+        total: 0,
+      });
+      row = rows.find(
+        (cat) =>
+          cat.category === transaction.category &&
+          cat.subCategory === transaction.sub_category
+      );
+    }
+
+    row.month1 +=
+      new Date(transaction.date).getMonth() === month1.getMonth()
+        ? transaction.amount
+        : 0;
+    row.month2 +=
+      new Date(transaction.date).getMonth() === month2.getMonth()
+        ? transaction.amount
+        : 0;
+    row.month3 +=
+      new Date(transaction.date).getMonth() === month3.getMonth()
+        ? transaction.amount
+        : 0;
+  });
+  transactions.value.forEach((transaction) => {
+    let matchingCategoryRows = rows.filter(
+      (r) => r.category === transaction.category
+    );
+    matchingCategoryRows.forEach((r) => {
+      r.total +=
+        new Date(transaction.date).getMonth() === month1.getMonth()
+          ? transaction.amount
+          : 0;
+    });
+  });
+  return rows;
+});
+
+const sortedRows = computed(() => {
+  // Sort by total then month1
+  return categoryRows.value.sort((a, b) => {
+    if (b.total === a.total) {
+      return props.type === "income"
+        ? b.month1 - a.month1
+        : a.month1 - b.month1;
+    }
+    return props.type === "income" ? b.total - a.total : a.total - b.total;
+  });
+});
+
 function calculateAverage(item) {
   return (item.month1 + item.month2 + item.month3) / 3;
 }
@@ -59,9 +113,7 @@ const totalsRow = computed(() =>
     { subCategory: "Totals", month1: 0, month2: 0, month3: 0 }
   )
 );
-const month1 = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
-const month2 = new Date(new Date().getFullYear(), month1.getMonth() - 1, 1);
-const month3 = new Date(new Date().getFullYear(), month2.getMonth() - 1, 1);
+
 const headers = [
   // { title: "Category", value: "category" },
   { title: "Sub Category", value: "subCategory" },
@@ -84,7 +136,7 @@ const headers = [
 <template>
   <div class="category-table-wrapper">
     <v-data-table
-      :items="categoryRows"
+      :items="sortedRows"
       :headers="headers"
       :group-by="[{ key: 'category', name: 'Category' }]"
       hide-default-footer

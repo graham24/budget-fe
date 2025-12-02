@@ -10,24 +10,25 @@ export const useImportStore = defineStore("import", {
   }),
   actions: {
     async importTransactions() {
+      if (this.accountId === null) {
+        console.error("Account ID is null. Cannot upload transactions.");
+        return;
+      }
+      if (!this.importFile) {
+        console.error("Import file is null. Cannot upload transactions.");
+        return;
+      }
+
       try {
-        if (this.accountId !== null) {
-          if (this.importFile) {
-            this.importedTransactions =
-              (await uploadTransactions(this.accountId, this.importFile).then(() => {
-                this.importFile = null;
-                const transactionStore = useTransactionStore();
-                transactionStore.transactions.all_transactions.push(this.importedTransactions)
-                return this.importedTransactions;
-              })) || null;
-          } else {
-            console.error("Import file is null. Cannot upload transactions.");
-          }
-        } else {
-          console.error("Account ID is null. Cannot upload transactions.");
-        }
+        const transactionStore = useTransactionStore();
+        const result = await uploadTransactions(this.accountId, this.importFile);
+        this.importFile = null;
+        this.importedTransactions = result ?? null;
+        await transactionStore.fetchTransactions();
+        return this.importedTransactions;
       } catch (error) {
         console.error("Error importing transactions:", error);
+        throw error;
       }
     },
   },

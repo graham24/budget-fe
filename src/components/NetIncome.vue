@@ -4,7 +4,39 @@ import { useTransactionStore } from "../stores/transaction";
 
 const transactionStore = useTransactionStore();
 
-const netValue = computed(() => transactionStore.net_incomes[transactionStore.monthsAgo].income + transactionStore.net_incomes[transactionStore.monthsAgo].expensesNeed + transactionStore.net_incomes[transactionStore.monthsAgo].expensesWant)
+const month1 = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+const month2 = new Date(new Date().getFullYear(), month1.getMonth() - 1, 1);
+const month3 = new Date(new Date().getFullYear(), month2.getMonth() - 1, 1);
+
+const incomeTotal = computed(() => {
+  let total = 0;
+  transactionStore.incomeTransactions.forEach((transaction) => {
+    total +=
+      new Date(transaction.date).getMonth() === month1.getMonth()
+        ? transaction.amount
+        : 0;
+  });
+  return total;
+});
+const expensesTotal = computed(() => {
+  let total = 0;
+  transactionStore.expenseNeedTransactions.forEach((transaction) => {
+    total +=
+      new Date(transaction.date).getMonth() === month1.getMonth()
+        ? transaction.amount
+        : 0;
+  });
+  transactionStore.expenseWantTransactions.forEach((transaction) => {
+    total +=
+      new Date(transaction.date).getMonth() === month1.getMonth()
+        ? transaction.amount
+        : 0;
+  });
+  return total;
+});
+const netValue = computed(() => {
+  return incomeTotal.value + expensesTotal.value;
+});
 </script>
 <template>
   <div class="net-wrapper">
@@ -17,18 +49,14 @@ const netValue = computed(() => transactionStore.net_incomes[transactionStore.mo
               new Date().getFullYear(),
               new Date().getMonth(),
               1
-            ).setMonth(
-              new Date().getMonth() - (transactionStore.monthsAgo + 1)
-            )
+            ).setMonth(new Date().getMonth() - (transactionStore.monthsAgo + 1))
           )
         }}
       </div>
     </div>
     <div
       class="net-highlight"
-      :class="[
-        netValue >= 0 ? 'positive' : 'negative',
-      ]"
+      :class="[netValue >= 0 ? 'positive' : 'negative']"
     >
       <div class="label muted">Net income</div>
       <div class="value">
@@ -38,11 +66,11 @@ const netValue = computed(() => transactionStore.net_incomes[transactionStore.mo
     <div class="pill-row">
       <span class="amount-chip positive">
         Income:
-        {{ formatCurrency(transactionStore.net_incomes[transactionStore.monthsAgo].income ?? 0) }}
+        {{ formatCurrency(incomeTotal ?? 0) }}
       </span>
       <span class="amount-chip negative">
         Expenses:
-        {{ formatCurrency(transactionStore.net_incomes[transactionStore.monthsAgo].expensesNeed + transactionStore.net_incomes[transactionStore.monthsAgo].expensesWant ?? 0) }}
+        {{ formatCurrency(expensesTotal ?? 0) }}
       </span>
     </div>
   </div>

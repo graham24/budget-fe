@@ -60,7 +60,7 @@ export const getSummary = async (
 export const getTransactions = async (
   user_id: number,
   household_id: number,
-  type: string
+  type: string | null = null
 ): Promise<Transaction[]> => {
   const data = {
     user_id: user_id,
@@ -68,10 +68,10 @@ export const getTransactions = async (
     type: type,
   };
   try {
-    const response = await api.get<Transaction[]>("/transactions/", {
+    const response = await api.get("/transactions/", {
       params: data,
     });
-    return response.data;
+    return response.data.all_transactions;
   } catch (error) {
     console.log(error);
     return [];

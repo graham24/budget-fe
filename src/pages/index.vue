@@ -108,7 +108,7 @@ const focusMonthLabel = computed(() => {
             >Import</v-btn
           >
           <Dialog v-model="showDialog" title="Import Transactions">
-            <ImportForm />
+            <ImportForm @update:isOpen="showDialog = $event" />
           </Dialog>
         </template>
       </HeroBanner>
@@ -122,11 +122,11 @@ const focusMonthLabel = computed(() => {
             </SurfaceCard>
             <SurfaceCard padding="12px 14px">
               <SectionHeader label="Trend" title="Net income (3 months)" />
-              <NetTrend />
+              <!-- <NetTrend /> -->
             </SurfaceCard>
             <SurfaceCard padding="12px 14px">
               <SectionHeader label="Savings rate" title="Income saved" />
-              <SavingsRate />
+              <!-- <SavingsRate /> -->
             </SurfaceCard>
           </div>
         </v-col>

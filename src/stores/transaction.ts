@@ -15,256 +15,43 @@ export const useTransactionStore = defineStore("transaction", {
       income: [] as Sub_Category[],
       transfers: [] as Sub_Category[],
     },
-    summary: {
-      categories: null,
-      net_incomes: null,
-    },
-    net_incomes: [
-      { income: 0, expensesNeed: 0, expensesWant: 0 },
-      { income: 0, expensesNeed: 0, expensesWant: 0 },
-      { income: 0, expensesNeed: 0, expensesWant: 0 },
-    ],
     monthsAgo: 0 as number,
-    income: [] as any[],
-    expensesNeed: [] as any[],
-    expensesWant: [] as any[],
   }),
+  getters: {
+    incomeTransactions: (state) =>
+      state.transactions.filter(
+        (transaction) =>
+          transaction.category !== "Transfer" && transaction.amount >= 0
+      ),
+    expenseNeedTransactions: (state) =>
+      state.transactions.filter(
+        (transaction) =>
+          transaction.category !== "Transfer" &&
+          transaction.amount < 0 &&
+          transaction.need
+      ),
+    expenseWantTransactions: (state) =>
+      state.transactions.filter(
+        (transaction) =>
+          transaction.category !== "Transfer" &&
+          transaction.amount < 0 &&
+          !transaction.need
+      ),
+    transferTransactions: (state) =>
+      state.transactions.filter(
+        (transaction) => transaction.category === "Transfer"
+      ),
+  },
   actions: {
-    categoryTotals(type: string, need?: boolean) {
-      const month1End = new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        1
-      );
-      const month1Start = new Date(month1End);
-      month1Start.setMonth(month1Start.getMonth() - 1);
-
-      const month2End = new Date(month1Start);
-      const month2Start = new Date(month2End);
-      month2Start.setMonth(month2End.getMonth() - 1);
-
-      const month3End = new Date(month2Start);
-      const month3Start = new Date(month3End);
-      month3Start.setMonth(month3End.getMonth() - 1);
-
-      const categories: any[] = [];
-      const getCategory = (name: string) => {
-        let cat = categories.find((c) => c.category === name);
-        if (!cat) {
-          cat = {
-            category: name,
-            month1: 0,
-            month2: 0,
-            month3: 0,
-            subCategories: [] as any[],
-          };
-          categories.push(cat);
-        }
-        return cat;
-      };
-
-      const getSubCategory = (cat: any, subName?: string) => {
-        const key = subName ?? "Uncategorized";
-        let sub = cat.subCategories.find((s: any) => s.subCategory === key);
-        if (!sub) {
-          sub = {
-            category: cat.category,
-            subCategory: key,
-            month1: 0,
-            month2: 0,
-            month3: 0,
-          };
-          cat.subCategories.push(sub);
-        }
-        return sub;
-      };
-
-      const transactions =
-        (this.transactions as any)?.all_transactions ??
-        (this.transactions as any) ??
-        [];
-      transactions.forEach((transaction: any) => {
-        if (transaction.type === type) {
-          if (transaction.type != "Income" && transaction.need != need) {
-            return;
-          }
-          const cat = getCategory(transaction.category);
-          const subRow = getSubCategory(cat, transaction.sub_category);
-          const transactionDate = new Date(transaction.date);
-          if (transactionDate >= month1Start && transactionDate < month1End) {
-            subRow.month1 += transaction.amount;
-            cat.month1 += transaction.amount;
-            if (type === "Income") {
-              this.net_incomes[0].income += transaction.amount;
-            } else if (type == 'Expenses' && need) {
-              this.net_incomes[0].expensesNeed += transaction.amount;
-            } else {
-              this.net_incomes[0].expensesWant += transaction.amount;
-            }
-          }
-          if (transactionDate >= month2Start && transactionDate < month2End) {
-            subRow.month2 += transaction.amount;
-            cat.month2 += transaction.amount;
-            if (type === "Income") {
-              this.net_incomes[1].income += transaction.amount;
-            } else if (type == "Expenses" && need) {
-              this.net_incomes[1].expensesNeed += transaction.amount;
-            } else {
-              this.net_incomes[1].expensesWant += transaction.amount;
-            }
-          }
-          if (transactionDate >= month3Start && transactionDate < month3End) {
-            subRow.month3 += transaction.amount;
-            cat.month3 += transaction.amount;
-            if (type === "Income") {
-              this.net_incomes[2].income += transaction.amount;
-            } else if (type == "Expenses" && need) {
-              this.net_incomes[2].expensesNeed += transaction.amount;
-            } else {
-              this.net_incomes[2].expensesWant += transaction.amount;
-            }
-          }
-        }
-      });
-      return categories;
-    },
-    async fetchTransactions(type: string) {
+    async fetchTransactions(type: string | null = null) {
       try {
-        this.transactions = await getTransactions(1, 1, type);
-        for (const key in this.transactions) {
-          this.transactions[key].sort((a, b) => {
-            if (a.date === b.date) {
-              return b.id - a.id;
-            }
-            return new Date(b.date).getTime() - new Date(a.date).getTime();
-          });
-        }
-        this.income = this.categoryTotals("Income", false);
-        this.expensesNeed = this.categoryTotals("Expenses", true);
-        this.expensesWant = this.categoryTotals("Expenses", false);
+        const all_transactions = await getTransactions(1, 1, type);
+        this.transactions = all_transactions;
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }
     },
 
-    // async fetchSummary() {
-    //   try {
-    //     this.summary = await getSummary(1, 1);
-    //   } catch (error) {
-    //     console.error("Error fetching transactions:", error);
-    //   }
-    // },
-
-    // getNetIncomes() {
-    //   const calculateDateRanges = (monthsAgo: number) => {
-    //     const endDate = new Date(
-    //       new Date().getFullYear(),
-    //       new Date().getMonth() - (monthsAgo + this.monthsAgo),
-    //       1
-    //     );
-    //     const startDate = new Date(endDate);
-    //     startDate.setMonth(startDate.getMonth() - 1);
-    //     return { startDate, endDate };
-    //   };
-
-    //   const dateRanges = [
-    //     calculateDateRanges(0),
-    //     calculateDateRanges(1),
-    //     calculateDateRanges(2),
-    //   ];
-
-    //   this.transactions.all_transactions.forEach((transaction) => {
-    //     try {
-    //       const transactionDate = new Date(
-    //         new Date(transaction.date).setMinutes(
-    //           new Date(transaction.date).getMinutes() +
-    //             new Date(transaction.date).getTimezoneOffset()
-    //         )
-    //       );
-
-    //       if (transaction.category !== "Transfer") {
-    //         dateRanges.forEach((range, index) => {
-    //           if (
-    //             transactionDate < range.endDate &&
-    //             transactionDate >= range.startDate
-    //           ) {
-    //             if (transaction.amount >= 0) {
-    //               this.net_incomes[index]["income"] += transaction.amount;
-    //             } else {
-    //               this.net_incomes[index]["expenses"] += transaction.amount;
-    //             }
-    //           }
-    //         });
-    //       }
-    //     } catch (error) {
-    //       console.log(error);
-    //     }
-    //   });
-    // },
-
-    // getCategories() {
-    //   this.transactions.all_transactions.forEach((transaction) => {
-    //     if (transaction.category === "Transfer") {
-    //       if (
-    //         !this.categories.transfers.some(
-    //           (cat) => cat.name === transaction.category
-    //         )
-    //       ) {
-    //         this.categories.transfers.push({
-    //           name: transaction.category,
-    //           sub_categories: [],
-    //         });
-    //       }
-    //       const transferCategory = this.categories.transfers.find(
-    //         (cat) => cat.name === transaction.category
-    //       );
-    //       if (
-    //         !transferCategory.sub_categories.includes(transaction.sub_category)
-    //       ) {
-    //         transferCategory.sub_categories.push(transaction.sub_category);
-    //       }
-    //     } else if (transaction.amount >= 0) {
-    //       if (
-    //         !this.categories.income.some(
-    //           (cat) => cat.name === transaction.category
-    //         )
-    //       ) {
-    //         this.categories.income.push({
-    //           name: transaction.category,
-    //           sub_categories: [],
-    //         });
-    //       }
-    //       const incomeCategory = this.categories.income.find(
-    //         (cat) => cat.name === transaction.category
-    //       );
-    //       if (
-    //         !incomeCategory.sub_categories.includes(transaction.sub_category)
-    //       ) {
-    //         incomeCategory.sub_categories.push(transaction.sub_category);
-    //       }
-    //     }
-    //     if (transaction.amount < 0) {
-    //       if (
-    //         !this.categories.expenses.some(
-    //           (cat) => cat.name === transaction.category
-    //         )
-    //       ) {
-    //         this.categories.expenses.push({
-    //           name: transaction.category,
-    //           sub_categories: [],
-    //         });
-    //       }
-    //       const expensesCategory = this.categories.expenses.find(
-    //         (cat) => cat.name === transaction.category
-    //       );
-    //       if (
-    //         !expensesCategory.sub_categories.includes(transaction.sub_category)
-    //       ) {
-    //         expensesCategory.sub_categories.push(transaction.sub_category);
-    //       }
-    //     }
-    //   });
-    // },
     async createTransaction(transaction: Omit<Transaction, "id">) {
       try {
         const newTransaction = await addTransaction(transaction);
@@ -274,9 +61,10 @@ export const useTransactionStore = defineStore("transaction", {
       }
     },
     async saveTransaction(transaction: Transaction) {
-      // TODO: If there is a new category or sub-category, add it
       try {
-        await saveTransaction(transaction);
+        const saved = await saveTransaction(transaction);
+        const idx = this.transactions.findIndex((t) => t.id === saved.id);
+        if (idx !== -1) this.transactions[idx] = saved;
       } catch (error) {
         console.error("Error saving transaction:", error);
       }

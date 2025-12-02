@@ -24,5 +24,6 @@ declare module 'vue' {
     TransactionReviewDialog: typeof import('./src/components/TransactionReviewDialog.vue')['default']
     TransactionRow: typeof import('./src/components/TransactionRow.vue')['default']
     Transactions: typeof import('./src/components/Transactions.vue')['default']
+    TransactionsTable: typeof import('./src/components/TransactionsTable.vue')['default']
   }
 }
