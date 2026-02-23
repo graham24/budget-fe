@@ -76,16 +76,16 @@ function getUser(userId) {
 //   }
 // }
 function filteredItems() {
-    let transactions
-    if (props.type === 'income') {
-        transactions = transactionStore.incomeTransactions;
-    } else if (props.type === 'expenses-need') {
-        transactions = transactionStore.expenseNeedTransactions;
-    } else if (props.type === 'expenses-want') {
-        transactions = transactionStore.expenseWantTransactions;
-    } else {
-        transactions = transactionStore.transferTransactions;
-    }
+  let transactions;
+  if (props.type === "income") {
+    transactions = transactionStore.incomeTransactions;
+  } else if (props.type === "expenses-need") {
+    transactions = transactionStore.expenseNeedTransactions;
+  } else if (props.type === "expenses-want") {
+    transactions = transactionStore.expenseWantTransactions;
+  } else {
+    transactions = transactionStore.transferTransactions;
+  }
   if (!props.searchTerm) {
     return transactions;
   }
@@ -95,26 +95,24 @@ function filteredItems() {
     month: "long",
   };
 
-  return transactions.filter(
-    (transaction) => {
-      return (
-        new Date(transaction.date).toLocaleDateString(undefined, options) +
-        transaction.date +
-        transaction.description +
-        transaction.category +
-        transaction.sub_category +
-        (getAccount(transaction.account_id).description +
-          ": " +
-          getUser(getAccount(transaction.account_id).user_id).first_name) +
-        " (" +
-        transaction.account_id +
-        ")" +
-        transaction.need
-      )
-        .toLowerCase()
-        .includes(query);
-    }
-  );
+  return transactions.filter((transaction) => {
+    return (
+      new Date(transaction.date).toLocaleDateString(undefined, options) +
+      transaction.date +
+      transaction.description +
+      transaction.category +
+      transaction.sub_category +
+      (getAccount(transaction.account_id).description +
+        ": " +
+        getUser(getAccount(transaction.account_id).user_id).first_name) +
+      " (" +
+      transaction.account_id +
+      ")" +
+      transaction.need
+    )
+      .toLowerCase()
+      .includes(query);
+  });
 }
 </script>
 
@@ -127,7 +125,6 @@ function filteredItems() {
           <v-data-table
             :items="filteredItems()"
             :headers="headers"
-            show-group-by
             density="compact"
             class="elevated-table"
           >

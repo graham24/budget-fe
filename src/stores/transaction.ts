@@ -46,7 +46,10 @@ export const useTransactionStore = defineStore("transaction", {
     async fetchTransactions(type: string | null = null) {
       try {
         const all_transactions = await getTransactions(1, 1, type);
-        this.transactions = all_transactions;
+        const sortedTransactions = [...all_transactions].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        this.transactions = sortedTransactions;
       } catch (error) {
         console.error("Error fetching transactions:", error);
       }
