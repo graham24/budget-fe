@@ -41,11 +41,48 @@ export const useTransactionStore = defineStore("transaction", {
       state.transactions.filter(
         (transaction) => transaction.category === "Transfer"
       ),
+    // net_incomes[n] = aggregated data for the month that is (n+1) months ago from today.
+    // e.g. net_incomes[0] = last month, net_incomes[1] = 2 months ago, etc.
+    net_incomes: (state): Array<{ income: number; expensesNeed: number; expensesWant: number }> => {
+      const result: Array<{ income: number; expensesNeed: number; expensesWant: number }> = [];
+      const today = new Date();
+      const todayYear = today.getFullYear();
+      const todayMonth = today.getMonth();
+
+      for (const tx of state.transactions) {
+        if (tx.category === "Transfer") continue;
+        const txDate = new Date(tx.date);
+        const monthsDiff =
+          (todayYear - txDate.getFullYear()) * 12 +
+          (todayMonth - txDate.getMonth());
+        const n = monthsDiff - 1;
+        if (n < 0) continue; // current (in-progress) month
+
+        if (!result[n]) {
+          result[n] = { income: 0, expensesNeed: 0, expensesWant: 0 };
+        }
+        if (tx.amount >= 0) {
+          result[n].income += tx.amount;
+        } else if (tx.need) {
+          result[n].expensesNeed += tx.amount;
+        } else {
+          result[n].expensesWant += tx.amount;
+        }
+      }
+      return result;
+    },
   },
   actions: {
     async fetchTransactions(type: string | null = null) {
       try {
-        const all_transactions = await getTransactions(1, 1, type);
+        // Fetch far enough back to cover the 3-month window + the trend's extra months
+        // at maximum monthsAgo (2), we need data from up to monthsAgo+4 months ago.
+        const from = new Date();
+        from.setDate(1);
+        from.setMonth(from.getMonth() - (this.monthsAgo + 4));
+        const from_date = from.toISOString().split("T")[0];
+
+        const all_transactions = await getTransactions(1, 1, type, from_date);
         const sortedTransactions = [...all_transactions].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );

@@ -14,9 +14,24 @@ const props = defineProps({
   },
 });
 
-const month1 = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
-const month2 = new Date(new Date().getFullYear(), month1.getMonth() - 1, 1);
-const month3 = new Date(new Date().getFullYear(), month2.getMonth() - 1, 1);
+function monthRef(offsetFromToday) {
+  const d = new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth() - offsetFromToday);
+  return d;
+}
+
+function sameMonth(txDate, ref) {
+  return (
+    txDate.getFullYear() === ref.getFullYear() &&
+    txDate.getMonth() === ref.getMonth()
+  );
+}
+
+// month1 = focus month, month2/month3 = the two preceding months
+const month1 = computed(() => monthRef(transactionStore.monthsAgo + 1));
+const month2 = computed(() => monthRef(transactionStore.monthsAgo + 2));
+const month3 = computed(() => monthRef(transactionStore.monthsAgo + 3));
 
 const transactions = computed(() => {
   if (props.type?.toLowerCase() === "income") {
@@ -29,7 +44,11 @@ const transactions = computed(() => {
 });
 
 const categoryRows = computed(() => {
+  const m1 = month1.value;
+  const m2 = month2.value;
+  const m3 = month3.value;
   const rows = [];
+
   transactions.value.forEach((transaction) => {
     let row = rows.find(
       (cat) =>
@@ -37,51 +56,35 @@ const categoryRows = computed(() => {
         cat.subCategory === transaction.sub_category
     );
     if (!row) {
-      rows.push({
+      row = {
         category: transaction.category,
         subCategory: transaction.sub_category,
         month1: 0,
         month2: 0,
         month3: 0,
         total: 0,
-      });
-      row = rows.find(
-        (cat) =>
-          cat.category === transaction.category &&
-          cat.subCategory === transaction.sub_category
-      );
+      };
+      rows.push(row);
     }
 
-    row.month1 +=
-      new Date(transaction.date).getMonth() === month1.getMonth()
-        ? transaction.amount
-        : 0;
-    row.month2 +=
-      new Date(transaction.date).getMonth() === month2.getMonth()
-        ? transaction.amount
-        : 0;
-    row.month3 +=
-      new Date(transaction.date).getMonth() === month3.getMonth()
-        ? transaction.amount
-        : 0;
+    const txDate = new Date(transaction.date);
+    if (sameMonth(txDate, m1)) row.month1 += transaction.amount;
+    else if (sameMonth(txDate, m2)) row.month2 += transaction.amount;
+    else if (sameMonth(txDate, m3)) row.month3 += transaction.amount;
   });
-  transactions.value.forEach((transaction) => {
-    let matchingCategoryRows = rows.filter(
-      (r) => r.category === transaction.category
-    );
-    matchingCategoryRows.forEach((r) => {
-      r.total +=
-        new Date(transaction.date).getMonth() === month1.getMonth()
-          ? transaction.amount
-          : 0;
-    });
+
+  // total = focus month sum per category group
+  rows.forEach((row) => {
+    row.total = rows
+      .filter((r) => r.category === row.category)
+      .reduce((sum, r) => sum + r.month1, 0);
   });
+
   return rows;
 });
 
 const sortedRows = computed(() => {
-  // Sort by total then month1
-  return categoryRows.value.sort((a, b) => {
+  return [...categoryRows.value].sort((a, b) => {
     if (b.total === a.total) {
       return props.type === "income"
         ? b.month1 - a.month1
@@ -114,23 +117,22 @@ const totalsRow = computed(() =>
   )
 );
 
-const headers = [
-  // { title: "Category", value: "category" },
+const headers = computed(() => [
   { title: "Sub Category", value: "subCategory" },
   {
-    title: month3.toLocaleString(undefined, { month: "long" }),
+    title: month3.value.toLocaleString(undefined, { month: "long", year: "numeric" }),
     value: "month3",
   },
   {
-    title: month2.toLocaleString(undefined, { month: "long" }),
+    title: month2.value.toLocaleString(undefined, { month: "long", year: "numeric" }),
     value: "month2",
   },
   {
-    title: month1.toLocaleString(undefined, { month: "long" }),
+    title: month1.value.toLocaleString(undefined, { month: "long", year: "numeric" }),
     value: "month1",
   },
   { title: "Average", value: "average" },
-];
+]);
 </script>
 
 <template>

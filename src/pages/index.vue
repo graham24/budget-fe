@@ -1,9 +1,12 @@
 <script setup>
 import { defineComponent } from "vue";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { onMounted } from "vue";
 import Transactions from "../components/Transactions.vue";
 import ImportForm from "../components/ImportForm.vue";
+import BudgetAnalysisDialog from "../components/BudgetAnalysisDialog.vue";
+import BudgetAnalysisCard from "../components/BudgetAnalysisCard.vue";
+import TransactionCountTable from "../components/TransactionCountTable.vue";
 import Dialog from "../components/common/Dialog.vue";
 import NetIncome from "../components/NetIncome.vue";
 import NetTrend from "../components/NetTrend.vue";
@@ -16,17 +19,27 @@ import { useHouseholdStore } from "../stores/household";
 import { useAccountStore } from "../stores/account";
 import { useTransactionStore } from "../stores/transaction";
 import { useUserStore } from "../stores/user";
+import { useAuthStore } from "../stores/auth";
 
 const householdStore = useHouseholdStore();
 const accountsStore = useAccountStore();
 const transactionsStore = useTransactionStore();
 const userStore = useUserStore();
+const authStore = useAuthStore();
 const loading = ref(true);
 const showDialog = ref(false);
+const showAnalysisDialog = ref(false);
+const showCountTable = ref(false);
+const analysisRefreshTrigger = ref(0);
 const monthFormatter = new Intl.DateTimeFormat(undefined, {
   month: "long",
   year: "numeric",
 });
+
+const handleAnalysisGenerated = () => {
+  analysisRefreshTrigger.value++;
+  showAnalysisDialog.value = false;
+};
 
 onMounted(async () => {
   try {
@@ -62,6 +75,18 @@ const windowLabel = computed(() => {
   );
   return `${monthFormatter.format(start)} - ${monthFormatter.format(end)}`;
 });
+
+watch(
+  () => transactionsStore.monthsAgo,
+  async () => {
+    loading.value = true;
+    try {
+      await transactionsStore.fetchTransactions();
+    } finally {
+      loading.value = false;
+    }
+  }
+);
 
 const focusMonthLabel = computed(() => {
   const today = new Date();
@@ -107,8 +132,23 @@ const focusMonthLabel = computed(() => {
             @click="showDialog = true"
             >Import</v-btn
           >
-          <Dialog v-model="showDialog" title="Import Transactions">
+          <v-btn
+            color="secondary"
+            variant="flat"
+            prepend-icon="mdi-chart-line"
+            @click="showAnalysisDialog = true"
+            >Generate Analysis</v-btn
+          >
+          <Dialog v-model="showDialog" title="Import Transactions" max-width="900">
             <ImportForm @update:isOpen="showDialog = $event" />
+          </Dialog>
+          <Dialog v-model="showAnalysisDialog" title="Budget Analysis" max-width="800">
+            <BudgetAnalysisDialog
+              v-if="showAnalysisDialog && authStore.user && householdStore.household"
+              :user-id="authStore.user.id"
+              :household-id="householdStore.household.household.id"
+              @success="handleAnalysisGenerated"
+            />
           </Dialog>
         </template>
       </HeroBanner>
@@ -122,12 +162,38 @@ const focusMonthLabel = computed(() => {
             </SurfaceCard>
             <SurfaceCard padding="12px 14px">
               <SectionHeader label="Trend" title="Net income (3 months)" />
-              <!-- <NetTrend /> -->
+              <NetTrend />
+            </SurfaceCard>
+            <SurfaceCard class="panel-card" padding="14px 16px">
+              <SectionHeader
+                label="AI Insights"
+                title="Budget Analysis"
+                subtitle="AI-powered analysis of your spending patterns and recommendations."
+              />
+              <BudgetAnalysisCard
+                v-if="householdStore.household"
+                :household-id="householdStore.household.household.id"
+                :refresh-trigger="analysisRefreshTrigger"
+              />
             </SurfaceCard>
             <SurfaceCard padding="12px 14px">
               <SectionHeader label="Savings rate" title="Income saved" />
-              <!-- <SavingsRate /> -->
+              <SavingsRate />
             </SurfaceCard>
+            <v-expansion-panels v-model="showCountTable" variant="accordion">
+              <v-expansion-panel>
+                <v-expansion-panel-title>
+                  <div class="d-flex align-center gap-2">
+                    <v-icon icon="mdi-table-check" color="primary" />
+                    <span class="font-weight-medium">Transaction Counts by Account</span>
+                    <v-chip size="x-small" variant="tonal" color="primary">Verification</v-chip>
+                  </div>
+                </v-expansion-panel-title>
+                <v-expansion-panel-text>
+                  <TransactionCountTable />
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
           </div>
         </v-col>
         <v-col cols="12" md="8">

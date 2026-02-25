@@ -26,7 +26,7 @@ const seriesMap = computed(() => {
     const entry = transactionStore.net_incomes?.[baseIndex + i];
     if (!entry) continue;
     const inc = entry.income ?? 0;
-    const need = entry.expensesNeed ?? entry.expenses ?? 0;
+    const need = entry.expensesNeed ?? 0;
     const want = entry.expensesWant ?? 0;
     const label = monthLabel(i);
     income.push({ label, value: inc });
@@ -43,7 +43,8 @@ const currentSeries = computed(
 );
 const trendDelta = computed(() => {
   if (currentSeries.value.length < 2) return 0;
-  return currentSeries.value[0].value - currentSeries.value[1].value;
+  const last = currentSeries.value.length - 1;
+  return currentSeries.value[last].value - currentSeries.value[last - 1].value;
 });
 
 const plottedPoints = computed(() => {

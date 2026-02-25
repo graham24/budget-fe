@@ -1,5 +1,5 @@
 <script setup>
-import { ref, shallowRef } from "vue";
+import { ref, shallowRef, computed } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 import { useAccountStore } from "../stores/account";
 import { useUserStore } from "../stores/user";
@@ -75,7 +75,22 @@ function getUser(userId) {
 //     }, 500);
 //   }
 // }
-function filteredItems() {
+// Earliest month in the 3-month window: monthsAgo+3 months ago
+// Latest month in the window: monthsAgo+1 months ago (focus month)
+const windowStart = computed(() => {
+  const d = new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth() - (transactionStore.monthsAgo + 3));
+  return d;
+});
+const windowEnd = computed(() => {
+  const d = new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth() - transactionStore.monthsAgo);
+  return d; // exclusive upper bound (start of the month after the focus month)
+});
+
+const filteredItems = computed(() => {
   let transactions;
   if (props.type === "income") {
     transactions = transactionStore.incomeTransactions;
@@ -86,15 +101,17 @@ function filteredItems() {
   } else {
     transactions = transactionStore.transferTransactions;
   }
-  if (!props.searchTerm) {
-    return transactions;
-  }
-  const query = props.searchTerm.toLocaleLowerCase();
-  const options = {
-    year: "numeric",
-    month: "long",
-  };
 
+  // Filter to the active 3-month window
+  transactions = transactions.filter((t) => {
+    const d = new Date(t.date);
+    return d >= windowStart.value && d < windowEnd.value;
+  });
+
+  if (!props.searchTerm) return transactions;
+
+  const query = props.searchTerm.toLocaleLowerCase();
+  const options = { year: "numeric", month: "long" };
   return transactions.filter((transaction) => {
     return (
       new Date(transaction.date).toLocaleDateString(undefined, options) +
@@ -113,7 +130,7 @@ function filteredItems() {
       .toLowerCase()
       .includes(query);
   });
-}
+});
 </script>
 
 <template>
@@ -123,7 +140,7 @@ function filteredItems() {
         <SectionHeader :label="props.type" :title="props.type" />
         <div class="table-wrapper">
           <v-data-table
-            :items="filteredItems()"
+            :items="filteredItems"
             :headers="headers"
             density="compact"
             class="elevated-table"

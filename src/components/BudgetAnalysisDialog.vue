@@ -1,0 +1,152 @@
+<template>
+  <div class="budget-analysis">
+    <div v-if="loading" class="text-center py-8">
+      <v-progress-circular indeterminate color="primary" size="48" />
+      <p class="mt-4 muted">Generating your budget analysis...</p>
+    </div>
+    <div v-else-if="error" class="error-state py-6">
+      <v-icon icon="mdi-alert-circle" color="error" size="48" class="mb-3" />
+      <p class="text-body-1 mb-2">Failed to generate analysis</p>
+      <p class="text-caption muted">{{ error }}</p>
+    </div>
+    <div v-else-if="analysis" class="analysis-content">
+      <div class="analysis-meta mb-4">
+        <div class="d-flex align-center gap-2 mb-2">
+          <v-chip size="small" color="primary" variant="tonal">
+            {{ formatDate(analysis.from_date) }} - {{ formatDate(analysis.to_date) }}
+          </v-chip>
+          <v-chip size="small" variant="tonal">
+            {{ analysis.transaction_count }} transactions
+          </v-chip>
+          <v-chip v-if="cached" size="small" color="success" variant="tonal">
+            <v-icon icon="mdi-cached" start size="small" />
+            Cached
+          </v-chip>
+        </div>
+        <p class="text-caption muted">
+          Generated {{ formatDateTime(analysis.created) }}
+        </p>
+      </div>
+      <div class="analysis-text" v-html="formattedAnalysis"></div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import { generateBudgetAnalysis } from "../api";
+
+const props = defineProps({
+  userId: {
+    type: Number,
+    required: true,
+  },
+  householdId: {
+    type: Number,
+    required: true,
+  },
+});
+
+const emit = defineEmits(["close", "success"]);
+
+const loading = ref(true);
+const error = ref(null);
+const analysis = ref(null);
+const cached = ref(false);
+
+const formattedAnalysis = computed(() => {
+  if (!analysis.value) return "";
+
+  // Convert markdown-style formatting to HTML
+  let html = analysis.value.analysis
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/\n/g, "<br>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>");
+
+  return `<p>${html}</p>`;
+});
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+const formatDateTime = (dateString) => {
+  return new Date(dateString).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
+const fetchAnalysis = async () => {
+  loading.value = true;
+  error.value = null;
+
+  try {
+    const result = await generateBudgetAnalysis(
+      props.userId,
+      props.householdId
+    );
+    analysis.value = result.analysis;
+    cached.value = result.cached;
+    emit("success");
+  } catch (err) {
+    console.error("Error generating budget analysis:", err);
+    error.value = err.response?.data?.message || "An unexpected error occurred";
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchAnalysis();
+});
+</script>
+
+<style scoped>
+.budget-analysis {
+  min-height: 200px;
+}
+
+.analysis-content {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.analysis-text {
+  line-height: 1.7;
+  color: rgba(var(--v-theme-on-surface), 0.87);
+}
+
+.analysis-text :deep(p) {
+  margin-bottom: 1em;
+}
+
+.analysis-text :deep(strong) {
+  font-weight: 600;
+  color: rgba(var(--v-theme-on-surface), 1);
+}
+
+.analysis-text :deep(em) {
+  font-style: italic;
+}
+
+.muted {
+  color: rgba(var(--v-theme-on-surface), 0.6);
+}
+
+.error-state {
+  text-align: center;
+}
+
+.gap-2 {
+  gap: 8px;
+}
+</style>

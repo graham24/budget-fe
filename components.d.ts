@@ -7,6 +7,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BudgetAnalysisCard: typeof import('./src/components/BudgetAnalysisCard.vue')['default']
+    BudgetAnalysisDialog: typeof import('./src/components/BudgetAnalysisDialog.vue')['default']
     Categories: typeof import('./src/components/Categories.vue')['default']
     CategoryTable: typeof import('./src/components/common/CategoryTable.vue')['default']
     Dialog: typeof import('./src/components/common/Dialog.vue')['default']
@@ -21,6 +23,7 @@ declare module 'vue' {
     SavingsRate: typeof import('./src/components/SavingsRate.vue')['default']
     SectionHeader: typeof import('./src/components/common/SectionHeader.vue')['default']
     SurfaceCard: typeof import('./src/components/common/SurfaceCard.vue')['default']
+    TransactionCountTable: typeof import('./src/components/TransactionCountTable.vue')['default']
     TransactionReviewDialog: typeof import('./src/components/TransactionReviewDialog.vue')['default']
     TransactionRow: typeof import('./src/components/TransactionRow.vue')['default']
     Transactions: typeof import('./src/components/Transactions.vue')['default']

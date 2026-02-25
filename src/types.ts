@@ -42,3 +42,14 @@ export interface Category {
 export interface Sub_Category {
   description: string;
 }
+
+export interface BudgetAnalysis {
+  id: number;
+  household_id: number;
+  analysis: string;
+  from_date: string;
+  to_date: string;
+  transaction_count: number;
+  created: string;
+  modified: string;
+}

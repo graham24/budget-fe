@@ -1,42 +1,18 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 
 const transactionStore = useTransactionStore();
 
-const month1 = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
-const month2 = new Date(new Date().getFullYear(), month1.getMonth() - 1, 1);
-const month3 = new Date(new Date().getFullYear(), month2.getMonth() - 1, 1);
+const focusMonth = computed(
+  () => transactionStore.net_incomes[transactionStore.monthsAgo] ?? null
+);
 
-const incomeTotal = computed(() => {
-  let total = 0;
-  transactionStore.incomeTransactions.forEach((transaction) => {
-    total +=
-      new Date(transaction.date).getMonth() === month1.getMonth()
-        ? transaction.amount
-        : 0;
-  });
-  return total;
-});
-const expensesTotal = computed(() => {
-  let total = 0;
-  transactionStore.expenseNeedTransactions.forEach((transaction) => {
-    total +=
-      new Date(transaction.date).getMonth() === month1.getMonth()
-        ? transaction.amount
-        : 0;
-  });
-  transactionStore.expenseWantTransactions.forEach((transaction) => {
-    total +=
-      new Date(transaction.date).getMonth() === month1.getMonth()
-        ? transaction.amount
-        : 0;
-  });
-  return total;
-});
-const netValue = computed(() => {
-  return incomeTotal.value + expensesTotal.value;
-});
+const incomeTotal = computed(() => focusMonth.value?.income ?? 0);
+const expensesTotal = computed(
+  () => (focusMonth.value?.expensesNeed ?? 0) + (focusMonth.value?.expensesWant ?? 0)
+);
+const netValue = computed(() => incomeTotal.value + expensesTotal.value);
 </script>
 <template>
   <div class="net-wrapper">

@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Household, User, Transaction, Account } from "./types";
+import type { Household, User, Transaction, Account, BudgetAnalysis } from "./types";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Create Axios instance
@@ -60,13 +60,15 @@ export const getSummary = async (
 export const getTransactions = async (
   user_id: number,
   household_id: number,
-  type: string | null = null
+  type: string | null = null,
+  from_date?: string,
 ): Promise<Transaction[]> => {
-  const data = {
-    user_id: user_id,
-    household_id: household_id,
-    type: type,
+  const data: Record<string, any> = {
+    user_id,
+    household_id,
+    type,
   };
+  if (from_date) data.from_date = from_date;
   try {
     const response = await api.get("/transactions/", {
       params: data,
@@ -114,4 +116,39 @@ export const uploadTransactions = async (
     },
   });
   return response.data;
+};
+
+// Generate budget analysis
+export const generateBudgetAnalysis = async (
+  user_id: number,
+  household_id: number,
+  from_date?: string,
+  to_date?: string
+): Promise<{ analysis: BudgetAnalysis; cached: boolean }> => {
+  const data: any = {
+    user_id,
+    household_id,
+  };
+  if (from_date) data.from_date = from_date;
+  if (to_date) data.to_date = to_date;
+
+  const response = await api.post("/budget-analysis/", data);
+  return response.data;
+};
+
+// Get latest budget analysis
+export const getLatestBudgetAnalysis = async (
+  household_id: number
+): Promise<BudgetAnalysis | null> => {
+  try {
+    const response = await api.get("/budget-analysis/", {
+      params: { household_id },
+    });
+    return response.data.analysis;
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      return null;
+    }
+    throw error;
+  }
 };
