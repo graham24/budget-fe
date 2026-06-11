@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <!-- <div v-if="!authStore.user" class="auth-landing">
+    <div v-if="!authStore.user" class="auth-landing">
       <SurfaceCard class="auth-card" tag="section">
         <div class="text-center mb-6">
           <p class="pill">Welcome back</p>
@@ -12,21 +12,35 @@
             Sign in to start your overview.
           </p>
         </div>
-        <div class="d-flex justify-center">
-          <div>
-            <p class="text-h6 text-center mb-4">Sign in with Google</p>
-            <div
-              id="g_id_onload"
-              data-client_id="465424205396-qhqvcr1cpm5ilkor7kldpq41nhcn80jg.apps.googleusercontent.com"
-              data-callback="handleCredentialResponse"
-              data-auto_prompt="false"
-            ></div>
-            <div class="g_id_signin" data-type="standard"></div>
-          </div>
-        </div>
+        <v-form class="login-form mx-auto" @submit.prevent="submitLogin">
+          <v-text-field
+            v-model="email"
+            label="Email"
+            type="email"
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-email-outline"
+            autofocus
+            class="mb-3"
+            hide-details
+          />
+          <v-alert v-if="loginError" type="error" density="compact" class="mb-3">
+            {{ loginError }}
+          </v-alert>
+          <v-btn
+            type="submit"
+            color="primary"
+            variant="flat"
+            block
+            :loading="loggingIn"
+            :disabled="!email.trim()"
+          >
+            Sign In
+          </v-btn>
+        </v-form>
       </SurfaceCard>
-    </div> -->
-    <div class="app-frame">
+    </div>
+    <div v-else class="app-frame">
       <SurfaceCard class="app-header" tag="header" padding="14px 18px">
         <div class="d-flex align-center ga-3">
           <div class="brand-mark">
@@ -62,12 +76,23 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { useHouseholdStore } from "@/stores/household";
+import { useAccountStore } from "@/stores/account";
+import { useUserStore } from "@/stores/user";
+import { useTransactionStore } from "@/stores/transaction";
 import { useTheme } from "vuetify";
 import SurfaceCard from "./components/common/SurfaceCard.vue";
 
 const authStore = useAuthStore();
+const householdStore = useHouseholdStore();
+const accountStore = useAccountStore();
+const userStore = useUserStore();
+const transactionStore = useTransactionStore();
 const theme = useTheme();
 const themeName = ref(theme.global.name.value);
+const email = ref("");
+const loggingIn = ref(false);
+const loginError = ref(null);
 const displayName = computed(
   () => authStore.user?.first_name ?? "there"
 );
@@ -82,17 +107,33 @@ onMounted(() => {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
     authStore.verifyUser(JSON.parse(storedUser));
-  } else {
-    authStore.login();
   }
 });
 
-function parseJwt(token) {
-  return JSON.parse(atob(token.split(".")[1]));
+async function submitLogin() {
+  if (!email.value.trim()) return;
+  loggingIn.value = true;
+  loginError.value = null;
+  try {
+    await authStore.login(email.value.trim());
+    email.value = "";
+  } catch (error) {
+    loginError.value =
+      error.response?.status === 404
+        ? "No user found with that email"
+        : error.response?.data?.message || "Login failed";
+  } finally {
+    loggingIn.value = false;
+  }
 }
 
 function logout() {
   authStore.logout();
+  // Clear per-user data so a different login doesn't see stale state
+  householdStore.$reset();
+  accountStore.$reset();
+  userStore.$reset();
+  transactionStore.$reset();
 }
 
 const isDark = computed(() => theme.global.current.value.dark);
@@ -122,12 +163,14 @@ watch(themeName, (val) => {
   width: 100%;
 }
 
+.login-form {
+  max-width: 380px;
+}
+
 .app-frame {
   min-height: 100vh;
   padding: 18px;
-  background: radial-gradient(circle at 10% 20%, rgba(96, 165, 250, 0.15), transparent 28%),
-    radial-gradient(circle at 85% 10%, rgba(16, 185, 129, 0.15), transparent 25%),
-    rgb(var(--v-theme-background));
+  background: rgb(var(--v-theme-background));
 }
 
 .app-header {
@@ -160,17 +203,13 @@ watch(themeName, (val) => {
 .app-main {
   padding: 8px;
 }
+/* quiet uppercase eyebrow instead of a colored pill */
 .pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(var(--v-theme-primary), 0.1);
-  color: rgb(var(--v-theme-primary));
+  color: rgba(var(--v-theme-on-surface), 0.55);
   font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 0.01em;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .muted {
   color: rgba(var(--v-theme-on-background), 0.65);

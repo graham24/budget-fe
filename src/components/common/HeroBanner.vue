@@ -36,9 +36,8 @@ const props = defineProps({
 
 <style scoped>
 .hero-banner {
-  background: linear-gradient(120deg, rgba(var(--v-theme-primary), 0.12), rgba(var(--v-theme-primary), 0.04)),
-    rgb(var(--v-theme-surface));
-  border: 1px solid rgba(var(--v-theme-outline), 0.3);
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-theme-outline), 0.9);
 }
 .hero-banner__content {
   display: flex;
@@ -62,17 +61,13 @@ const props = defineProps({
   flex-wrap: wrap;
   align-items: center;
 }
+/* quiet uppercase eyebrow instead of a colored pill */
 .pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(var(--v-theme-primary), 0.1);
-  color: rgb(var(--v-theme-primary));
+  color: rgba(var(--v-theme-on-surface), 0.55);
   font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 0.01em;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .muted {
   color: rgba(var(--v-theme-on-background), 0.65);

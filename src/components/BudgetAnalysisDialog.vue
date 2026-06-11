@@ -22,6 +22,16 @@
             <v-icon icon="mdi-cached" start size="small" />
             Cached
           </v-chip>
+          <v-btn
+            v-if="cached"
+            size="small"
+            variant="text"
+            color="primary"
+            prepend-icon="mdi-refresh"
+            @click="fetchAnalysis(true)"
+          >
+            Regenerate
+          </v-btn>
         </div>
         <p class="text-caption muted">
           Generated {{ formatDateTime(analysis.created) }}
@@ -35,6 +45,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { generateBudgetAnalysis } from "../api";
+import { analysisToHtml } from "../markdown";
 
 const props = defineProps({
   userId: {
@@ -56,22 +67,16 @@ const cached = ref(false);
 
 const formattedAnalysis = computed(() => {
   if (!analysis.value) return "";
-
-  // Convert markdown-style formatting to HTML
-  let html = analysis.value.analysis
-    .replace(/\n\n/g, "</p><p>")
-    .replace(/\n/g, "<br>")
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>");
-
-  return `<p>${html}</p>`;
+  return analysisToHtml(analysis.value.analysis);
 });
 
+// from/to are date-only boundaries — render in UTC so they don't shift a day
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
 };
 
@@ -85,14 +90,17 @@ const formatDateTime = (dateString) => {
   });
 };
 
-const fetchAnalysis = async () => {
+const fetchAnalysis = async (force = false) => {
   loading.value = true;
   error.value = null;
 
   try {
     const result = await generateBudgetAnalysis(
       props.userId,
-      props.householdId
+      props.householdId,
+      undefined,
+      undefined,
+      force
     );
     analysis.value = result.analysis;
     cached.value = result.cached;

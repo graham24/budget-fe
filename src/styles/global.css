@@ -1,15 +1,48 @@
+/* ---- Global polish ------------------------------------------------- */
+
+/* Sentence-case, tighter buttons read more product-grade than Vuetify's
+   default uppercase */
+.v-btn {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+/* Quiet, uppercase micro-labels for all table headers */
+.v-table thead th,
+.v-data-table thead th {
+  font-size: 0.72rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700 !important;
+  color: rgba(var(--v-theme-on-surface), 0.55) !important;
+  white-space: nowrap;
+}
+
+/* Thin, unobtrusive scrollbars for scrolling cards/tables */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--v-theme-on-surface), 0.2) transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(var(--v-theme-on-surface), 0.2);
+  border-radius: 3px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /* Card-like container helpers */
 .card {
-  background: linear-gradient(
-      135deg,
-      rgba(var(--v-theme-primary), 0.04),
-      rgba(var(--v-theme-primary), 0)
-    ),
-    rgb(var(--v-theme-surface));
+  background: rgb(var(--v-theme-surface));
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   padding: var(--pad);
-  border: 1px solid rgba(var(--v-theme-outline), 0.5);
+  border: 1px solid rgba(var(--v-theme-outline), 0.9);
 }
 
 .card--sm {

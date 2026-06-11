@@ -54,17 +54,13 @@ defineProps({
   flex-wrap: wrap;
   min-width: 200px;
 }
+/* quiet uppercase eyebrow instead of a colored pill */
 .pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(var(--v-theme-primary), 0.1);
-  color: rgb(var(--v-theme-primary));
+  color: rgba(var(--v-theme-on-surface), 0.55);
   font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 0.01em;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .muted {
   color: rgba(var(--v-theme-on-background), 0.65);

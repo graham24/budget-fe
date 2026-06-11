@@ -5,7 +5,8 @@ import { useAccountStore } from "../stores/account";
 import { useUserStore } from "../stores/user";
 import SurfaceCard from "./common/SurfaceCard.vue";
 import SectionHeader from "./common/SectionHeader.vue";
-import TransactionReviewDialog from "./TransactionReviewDialog.vue";
+import Dialog from "./common/Dialog.vue";
+import CategoryRuleForm from "./CategoryRuleForm.vue";
 // import DayJsAdapter from '@date-io/dayjs'
 
 const props = defineProps({
@@ -21,6 +22,7 @@ const props = defineProps({
 });
 
 const transactionStore = useTransactionStore();
+const accountStore = useAccountStore();
 const userStore = useUserStore();
 const headers = [
   {
@@ -34,15 +36,35 @@ const headers = [
   // { key: "account_id", title: "Account ID" },
   { key: "amount", title: "Amount" },
   { key: "need", title: "Need" },
-  // { title: "Actions", key: "actions", align: "end", sortable: false },
+  { key: "actions", title: "", sortable: false },
 ];
 
+// Snapshot of the row being edited so blur events without an actual
+// change don't fire a PUT per combobox.
+let editSnapshot = null;
+
+function rememberEdit(transaction) {
+  editSnapshot = {
+    id: transaction.id,
+    category: transaction.category,
+    sub_category: transaction.sub_category,
+  };
+}
+
+function saveIfChanged(transaction) {
+  if (
+    editSnapshot &&
+    editSnapshot.id === transaction.id &&
+    editSnapshot.category === transaction.category &&
+    editSnapshot.sub_category === transaction.sub_category
+  ) {
+    return;
+  }
+  saveTransaction(transaction);
+}
+
 function saveTransaction(transaction) {
-  console.log(transaction);
   transactionStore.saveTransaction(transaction);
-  // setTimeout(() => {
-  //   console.log("Transaction saved after delay");
-  // }, 5000);
   if (transaction.category === "Transfer") {
     transaction.type = "Transfer";
   } else if (transaction.amount >= 0) {
@@ -52,17 +74,32 @@ function saveTransaction(transaction) {
   }
 }
 
-function getAccount(account_id) {
-  const accountsStore = useAccountStore();
-  const account = accountsStore.accounts?.accounts?.find(
-    (acc) => acc.id === account_id
-  );
-  return account ? account : "Unknown Account";
+// account_id -> "Account description: First name", computed once instead of
+// per row per keystroke
+const accountLabels = computed(() => {
+  const labels = new Map();
+  for (const account of accountStore.accounts?.accounts ?? []) {
+    const user = userStore.users.users.find((u) => u.id === account.user_id);
+    labels.set(
+      account.id,
+      `${account.description}: ${user?.first_name ?? "Unknown"}`
+    );
+  }
+  return labels;
+});
+
+function accountLabel(account_id) {
+  return accountLabels.value.get(account_id) ?? "Unknown Account";
 }
 
-function getUser(userId) {
-  return userStore.users.users.find((user) => user.id === userId);
-}
+// Create-rule dialog state
+const ruleSource = ref(null);
+const showRuleDialog = computed({
+  get: () => ruleSource.value !== null,
+  set: (open) => {
+    if (!open) ruleSource.value = null;
+  },
+});
 // function selectDates() {
 //   if (selectedDates.value.length > 1) {
 //     console.log(
@@ -90,7 +127,8 @@ const windowEnd = computed(() => {
   return d; // exclusive upper bound (start of the month after the focus month)
 });
 
-const filteredItems = computed(() => {
+// Transactions of this table's type within the active 3-month window
+const windowedItems = computed(() => {
   let transactions;
   if (props.type === "income") {
     transactions = transactionStore.incomeTransactions;
@@ -102,34 +140,44 @@ const filteredItems = computed(() => {
     transactions = transactionStore.transferTransactions;
   }
 
-  // Filter to the active 3-month window
-  transactions = transactions.filter((t) => {
+  return transactions.filter((t) => {
     const d = new Date(t.date);
     return d >= windowStart.value && d < windowEnd.value;
   });
+});
 
-  if (!props.searchTerm) return transactions;
+// Lowercased searchable text per transaction, built once per data change
+// instead of per keystroke
+const searchIndex = computed(() => {
+  const index = new Map();
+  const options = { year: "numeric", month: "long" };
+  for (const transaction of windowedItems.value) {
+    index.set(
+      transaction.id,
+      (
+        new Date(transaction.date).toLocaleDateString(undefined, options) +
+        transaction.date +
+        transaction.description +
+        transaction.category +
+        transaction.sub_category +
+        accountLabel(transaction.account_id) +
+        " (" +
+        transaction.account_id +
+        ")" +
+        transaction.need
+      ).toLowerCase()
+    );
+  }
+  return index;
+});
+
+const filteredItems = computed(() => {
+  if (!props.searchTerm) return windowedItems.value;
 
   const query = props.searchTerm.toLocaleLowerCase();
-  const options = { year: "numeric", month: "long" };
-  return transactions.filter((transaction) => {
-    return (
-      new Date(transaction.date).toLocaleDateString(undefined, options) +
-      transaction.date +
-      transaction.description +
-      transaction.category +
-      transaction.sub_category +
-      (getAccount(transaction.account_id).description +
-        ": " +
-        getUser(getAccount(transaction.account_id).user_id).first_name) +
-      " (" +
-      transaction.account_id +
-      ")" +
-      transaction.need
-    )
-      .toLowerCase()
-      .includes(query);
-  });
+  return windowedItems.value.filter((transaction) =>
+    searchIndex.value.get(transaction.id)?.includes(query)
+  );
 });
 </script>
 
@@ -161,7 +209,8 @@ const filteredItems = computed(() => {
             <template v-slot:item.category="{ item }">
               <v-combobox
                 v-model="item.category"
-                @blur="saveTransaction(item)"
+                @focus="rememberEdit(item)"
+                @blur="saveIfChanged(item)"
                 density="compact"
                 variant="plain"
                 :items="
@@ -174,7 +223,8 @@ const filteredItems = computed(() => {
             <template v-slot:item.sub_category="{ item }">
               <v-combobox
                 v-model="item.sub_category"
-                @blur="saveTransaction(item)"
+                @focus="rememberEdit(item)"
+                @blur="saveIfChanged(item)"
                 density="compact"
                 variant="plain"
                 :items="
@@ -185,9 +235,16 @@ const filteredItems = computed(() => {
               ></v-combobox>
             </template>
             <template v-slot:item.account_name="{ item }">
-              {{ getAccount(item.account_id).description }}:
-              {{ getUser(getAccount(item.account_id).user_id).first_name }}
-              ({{ item.account_id }})
+              {{ accountLabel(item.account_id) }} ({{ item.account_id }})
+            </template>
+            <template v-slot:item.actions="{ item }">
+              <v-btn
+                icon="mdi-tag-plus-outline"
+                variant="text"
+                size="small"
+                title="Create a category rule from this transaction"
+                @click="ruleSource = item"
+              />
             </template>
             <template v-slot:item.date="{ item }">
               {{ formatDate(item.date) }}
@@ -207,10 +264,17 @@ const filteredItems = computed(() => {
         </div>
       </SurfaceCard>
     </div>
-    <!-- <TransactionReviewDialog
-      v-model="showReviewDialog"
-      :transactions="transactionStore.transactions.all_transactions"
-    /> -->
+    <Dialog v-model="showRuleDialog" title="Create Category Rule">
+      <CategoryRuleForm
+        v-if="ruleSource"
+        :initial-match-text="ruleSource.description"
+        :initial-category="ruleSource.category"
+        :initial-sub-category="ruleSource.sub_category"
+        :initial-need="ruleSource.need"
+        @saved="ruleSource = null"
+        @cancel="ruleSource = null"
+      />
+    </Dialog>
   </div>
 </template>
 
@@ -219,10 +283,10 @@ const filteredItems = computed(() => {
   min-width: 260px;
 }
 .elevated-table :deep(.v-data-table__tr:nth-child(even)) {
-  background: rgba(var(--v-theme-primary), 0.02);
+  background: rgba(var(--v-theme-on-surface), 0.02);
 }
 .elevated-table :deep(td) {
-  border-color: rgba(var(--v-theme-outline), 0.25);
+  border-color: rgba(var(--v-theme-outline), 0.5);
 }
 .elevated-table :deep(.v-data-table-footer) {
   border-top: 1px solid rgba(var(--v-theme-outline), 0.25);

@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
@@ -19,6 +19,7 @@
     "pinia": "^3.0.1",
     "roboto-fontface": "*",
     "vue": "^3.4.31",
+    "vue3-google-login": "^2.0.37",
     "vuetify": "^3.6.14"
   },
   "devDependencies": {

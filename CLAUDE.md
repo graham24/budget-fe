@@ -28,14 +28,14 @@ The dashboard has a **3-month sliding window** controlled by `transactionStore.m
 - `monthsAgo = 1` → focus month is 2 months ago; window covers months 2–4 ago
 - Navigation buttons in `index.vue` increment/decrement `monthsAgo` and trigger a re-fetch
 
-**When `monthsAgo` changes**, `index.vue` watches it and calls `transactionsStore.fetchTransactions()`, which computes a `from_date` of `monthsAgo + 4` months ago and passes it to the API so enough data is returned for the window plus the trend sparkline.
+**When `monthsAgo` changes**, `index.vue` watches it and calls `transactionsStore.fetchTransactions()`, which computes a `from_date` of `monthsAgo + 12` months ago — 12 months of history feed the cash-flow sparkline and recurring-charge detection, while display components filter to their own windows.
 
 ### Transaction Store (`src/stores/transaction.ts`)
 
 The store holds all fetched transactions and exposes:
 
 - **Filtered getters**: `incomeTransactions`, `expenseNeedTransactions`, `expenseWantTransactions`, `transferTransactions` — filter the raw array by type/need flag
-- **`net_incomes` getter**: Array where `net_incomes[n]` = `{ income, expensesNeed, expensesWant }` aggregated for the month that is `n+1` months ago from today. Used by `NetIncome`, `NetTrend`, and `SavingsRate`.
+- **`net_incomes` getter**: Array where `net_incomes[n]` = `{ income, expensesNeed, expensesWant }` aggregated for the month that is `n` months ago from today (`[0]` = current partial month). The focus month is `net_incomes[monthsAgo + 1]`. Used by `NetIncome`, `NetTrend`, and `SavingsRate`.
 - **`monthsAgo`**: The active window offset — all display components derive their date ranges from this
 
 ### API Layer (`src/api.ts`)
@@ -44,11 +44,10 @@ Axios instance pointed at `VITE_API_BASE_URL` (default `http://localhost:5000/ap
 
 ### Component Data Flow
 
-1. **`src/pages/index.vue`**: Orchestrates the dashboard. Fetches all data on mount in parallel. Watches `monthsAgo` to re-fetch transactions. Contains navigation buttons that mutate `monthsAgo`.
+1. **`src/pages/index.vue`**: Orchestrates the dashboard. Fetches the household first (other fetches derive IDs from it), then the rest in parallel. Watches `monthsAgo` to re-fetch transactions. Contains navigation buttons that mutate `monthsAgo`. Content is split into three `v-tabs`/`v-window` tabs — **Overview** (AI budget analysis half-width on top with `CashFlow.vue` + spending mix stacked beside it, then 50/30/20 and targets below; the analysis markdown is rendered via `src/markdown.ts`. `CashFlow.vue` merges the old NetIncome/NetTrend cards: focus-month net with deltas vs. prior month and 3-month average, plus the mode-toggle sparkline. `SavingsRate.vue`, `NetIncome.vue`, and `NetTrend.vue` still exist but are no longer placed.), **Insights** (AI analysis, recurring charges, category tables), and **Transactions** (import status + transaction tables; the tab shows a warning badge with the uncategorized count). The window has `:touch="false"` so horizontal table scrolling doesn't switch tabs.
 2. **`CategoryTable.vue`**: Derives `month1/month2/month3` as `computed` refs from `monthsAgo` (year-aware comparison). Headers and row data both react to navigation.
 3. **`TransactionsTable.vue`**: `filteredItems` is a `computed` that filters to the active 3-month window using `windowStart`/`windowEnd` derived from `monthsAgo`.
-4. **`NetIncome.vue`** / **`SavingsRate.vue`**: Read `net_incomes[monthsAgo]` for the focus month.
-5. **`NetTrend.vue`**: Reads `net_incomes[monthsAgo]` through `net_incomes[monthsAgo + 2]` to build a 3-point sparkline.
+4. **`CashFlow.vue`**: Reads `net_incomes[monthsAgo + 1]` for the focus-month headline/deltas and `net_incomes[monthsAgo + 1..12]` for the sparkline (up to 12 points ending at the focus month).
 
 ### Global Utilities
 
@@ -57,12 +56,35 @@ Axios instance pointed at `VITE_API_BASE_URL` (default `http://localhost:5000/ap
 ### Component Organization
 
 - **`src/pages/`**: Route pages — `index.vue` is the only page
-- **`src/components/common/`**: Reusable primitives: `SurfaceCard`, `Dialog`, `HeroBanner`, `SectionHeader`, `CategoryTable`
-- **`src/stores/`**: Pinia stores: `auth`, `household`, `user`, `account`, `transaction`, `import`
+- **`src/components/common/`**: Reusable primitives: `SurfaceCard`, `Dialog` (fullscreen on xs screens), `HeroBanner`, `SectionHeader`, `CategoryTable`
+- **`src/stores/`**: Pinia stores: `auth`, `household`, `user`, `account`, `transaction`, `import`, `categoryRule`, `budgetTarget`
 
-### Vuetify
+### Dashboard Cards
+
+All focus-month cards read `transactionStore.focusMonthTransactions` (a getter for the month `monthsAgo + 1` back) so they react to window navigation:
+
+- **`BudgetTargets.vue`**: per-category monthly limits vs. focus-month actuals with progress bars; upserts via the `budgetTarget` store
+- **`SpendingMix.vue`**: hand-rolled SVG donut of focus-month expense categories (top 6 + Other)
+- **`FiftyThirtyTwenty.vue`**: needs/wants/savings share of income vs. the 50/30/20 rule, from `net_incomes`
+- **`RecurringCosts.vue`**: client-side recurring-charge detection (same description normalization as the backend: digit tokens stripped; 3+ months, amounts within ±30%), with price-increase flags
+- **`CategoryTable.vue`**: focus-month cells flag overspend (25%+ and ≥$25 above the prior two months' average)
+- **`Transactions.vue`**: debounced search, CSV export of the active window, and a "Review (N)" queue that opens `TransactionReviewDialog` with a snapshot of `unknownTransactions`
+- **`ImportReviewStack.vue`**: post-upload card stack shown by `ImportForm` — imported transactions first (editable category/sub-category/need; Enter or "Save & Next" persists and advances), duplicates at the back with warning styling and Force Import / Skip actions. A force-imported duplicate flips in place into an editable card.
+
+### Category Rules
+
+User-defined categorization rules ("description contains X → category/sub-category/need") that the backend applies during import before falling back to AI. Managed two ways:
+
+- **`CategoryRulesManager.vue`**: list/add/delete rules, opened from the "Rules" button in the dashboard hero
+- **`TransactionsTable.vue`**: per-row tag button opens a `CategoryRuleForm` pre-filled from that transaction
+
+`CategoryRuleForm.vue` owns the create call via `useCategoryRuleStore`; the store resolves `household_id` from the household store. Rules are not retroactively applied to existing transactions.
+
+### Vuetify & Design System
 
 Configured in `src/plugins/vuetify.ts` with MDI icons, light/dark themes, and SCSS settings at `src/styles/settings.scss`. Components are auto-imported via `vite.config.mts`.
+
+The visual language is deliberately restrained ("professional finance dashboard"): Inter with global `tabular-nums`, solid surfaces with 1px outline borders and hairline shadows (`--shadow-sm`), 12px radii, sentence-case buttons, neutral (not primary-tinted) table stripes/group rows, and uppercase muted "eyebrow" labels via the `.pill` class. No gradients, glassmorphism, or backdrop blur — keep new components consistent with this. Tokens live in `src/styles/tokens.css`; global overrides in `src/styles/global.css`.
 
 ## Configuration
 
@@ -70,9 +92,16 @@ Configured in `src/plugins/vuetify.ts` with MDI icons, light/dark themes, and SC
 VITE_API_BASE_URL=http://localhost:5000/api   # in .env or .env.local
 ```
 
+## Auth
+
+Email-only login (no password). `App.vue` shows a login card until `authStore.user` is set; the rest of the app only mounts after login, so stores can assume a user exists.
+
+- `authStore.login(email)` → `POST /auth/login/` → user persisted to localStorage; restored on reload via `verifyUser`
+- IDs are resolved dynamically: `household`/`account`/`transaction` stores read `user.id` from the auth store; `user`/`transaction`/`categoryRule` stores read `household.id` from the household store. `index.vue` fetches the household first, then the rest in parallel.
+- Logout clears the auth store and `$reset()`s the per-user data stores
+- This is identification, not security — the backend has no sessions or tokens
+
 ## Known Constraints
 
-- Auth flow is scaffolded but the backend returns a mocked user; `user_id: 1` / `household_id: 1` are hardcoded throughout `api.ts`
-- Google OAuth client ID is a placeholder (`YOUR_GOOGLE_CLIENT_ID`) in `src/main.ts`
 - Pre-existing TypeScript errors in `main.ts` and `tsconfig.json` (node22 lib incompatibility) — do not attempt to fix unless specifically asked
 - No frontend test suite

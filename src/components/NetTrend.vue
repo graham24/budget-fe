@@ -23,7 +23,7 @@ const seriesMap = computed(() => {
 
   // build from oldest to newest so the sparkline runs left-to-right chronologically
   for (let i = 2; i >= 0; i--) {
-    const entry = transactionStore.net_incomes?.[baseIndex + i];
+    const entry = transactionStore.net_incomes?.[baseIndex + 1 + i];
     if (!entry) continue;
     const inc = entry.income ?? 0;
     const need = entry.expensesNeed ?? 0;

@@ -27,6 +27,19 @@ export interface Transaction {
   account_id: number;
 }
 
+export interface DuplicateTransaction {
+  id: null;
+  description: string;
+  date: string;
+  amount: number;
+  account_id: number;
+  category: string;
+  sub_category: string;
+  type: string;
+  need: boolean;
+  import_sequence: number;
+}
+
 export interface Account {
   id: number;
   description: string;
@@ -41,6 +54,26 @@ export interface Category {
 
 export interface Sub_Category {
   description: string;
+}
+
+export interface CategoryRule {
+  id: number;
+  household_id: number;
+  match_text: string;
+  category: string;
+  sub_category: string;
+  need: boolean;
+  created: string;
+  modified: string;
+}
+
+export interface BudgetTarget {
+  id: number;
+  household_id: number;
+  category: string;
+  monthly_limit: number;
+  created: string;
+  modified: string;
 }
 
 export interface BudgetAnalysis {

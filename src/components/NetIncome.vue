@@ -5,7 +5,7 @@ import { useTransactionStore } from "../stores/transaction";
 const transactionStore = useTransactionStore();
 
 const focusMonth = computed(
-  () => transactionStore.net_incomes[transactionStore.monthsAgo] ?? null
+  () => transactionStore.net_incomes[transactionStore.monthsAgo + 1] ?? null
 );
 
 const incomeTotal = computed(() => focusMonth.value?.income ?? 0);

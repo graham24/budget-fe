@@ -4,6 +4,7 @@ import { uploadTransactions } from "../api";
 import { useAccountStore } from "../stores/account";
 import { useUserStore } from "../stores/user";
 import { useTransactionStore } from "../stores/transaction";
+import ImportReviewStack from "./ImportReviewStack.vue";
 
 const accountsStore = useAccountStore();
 const userStore = useUserStore();
@@ -15,6 +16,9 @@ const emit = defineEmits(["update:isOpen"]);
 const files = ref([]);
 const uploading = ref(false);
 const dragOver = ref(false);
+// Post-upload review: imported transactions first, duplicates at the back
+const reviewItems = ref([]);
+const showReview = ref(false);
 
 function handleFileSelect(event) {
   const selectedFiles = Array.from(event.target.files);
@@ -52,6 +56,15 @@ function getUser(userId) {
   return userStore.users.users.find((user) => user.id === userId);
 }
 
+function getAccount(accountId) {
+  return accountsStore.accounts.accounts.find((a) => a.id === accountId);
+}
+
+function accountLabel(accountId) {
+  const account = getAccount(accountId);
+  return account ? `${account.description} (${account.bank})` : "Unknown account";
+}
+
 async function importAllTransactions() {
   // Validate all files have accounts selected
   const filesWithoutAccount = files.value.filter((f) => !f.accountId);
@@ -61,13 +74,29 @@ async function importAllTransactions() {
   }
 
   uploading.value = true;
+  const imported = [];
+  const duplicates = [];
 
   // Upload each file sequentially
   for (const fileObj of files.value) {
     fileObj.status = "uploading";
     try {
-      await uploadTransactions(fileObj.accountId, fileObj.file);
+      const result = await uploadTransactions(fileObj.accountId, fileObj.file);
       fileObj.status = "success";
+      imported.push(
+        ...(result.imported_transactions ?? []).map((t) => ({
+          kind: "imported",
+          transaction: t,
+          accountLabel: accountLabel(fileObj.accountId),
+        }))
+      );
+      duplicates.push(
+        ...(result.duplicate_transactions ?? []).map((t) => ({
+          kind: "duplicate",
+          transaction: t,
+          accountLabel: accountLabel(fileObj.accountId),
+        }))
+      );
     } catch (error) {
       console.error(`Error uploading ${fileObj.file.name}:`, error);
       fileObj.status = "error";
@@ -80,14 +109,25 @@ async function importAllTransactions() {
 
   uploading.value = false;
 
-  // If all succeeded, close the dialog
-  const allSuccess = files.value.every((f) => f.status === "success");
-  if (allSuccess) {
+  if (imported.length || duplicates.length) {
+    // duplicates go to the back of the stack
+    reviewItems.value = [...imported, ...duplicates];
+    showReview.value = true;
+  } else if (files.value.every((f) => f.status === "success")) {
     setTimeout(() => {
       emit("update:isOpen", false);
       files.value = [];
     }, 1000);
   }
+}
+
+async function finishReview() {
+  showReview.value = false;
+  reviewItems.value = [];
+  files.value = [];
+  // pick up any force-imported transactions
+  await transactionStore.fetchTransactions();
+  emit("update:isOpen", false);
 }
 
 function onDragOver(event) {
@@ -102,7 +142,10 @@ function onDragLeave() {
 
 <template>
   <div class="import-form">
-    <v-container>
+    <v-container v-if="showReview">
+      <ImportReviewStack :items="reviewItems" @done="finishReview" />
+    </v-container>
+    <v-container v-else>
       <!-- File Drop Zone -->
       <div
         v-if="files.length === 0"
@@ -190,16 +233,16 @@ function onDragLeave() {
                 v-model="fileObj.accountId"
                 label="Account"
                 density="compact"
+                class="account-select"
                 :items="accountsStore.accounts.accounts"
                 :item-title="
                   (item) =>
-                    `${getUser(item.user_id).first_name}: ${item.description}: ${
+                    `${getUser(item.user_id)?.first_name ?? 'Unknown'}: ${item.description}: ${
                       item.bank
                     } ${item.type}`
                 "
                 item-value="id"
                 :disabled="fileObj.status === 'uploading' || fileObj.status === 'success'"
-                style="min-width: 300px; max-width: 400px"
               />
 
               <v-btn
@@ -273,6 +316,29 @@ function onDragLeave() {
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
   border-radius: 8px;
   gap: 16px;
+}
+
+.account-select {
+  min-width: 300px;
+  max-width: 400px;
+}
+
+@media (max-width: 700px) {
+  .file-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .file-info {
+    max-width: none;
+  }
+  .file-actions {
+    width: 100%;
+  }
+  .account-select {
+    min-width: 0;
+    max-width: none;
+    flex: 1;
+  }
 }
 
 .file-info {

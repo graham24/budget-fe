@@ -29,11 +29,10 @@ const props = defineProps({
 
 <style scoped>
 .surface-card {
-  background: rgba(var(--v-theme-surface), 0.95);
+  background: rgb(var(--v-theme-surface));
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  border: 1px solid rgba(var(--v-theme-outline), 0.3);
-  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(var(--v-theme-outline), 0.9);
 }
 .surface-card--borderless {
   border-color: transparent;

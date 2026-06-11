@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
-import { getTransactions, addTransaction, saveTransaction } from "../api";
+import { getTransactions, saveTransaction } from "../api";
+import { useAuthStore } from "./auth";
+import { useHouseholdStore } from "./household";
 import type { Transaction, Category, Sub_Category } from "../types";
 
 export const useTransactionStore = defineStore("transaction", {
@@ -41,8 +43,29 @@ export const useTransactionStore = defineStore("transaction", {
       state.transactions.filter(
         (transaction) => transaction.category === "Transfer"
       ),
-    // net_incomes[n] = aggregated data for the month that is (n+1) months ago from today.
-    // e.g. net_incomes[0] = last month, net_incomes[1] = 2 months ago, etc.
+    // Transactions the AI couldn't categorize — the review queue
+    unknownTransactions: (state) =>
+      state.transactions.filter(
+        (transaction) =>
+          transaction.category === "Unknown" ||
+          transaction.sub_category === "Unknown"
+      ),
+    // Transactions in the focus month (monthsAgo + 1 months back from today)
+    focusMonthTransactions: (state): Transaction[] => {
+      const start = new Date();
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      start.setMonth(start.getMonth() - (state.monthsAgo + 1));
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + 1);
+      return state.transactions.filter((transaction) => {
+        const d = new Date(transaction.date);
+        return d >= start && d < end;
+      });
+    },
+    // net_incomes[n] = aggregated data for the month that is n months ago from today.
+    // e.g. net_incomes[0] = current (partial) month, net_incomes[1] = last month, etc.
+    // The focus month for a given window is net_incomes[monthsAgo + 1].
     net_incomes: (state): Array<{ income: number; expensesNeed: number; expensesWant: number }> => {
       const result: Array<{ income: number; expensesNeed: number; expensesWant: number }> = [];
       const today = new Date();
@@ -55,8 +78,7 @@ export const useTransactionStore = defineStore("transaction", {
         const monthsDiff =
           (todayYear - txDate.getFullYear()) * 12 +
           (todayMonth - txDate.getMonth());
-        const n = monthsDiff - 1;
-        if (n < 0) continue; // current (in-progress) month
+        const n = monthsDiff; // index 0 = current month, 1 = last month, etc.
 
         if (!result[n]) {
           result[n] = { income: 0, expensesNeed: 0, expensesWant: 0 };
@@ -74,15 +96,25 @@ export const useTransactionStore = defineStore("transaction", {
   },
   actions: {
     async fetchTransactions(type: string | null = null) {
+      const authStore = useAuthStore();
+      const householdStore = useHouseholdStore();
+      const userId = authStore.user?.id;
+      const householdId = householdStore.household?.household?.id;
+      if (!userId || !householdId) return;
       try {
-        // Fetch far enough back to cover the 3-month window + the trend's extra months
-        // at maximum monthsAgo (2), we need data from up to monthsAgo+4 months ago.
+        // Fetch 12 months of history before the focus month — feeds the
+        // cash-flow trend sparkline and recurring-charge detection.
         const from = new Date();
         from.setDate(1);
-        from.setMonth(from.getMonth() - (this.monthsAgo + 4));
+        from.setMonth(from.getMonth() - Math.max(this.monthsAgo + 12, 12));
         const from_date = from.toISOString().split("T")[0];
 
-        const all_transactions = await getTransactions(1, 1, type, from_date);
+        const all_transactions = await getTransactions(
+          userId,
+          householdId,
+          type,
+          from_date
+        );
         const sortedTransactions = [...all_transactions].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
@@ -92,14 +124,6 @@ export const useTransactionStore = defineStore("transaction", {
       }
     },
 
-    async createTransaction(transaction: Omit<Transaction, "id">) {
-      try {
-        const newTransaction = await addTransaction(transaction);
-        this.transactions.push(newTransaction);
-      } catch (error) {
-        console.error("Error adding transaction:", error);
-      }
-    },
     async saveTransaction(transaction: Transaction) {
       try {
         const saved = await saveTransaction(transaction);

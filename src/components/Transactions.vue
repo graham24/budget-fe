@@ -1,5 +1,5 @@
 <script setup>
-import { ref, shallowRef } from "vue";
+import { ref, shallowRef, watch } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 import { useAccountStore } from "../stores/account";
 import { useUserStore } from "../stores/user";
@@ -9,13 +9,70 @@ import TransactionReviewDialog from "./TransactionReviewDialog.vue";
 import TransactionsTable from "./TransactionsTable.vue";
 // import DayJsAdapter from '@date-io/dayjs'
 
-// const search = ref("");
-// const transactionStore = useTransactionStore();
-// const userStore = useUserStore();
+const transactionStore = useTransactionStore();
 const showDatePicker = ref(false);
 const selectedDates = ref(null);
 const searchTerm = ref(null);
+const debouncedSearchTerm = ref(null);
 const showReviewDialog = ref(false);
+// Snapshot of the unknown queue taken when the dialog opens, so rows don't
+// shift out from under the reviewer as they get categorized
+const reviewList = ref([]);
+
+function openReview() {
+  reviewList.value = [...transactionStore.unknownTransactions];
+  showReviewDialog.value = true;
+}
+
+// Export the active 3-month window as CSV
+function exportCsv() {
+  const start = new Date();
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
+  start.setMonth(start.getMonth() - (transactionStore.monthsAgo + 3));
+  const end = new Date();
+  end.setDate(1);
+  end.setHours(0, 0, 0, 0);
+  end.setMonth(end.getMonth() - transactionStore.monthsAgo);
+
+  const rows = transactionStore.transactions.filter((t) => {
+    const d = new Date(t.date);
+    return d >= start && d < end;
+  });
+
+  const escape = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const header = "Date,Description,Category,Sub-Category,Amount,Need,Type,Account ID";
+  const lines = rows.map((t) =>
+    [
+      new Date(t.date).toISOString().split("T")[0],
+      escape(t.description),
+      escape(t.category),
+      escape(t.sub_category),
+      t.amount,
+      t.need,
+      t.type,
+      t.account_id,
+    ].join(",")
+  );
+
+  const blob = new Blob([[header, ...lines].join("\n")], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `transactions-${start.toISOString().split("T")[0]}-to-${end.toISOString().split("T")[0]}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+// Debounce so the four tables only re-filter after typing pauses
+let searchTimeout = null;
+watch(searchTerm, (value) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    debouncedSearchTerm.value = value;
+  }, 250);
+});
 
 function selectDates() {
   if (selectedDates.value.length > 1) {
@@ -49,56 +106,73 @@ function selectDates() {
           class="position-absolute top-0 right-0"
           style="z-index: 1"
         ></v-date-picker>
-        <!-- <v-btn
-          color="primary"
-          variant="flat"
-          prepend-icon="mdi-eye-check"
-          @click="showReviewDialog = true"
-        >
-          Review
-        </v-btn> -->
-        <v-text-field
-          v-model="searchTerm"
-          label="Search transactions"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          hide-details
-          single-line
-          density="comfortable"
-          class="search-input"
-        ></v-text-field>
+        <div class="toolbar mb-3">
+          <v-text-field
+            v-model="searchTerm"
+            label="Search transactions"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            hide-details
+            single-line
+            density="comfortable"
+            class="search-input"
+          ></v-text-field>
+          <v-btn
+            v-if="transactionStore.unknownTransactions.length"
+            color="warning"
+            variant="tonal"
+            prepend-icon="mdi-eye-check"
+            @click="openReview"
+          >
+            Review ({{ transactionStore.unknownTransactions.length }})
+          </v-btn>
+          <v-btn
+            variant="tonal"
+            prepend-icon="mdi-download"
+            @click="exportCsv"
+          >
+            Export CSV
+          </v-btn>
+        </div>
         <TransactionsTable
           :type="'income'"
-          :searchTerm="searchTerm"
+          :searchTerm="debouncedSearchTerm"
           :dateRange="selectedDates"
         />
          <TransactionsTable
           :type="'expenses-need'"
-          :searchTerm="searchTerm"
+          :searchTerm="debouncedSearchTerm"
           :dateRange="selectedDates"
         />
          <TransactionsTable
           :type="'expenses-want'"
-          :searchTerm="searchTerm"
+          :searchTerm="debouncedSearchTerm"
           :dateRange="selectedDates"
         />
          <TransactionsTable
           :type="'transfers'"
-          :searchTerm="searchTerm"
+          :searchTerm="debouncedSearchTerm"
           :dateRange="selectedDates"
         />
-        <!-- <TransactionReviewDialog
-      v-model="showReviewDialog"
-      :transactions="transactionStore.transactions.all_transactions"
-    /> -->
+        <TransactionReviewDialog
+          v-model="showReviewDialog"
+          :transactions="reviewList"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 .search-input {
   min-width: 260px;
+  flex: 1;
 }
 .container {
   position: relative;

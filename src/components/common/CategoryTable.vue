@@ -73,14 +73,22 @@ const categoryRows = computed(() => {
     else if (sameMonth(txDate, m3)) row.month3 += transaction.amount;
   });
 
+  // Drop rows with no activity in any of the 3 displayed months — these come
+  // from transactions that exist in the store but fall outside the window
+  const activeRows = rows.filter(
+    (row) =>
+      Math.abs(row.month1) + Math.abs(row.month2) + Math.abs(row.month3) >
+      0.005
+  );
+
   // total = focus month sum per category group
-  rows.forEach((row) => {
-    row.total = rows
+  activeRows.forEach((row) => {
+    row.total = activeRows
       .filter((r) => r.category === row.category)
       .reduce((sum, r) => sum + r.month1, 0);
   });
 
-  return rows;
+  return activeRows;
 });
 
 const sortedRows = computed(() => {
@@ -96,6 +104,22 @@ const sortedRows = computed(() => {
 
 function calculateAverage(item) {
   return (item.month1 + item.month2 + item.month3) / 3;
+}
+
+// Flag expense rows where the focus month is well above the prior two months'
+// average (25%+ over and at least $25 more), so jumps stand out in the table.
+function isOverspend(item) {
+  if (props.type?.toLowerCase() === "income") return false;
+  const prior = (Math.abs(item.month2) + Math.abs(item.month3)) / 2;
+  if (prior === 0) return false;
+  const current = Math.abs(item.month1);
+  return current > prior * 1.25 && current - prior >= 25;
+}
+
+function overspendTitle(item) {
+  const prior = (Math.abs(item.month2) + Math.abs(item.month3)) / 2;
+  const pct = ((Math.abs(item.month1) / prior - 1) * 100).toFixed(0);
+  return `${pct}% above the prior two months' average`;
 }
 
 function sumField(items, key) {
@@ -191,7 +215,15 @@ const headers = computed(() => [
         </tr>
       </template>
       <template v-slot:item.month1="{ item }">
-        {{ formatCurrency(item.month1) }}
+        <span
+          v-if="isOverspend(item)"
+          class="overspend"
+          :title="overspendTitle(item)"
+        >
+          {{ formatCurrency(item.month1) }}
+          <v-icon icon="mdi-arrow-up-bold" size="x-small" />
+        </span>
+        <template v-else>{{ formatCurrency(item.month1) }}</template>
       </template>
       <template v-slot:item.month2="{ item }">
         {{ formatCurrency(item.month2) }}
@@ -227,18 +259,23 @@ const headers = computed(() => [
 .totals-row {
   font-weight: 700;
 }
-.category-table :deep(.v-data-table__th) {
-  background: rgba(var(--v-theme-primary), 0.05);
+.overspend {
+  color: rgb(var(--v-theme-error));
   font-weight: 700;
+  white-space: nowrap;
+}
+.category-table :deep(.v-data-table__th) {
+  background: rgb(var(--v-theme-surface-variant));
 }
 .category-table :deep(.v-data-table__tr:nth-child(even)) {
-  background: rgba(var(--v-theme-primary), 0.02);
+  background: rgba(var(--v-theme-on-surface), 0.02);
 }
 .category-table :deep(td) {
-  border-color: rgba(var(--v-theme-outline), 0.25);
+  border-color: rgba(var(--v-theme-outline), 0.5);
 }
 .group-row {
-  background: rgba(var(--v-theme-primary), 0.08);
+  background: rgba(var(--v-theme-on-surface), 0.04);
+  font-weight: 600;
 }
 .totals-row td {
   border-top: 2px solid rgba(var(--v-theme-outline), 0.4);

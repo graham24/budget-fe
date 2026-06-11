@@ -33,6 +33,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { getLatestBudgetAnalysis } from "../api";
+import { analysisToHtml } from "../markdown";
 
 const props = defineProps({
   householdId: {
@@ -50,22 +51,16 @@ const latestAnalysis = ref(null);
 
 const formattedAnalysis = computed(() => {
   if (!latestAnalysis.value) return "";
-
-  // Convert markdown-style formatting to HTML
-  let html = latestAnalysis.value.analysis
-    .replace(/\n\n/g, "</p><p>")
-    .replace(/\n/g, "<br>")
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.*?)\*/g, "<em>$1</em>");
-
-  return `<p>${html}</p>`;
+  return analysisToHtml(latestAnalysis.value.analysis);
 });
 
+// from/to are date-only boundaries — render in UTC so they don't shift a day
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
 };
 
@@ -114,12 +109,52 @@ onMounted(() => {
   line-height: 1.7;
   color: rgba(var(--v-theme-on-surface), 0.87);
   font-size: 0.9rem;
-  max-height: 280px;
+  max-height: 420px;
   overflow-y: auto;
+  padding-right: 6px;
 }
 
 .analysis-text :deep(p) {
   margin-bottom: 1em;
+}
+
+.analysis-text :deep(h4),
+.analysis-text :deep(h5),
+.analysis-text :deep(h6) {
+  margin: 0.9em 0 0.4em;
+  line-height: 1.3;
+  color: rgba(var(--v-theme-on-surface), 1);
+}
+
+.analysis-text :deep(h4:first-child) {
+  margin-top: 0;
+}
+
+.analysis-text :deep(h4) {
+  font-size: 1.05rem;
+}
+
+.analysis-text :deep(h5) {
+  font-size: 0.95rem;
+}
+
+.analysis-text :deep(h6) {
+  font-size: 0.9rem;
+}
+
+.analysis-text :deep(ul) {
+  margin: 0 0 1em;
+  padding-left: 1.3em;
+}
+
+.analysis-text :deep(li) {
+  margin-bottom: 0.3em;
+}
+
+.analysis-text :deep(hr) {
+  border: none;
+  border-top: 1px solid rgba(var(--v-theme-outline), 0.3);
+  margin: 1em 0;
 }
 
 .analysis-text :deep(p:last-child) {

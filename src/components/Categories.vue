@@ -7,42 +7,37 @@ import SectionHeader from "./common/SectionHeader.vue";
 const transactionStore = useTransactionStore();
 </script>
 <template>
-  <div>
-    <v-container>
-      <v-row>
-        <v-col cols="12">
-          <SurfaceCard class="category-card" padding="14px 14px 10px">
-            <SectionHeader
-              label="Income"
-              title="Primary earnings"
-            />
-            <CategoryTable :type="'income'" />
-          </SurfaceCard>
-        </v-col>
-        <v-col cols="12">
-          <SurfaceCard class="category-card" padding="14px 14px 10px">
-            <SectionHeader
-              label="Must-Haves"
-              title="Rent, utilities, groceries"
-            />
-            <CategoryTable :type="'expenses'" :need="true" />
-          </SurfaceCard>
-        </v-col>
-        <v-col cols="12">
-          <SurfaceCard class="category-card" padding="14px 14px 10px">
-            <SectionHeader
-              label="Nice-to-Haves"
-              title="Dining out, travel, fun"
-            />
-            <CategoryTable :type="'expenses'" :need="false" />
-          </SurfaceCard>
-        </v-col>
-      </v-row>
-    </v-container>
+  <div class="category-stack">
+    <SurfaceCard class="category-card" padding="14px 14px 10px">
+      <SectionHeader
+        label="Income"
+        title="Primary earnings"
+      />
+      <CategoryTable :type="'income'" />
+    </SurfaceCard>
+    <SurfaceCard class="category-card" padding="14px 14px 10px">
+      <SectionHeader
+        label="Must-Haves"
+        title="Rent, utilities, groceries"
+      />
+      <CategoryTable :type="'expenses'" :need="true" />
+    </SurfaceCard>
+    <SurfaceCard class="category-card" padding="14px 14px 10px">
+      <SectionHeader
+        label="Nice-to-Haves"
+        title="Dining out, travel, fun"
+      />
+      <CategoryTable :type="'expenses'" :need="false" />
+    </SurfaceCard>
   </div>
 </template>
 
 <style scoped>
+.category-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 .categories {
   display: flex;
   column-gap: 10px;
