@@ -99,9 +99,19 @@ VITE_API_BASE_URL=http://localhost:5000/api   # in .env or .env.local
 Email-only login (no password). `App.vue` shows a login card until `authStore.user` is set; the rest of the app only mounts after login, so stores can assume a user exists.
 
 - `authStore.login(email)` → `POST /auth/login/` → user persisted to localStorage; restored on reload via `verifyUser`
+- Unknown email (login 404) flips the card into signup mode (first/last name fields appear); `authStore.signup(...)` → `POST /auth/signup/` creates the user + their household and logs them in
+- Users invited to a household before ever logging in are placeholders with empty `first_name`; `App.vue` watches `authStore.user` and auto-opens the Profile dialog (with a welcome hint) so they can fill in their name
 - IDs are resolved dynamically: `household`/`account`/`transaction` stores read `user.id` from the auth store; `user`/`transaction`/`categoryRule` stores read `household.id` from the household store. `index.vue` fetches the household first, then the rest in parallel.
 - Logout clears the auth store and `$reset()`s the per-user data stores
 - This is identification, not security — the backend has no sessions or tokens
+
+## Settings Dialogs
+
+A `mdi-cog-outline` menu in the `App.vue` top bar opens three `common/Dialog.vue`-hosted dialogs:
+
+- **Profile** (`ProfileForm.vue`): edit own name/email via `authStore.updateProfile` (refreshes the member list after save)
+- **Household** (`HouseholdForm.vue`): rename via `householdStore.updateName`; member list (blank-name placeholders show an "Invited" pill) and add-member-by-email via `userStore.addMember`
+- **Accounts** (`AccountsManager.vue` + `AccountForm.vue`): list/add/edit accounts via the account store; bank is a fixed select of the four importer keys, owner defaults to the logged-in user
 
 ## Known Constraints
 

@@ -24,6 +24,28 @@
             class="mb-3"
             hide-details
           />
+          <template v-if="signupMode">
+            <p class="text-caption muted mb-3">
+              New here? Finish setting up your account.
+            </p>
+            <v-text-field
+              v-model="firstName"
+              label="First name"
+              variant="outlined"
+              density="comfortable"
+              autofocus
+              class="mb-3"
+              hide-details
+            />
+            <v-text-field
+              v-model="lastName"
+              label="Last name"
+              variant="outlined"
+              density="comfortable"
+              class="mb-3"
+              hide-details
+            />
+          </template>
           <v-alert v-if="loginError" type="error" density="compact" class="mb-3">
             {{ loginError }}
           </v-alert>
@@ -33,9 +55,18 @@
             variant="flat"
             block
             :loading="loggingIn"
-            :disabled="!email.trim()"
+            :disabled="!email.trim() || (signupMode && (!firstName.trim() || !lastName.trim()))"
           >
-            Sign In
+            {{ signupMode ? "Create Account" : "Sign In" }}
+          </v-btn>
+          <v-btn
+            v-if="signupMode"
+            variant="text"
+            block
+            class="mt-2"
+            @click="resetSignup"
+          >
+            Back
           </v-btn>
         </v-form>
       </SurfaceCard>
@@ -58,6 +89,36 @@
           >
             <v-icon :icon="isDark ? 'mdi-white-balance-sunny' : 'mdi-weather-night'" />
           </v-btn>
+          <v-menu>
+            <template #activator="{ props: menuProps }">
+              <v-btn
+                v-bind="menuProps"
+                variant="text"
+                density="comfortable"
+                icon
+                aria-label="Settings"
+              >
+                <v-icon icon="mdi-cog-outline" />
+              </v-btn>
+            </template>
+            <v-list density="compact">
+              <v-list-item
+                prepend-icon="mdi-account-outline"
+                title="Profile"
+                @click="profileDialog = true"
+              />
+              <v-list-item
+                prepend-icon="mdi-home-outline"
+                title="Household"
+                @click="householdDialog = true"
+              />
+              <v-list-item
+                prepend-icon="mdi-bank-outline"
+                title="Accounts"
+                @click="accountsDialog = true"
+              />
+            </v-list>
+          </v-menu>
           <span class="top-bar__user muted">{{ displayName }}</span>
           <v-btn variant="outlined" density="comfortable" @click="logout">
             Log out
@@ -67,6 +128,19 @@
       <v-main class="app-main">
         <router-view />
       </v-main>
+      <Dialog v-model="profileDialog" title="Profile">
+        <ProfileForm
+          :prompt="namePrompt"
+          @saved="closeProfileDialog"
+          @cancel="closeProfileDialog"
+        />
+      </Dialog>
+      <Dialog v-model="householdDialog" title="Household">
+        <HouseholdForm @saved="householdDialog = false" />
+      </Dialog>
+      <Dialog v-model="accountsDialog" title="Accounts" max-width="760">
+        <AccountsManager />
+      </Dialog>
     </div>
   </v-app>
 </template>
@@ -80,6 +154,10 @@ import { useUserStore } from "@/stores/user";
 import { useTransactionStore } from "@/stores/transaction";
 import { useTheme } from "vuetify";
 import SurfaceCard from "./components/common/SurfaceCard.vue";
+import Dialog from "./components/common/Dialog.vue";
+import ProfileForm from "./components/ProfileForm.vue";
+import HouseholdForm from "./components/HouseholdForm.vue";
+import AccountsManager from "./components/AccountsManager.vue";
 
 const authStore = useAuthStore();
 const householdStore = useHouseholdStore();
@@ -89,8 +167,15 @@ const transactionStore = useTransactionStore();
 const theme = useTheme();
 const themeName = ref(theme.global.name.value);
 const email = ref("");
+const firstName = ref("");
+const lastName = ref("");
+const signupMode = ref(false);
 const loggingIn = ref(false);
 const loginError = ref(null);
+const profileDialog = ref(false);
+const householdDialog = ref(false);
+const accountsDialog = ref(false);
+const namePrompt = ref(false);
 const displayName = computed(
   () => authStore.user?.first_name ?? "there"
 );
@@ -110,20 +195,65 @@ onMounted(() => {
 
 async function submitLogin() {
   if (!email.value.trim()) return;
+  if (signupMode.value && (!firstName.value.trim() || !lastName.value.trim()))
+    return;
   loggingIn.value = true;
   loginError.value = null;
   try {
-    await authStore.login(email.value.trim());
+    if (signupMode.value) {
+      try {
+        await authStore.signup(
+          email.value.trim(),
+          firstName.value.trim(),
+          lastName.value.trim()
+        );
+      } catch (error) {
+        // User was created in the meantime — just log in
+        if (error.response?.status !== 409) throw error;
+        await authStore.login(email.value.trim());
+      }
+    } else {
+      await authStore.login(email.value.trim());
+    }
+    resetSignup();
     email.value = "";
   } catch (error) {
-    loginError.value =
-      error.response?.status === 404
-        ? "No user found with that email"
-        : error.response?.data?.message || "Login failed";
+    if (!signupMode.value && error.response?.status === 404) {
+      // Unknown email — expand the form to create an account
+      signupMode.value = true;
+    } else {
+      loginError.value =
+        error.response?.data?.message || "Login failed";
+    }
   } finally {
     loggingIn.value = false;
   }
 }
+
+function resetSignup() {
+  signupMode.value = false;
+  firstName.value = "";
+  lastName.value = "";
+  loginError.value = null;
+}
+
+function closeProfileDialog() {
+  profileDialog.value = false;
+  namePrompt.value = false;
+}
+
+// Placeholder users (added to a household by email) have no name yet —
+// prompt for it on first login
+watch(
+  () => authStore.user,
+  (user) => {
+    if (user && !user.first_name) {
+      namePrompt.value = true;
+      profileDialog.value = true;
+    }
+  },
+  { immediate: true }
+);
 
 function logout() {
   authStore.logout();

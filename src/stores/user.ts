@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { getUsers } from "../api";
+import { addHouseholdMember, getUsers } from "../api";
 import { useHouseholdStore } from "./household";
 import type { User } from "../types";
 
@@ -17,6 +17,14 @@ export const useUserStore = defineStore("user", {
       } catch (error) {
         console.error("Error fetching users:", error);
       }
+    },
+    // Errors propagate so the form can show them (e.g. 409 already a member)
+    async addMember(email: string) {
+      const householdStore = useHouseholdStore();
+      const householdId = householdStore.household?.household?.id;
+      if (!householdId) return;
+      await addHouseholdMember(householdId, email);
+      await this.fetchUsers();
     },
   },
 });

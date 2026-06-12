@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { getAccounts } from "../api";
+import { createAccount, getAccounts, updateAccount } from "../api";
 import { useAuthStore } from "./auth";
 import type { Account } from "../types";
 
@@ -17,6 +17,28 @@ export const useAccountStore = defineStore("account", {
       } catch (error) {
         console.error("Error fetching accounts:", error);
       }
+    },
+    // Errors propagate so the account form can show them
+    async createAccount(account: {
+      description: string;
+      type: string;
+      bank: string;
+      user_id: number;
+    }) {
+      await createAccount(account);
+      await this.fetchAccounts();
+    },
+    async updateAccount(
+      id: number,
+      updates: {
+        description?: string;
+        type?: string;
+        bank?: string;
+        user_id?: number;
+      }
+    ) {
+      await updateAccount(id, updates);
+      await this.fetchAccounts();
     },
   },
 });

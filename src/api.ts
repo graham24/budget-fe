@@ -21,6 +21,80 @@ export const login = async (email: string): Promise<User> => {
   return response.data;
 };
 
+// Signup — creates the user plus their own household
+export const signup = async (
+  email: string,
+  first_name: string,
+  last_name: string
+): Promise<User> => {
+  const response = await api.post<User>("/auth/signup/", {
+    email,
+    first_name,
+    last_name,
+  });
+  return response.data;
+};
+
+export const updateUser = async (
+  id: number,
+  updates: { first_name?: string; last_name?: string; email?: string }
+): Promise<User> => {
+  const response = await api.put<{ user: User }>(`/users/${id}`, updates);
+  return response.data.user;
+};
+
+export const updateHousehold = async (
+  id: number,
+  name: string
+): Promise<Household> => {
+  const response = await api.put<{ household: Household }>(
+    `/household/${id}`,
+    { name }
+  );
+  return response.data.household;
+};
+
+// Adds by email; unknown emails get a placeholder user in this household
+export const addHouseholdMember = async (
+  household_id: number,
+  email: string
+): Promise<User> => {
+  const response = await api.post<{ user: User }>(
+    `/household/${household_id}/members/`,
+    { email }
+  );
+  return response.data.user;
+};
+
+export const createAccount = async (account: {
+  description: string;
+  type: string;
+  bank: string;
+  user_id: number;
+}): Promise<Account> => {
+  const response = await api.post<{ account: Account }>(
+    "/accounts/create/",
+    account
+  );
+  return response.data.account;
+};
+
+export const updateAccount = async (
+  id: number,
+  updates: {
+    description?: string;
+    type?: string;
+    bank?: string;
+    user_id?: number;
+  }
+): Promise<Account> => {
+  const response = await api.put<{ account: Account }>(
+    `/accounts/${id}`,
+    updates
+  );
+  return response.data.account;
+};
+
 // Fetch households
 export const getHousehold = async (
   user_id: number

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { getHousehold } from "../api";
+import { getHousehold, updateHousehold } from "../api";
 import { useAuthStore } from "./auth";
 import type { Household } from "../types";
 
@@ -17,6 +17,13 @@ export const useHouseholdStore = defineStore("household", {
       } catch (error) {
         console.error("Error fetching household:", error);
       }
+    },
+    // Errors propagate so the form can show them (e.g. 409 duplicate name)
+    async updateName(name: string) {
+      const householdId = this.household?.household?.id;
+      if (!householdId) return;
+      const updated = await updateHousehold(householdId, name);
+      this.household = { household: updated };
     },
   },
 });
