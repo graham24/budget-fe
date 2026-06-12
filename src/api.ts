@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Household, User, Transaction, Account, BudgetAnalysis, DuplicateTransaction, CategoryRule, BudgetTarget } from "./types";
+import type { Household, User, Transaction, Account, BudgetAnalysis, DuplicateTransaction, CategoryRule, BudgetTarget, NetWorthItem, NetWorthSummary, BalanceEntry } from "./types";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Create Axios instance
@@ -165,6 +165,82 @@ export const saveBudgetTarget = async (target: {
 
 export const deleteBudgetTarget = async (id: number): Promise<void> => {
   await api.delete(`/budget-targets/${id}`);
+};
+
+// Net worth items
+export const getNetWorthItems = async (
+  household_id: number
+): Promise<NetWorthItem[]> => {
+  const response = await api.get<{ items: NetWorthItem[] }>(
+    "/net-worth/items/",
+    { params: { household_id } }
+  );
+  return response.data.items;
+};
+
+export const createNetWorthItem = async (item: {
+  household_id: number;
+  name: string;
+  kind: "asset" | "debt";
+  type: string;
+  interest_rate?: number | null;
+  minimum_payment?: number | null;
+  initial_balance?: number | null;
+  balance_date?: string | null;
+}): Promise<NetWorthItem> => {
+  const response = await api.post<{ item: NetWorthItem }>(
+    "/net-worth/items/",
+    item
+  );
+  return response.data.item;
+};
+
+export const updateNetWorthItem = async (
+  id: number,
+  updates: {
+    name?: string;
+    type?: string;
+    interest_rate?: number | null;
+    minimum_payment?: number | null;
+  }
+): Promise<NetWorthItem> => {
+  const response = await api.put<{ item: NetWorthItem }>(
+    `/net-worth/items/${id}`,
+    updates
+  );
+  return response.data.item;
+};
+
+export const deleteNetWorthItem = async (id: number): Promise<void> => {
+  await api.delete(`/net-worth/items/${id}`);
+};
+
+export const addBalanceEntry = async (
+  item_id: number,
+  balance: number,
+  effective_date?: string
+): Promise<BalanceEntry> => {
+  const data: Record<string, any> = { balance };
+  if (effective_date) data.effective_date = effective_date;
+  const response = await api.post<{ entry: BalanceEntry }>(
+    `/net-worth/items/${item_id}/balances/`,
+    data
+  );
+  return response.data.entry;
+};
+
+export const deleteBalanceEntry = async (id: number): Promise<void> => {
+  await api.delete(`/net-worth/balances/${id}`);
+};
+
+export const getNetWorthSummary = async (
+  household_id: number,
+  months = 12
+): Promise<NetWorthSummary> => {
+  const response = await api.get<NetWorthSummary>("/net-worth/summary/", {
+    params: { household_id, months },
+  });
+  return response.data;
 };
 
 // Generate budget analysis

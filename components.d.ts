@@ -7,6 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BalanceHistoryDialog: typeof import('./src/components/BalanceHistoryDialog.vue')['default']
     BudgetAnalysisCard: typeof import('./src/components/BudgetAnalysisCard.vue')['default']
     BudgetAnalysisDialog: typeof import('./src/components/BudgetAnalysisDialog.vue')['default']
     BudgetTargets: typeof import('./src/components/BudgetTargets.vue')['default']
@@ -20,9 +21,15 @@ declare module 'vue' {
     HeroBanner: typeof import('./src/components/common/HeroBanner.vue')['default']
     ImportForm: typeof import('./src/components/ImportForm.vue')['default']
     ImportReviewStack: typeof import('./src/components/ImportReviewStack.vue')['default']
+    KpiStrip: typeof import('./src/components/KpiStrip.vue')['default']
     Login: typeof import('./src/components/Login.vue')['default']
     NetIncome: typeof import('./src/components/NetIncome.vue')['default']
     NetTrend: typeof import('./src/components/NetTrend.vue')['default']
+    NetWorthItemForm: typeof import('./src/components/NetWorthItemForm.vue')['default']
+    NetWorthItems: typeof import('./src/components/NetWorthItems.vue')['default']
+    NetWorthKpis: typeof import('./src/components/NetWorthKpis.vue')['default']
+    NetWorthSummaryBar: typeof import('./src/components/NetWorthSummaryBar.vue')['default']
+    NetWorthTrend: typeof import('./src/components/NetWorthTrend.vue')['default']
     PopUp: typeof import('./src/components/common/PopUp.vue')['default']
     RecurringCosts: typeof import('./src/components/RecurringCosts.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

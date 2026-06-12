@@ -76,6 +76,45 @@ export interface BudgetTarget {
   modified: string;
 }
 
+export interface BalanceEntry {
+  id: number;
+  item_id: number;
+  balance: number;
+  effective_date: string;
+  created: string;
+  modified: string;
+}
+
+export interface NetWorthItem {
+  id: number;
+  household_id: number;
+  name: string;
+  kind: "asset" | "debt";
+  type: string;
+  interest_rate: number | null;
+  minimum_payment: number | null;
+  current_balance: number | null;
+  current_balance_date: string | null;
+  entries: BalanceEntry[];
+  created: string;
+  modified: string;
+}
+
+export interface NetWorthPoint {
+  month: string;
+  assets: number;
+  debts: number;
+  net_worth: number;
+}
+
+export interface NetWorthSummary {
+  total_assets: number;
+  total_debts: number;
+  net_worth: number;
+  as_of: string;
+  series: NetWorthPoint[];
+}
+
 export interface BudgetAnalysis {
   id: number;
   household_id: number;

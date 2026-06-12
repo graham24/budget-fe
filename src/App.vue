@@ -41,21 +41,16 @@
       </SurfaceCard>
     </div>
     <div v-else class="app-frame">
-      <SurfaceCard class="app-header" tag="header" padding="14px 18px">
-        <div class="d-flex align-center ga-3">
+      <header class="top-bar">
+        <div class="top-bar__brand">
           <div class="brand-mark">
-            <v-icon icon="mdi-account-circle" size="28" color="primary" />
+            <v-icon icon="mdi-wallet-outline" size="18" color="primary" />
           </div>
-          <div>
-            <div class="text-subtitle-1 font-weight-bold">Hello, {{ displayName }}</div>
-            <div class="text-caption muted">
-              Past 3 months at a glance
-            </div>
-          </div>
+          <span class="top-bar__name">Budget</span>
         </div>
-        <div class="d-flex align-center ga-2 header-actions">
+        <div class="top-bar__actions">
           <v-btn
-            variant="tonal"
+            variant="text"
             density="comfortable"
             icon
             :aria-label="`Switch to ${isDark ? 'light' : 'dark'} mode`"
@@ -63,9 +58,12 @@
           >
             <v-icon :icon="isDark ? 'mdi-white-balance-sunny' : 'mdi-weather-night'" />
           </v-btn>
-          <v-btn color="primary" variant="flat" @click="logout">Logout</v-btn>
+          <span class="top-bar__user muted">{{ displayName }}</span>
+          <v-btn variant="outlined" density="comfortable" @click="logout">
+            Log out
+          </v-btn>
         </div>
-      </SurfaceCard>
+      </header>
       <v-main class="app-main">
         <router-view />
       </v-main>
@@ -169,31 +167,47 @@ watch(themeName, (val) => {
 
 .app-frame {
   min-height: 100vh;
-  padding: 18px;
   background: rgb(var(--v-theme-background));
 }
 
-.app-header {
-  display: flex;
-  padding: 14px 18px;
-  margin-bottom: 16px;
-}
-.app-header :deep(.surface-card__body) {
+/* Slim product-style top bar: brand left, session controls right */
+.top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 0 20px;
+  background: rgb(var(--v-theme-surface));
+  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.9);
 }
-.header-actions {
-  margin-left: auto;
+.top-bar__brand {
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+.top-bar__name {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-size: 1.05rem;
+}
+.top-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.top-bar__user {
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .brand-mark {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   background: rgba(var(--v-theme-primary), 0.12);
@@ -201,34 +215,18 @@ watch(themeName, (val) => {
 }
 
 .app-main {
-  padding: 8px;
-}
-/* quiet uppercase eyebrow instead of a colored pill */
-.pill {
-  color: rgba(var(--v-theme-on-surface), 0.55);
-  font-weight: 700;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.muted {
-  color: rgba(var(--v-theme-on-background), 0.65);
+  padding: 4px 8px 16px;
 }
 
-@media (max-width: 960px) {
-  .app-frame {
-    padding: 12px;
+@media (max-width: 600px) {
+  .top-bar {
+    padding: 0 12px;
   }
-  .app-header :deep(.surface-card__body) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+  .top-bar__user {
+    display: none;
   }
   .app-main {
-    padding: 0;
-  }
-  .header-actions {
-    align-self: flex-end;
+    padding: 0 0 12px;
   }
 }
 </style>

@@ -56,7 +56,7 @@ Axios instance pointed at `VITE_API_BASE_URL` (default `http://localhost:5000/ap
 ### Component Organization
 
 - **`src/pages/`**: Route pages — `index.vue` is the only page
-- **`src/components/common/`**: Reusable primitives: `SurfaceCard`, `Dialog` (fullscreen on xs screens), `HeroBanner`, `SectionHeader`, `CategoryTable`
+- **`src/components/common/`**: Reusable primitives: `SurfaceCard`, `Dialog` (fullscreen on xs screens), `SectionHeader`, `CategoryTable` (`HeroBanner` exists but is no longer used — replaced by the page header in `index.vue`)
 - **`src/stores/`**: Pinia stores: `auth`, `household`, `user`, `account`, `transaction`, `import`, `categoryRule`, `budgetTarget`
 
 ### Dashboard Cards
@@ -75,7 +75,7 @@ All focus-month cards read `transactionStore.focusMonthTransactions` (a getter f
 
 User-defined categorization rules ("description contains X → category/sub-category/need") that the backend applies during import before falling back to AI. Managed two ways:
 
-- **`CategoryRulesManager.vue`**: list/add/delete rules, opened from the "Rules" button in the dashboard hero
+- **`CategoryRulesManager.vue`**: list/add/delete rules, opened from the "Rules" button in the page header
 - **`TransactionsTable.vue`**: per-row tag button opens a `CategoryRuleForm` pre-filled from that transaction
 
 `CategoryRuleForm.vue` owns the create call via `useCategoryRuleStore`; the store resolves `household_id` from the household store. Rules are not retroactively applied to existing transactions.
@@ -84,7 +84,9 @@ User-defined categorization rules ("description contains X → category/sub-cate
 
 Configured in `src/plugins/vuetify.ts` with MDI icons, light/dark themes, and SCSS settings at `src/styles/settings.scss`. Components are auto-imported via `vite.config.mts`.
 
-The visual language is deliberately restrained ("professional finance dashboard"): Inter with global `tabular-nums`, solid surfaces with 1px outline borders and hairline shadows (`--shadow-sm`), 12px radii, sentence-case buttons, neutral (not primary-tinted) table stripes/group rows, and uppercase muted "eyebrow" labels via the `.pill` class. No gradients, glassmorphism, or backdrop blur — keep new components consistent with this. Tokens live in `src/styles/tokens.css`; global overrides in `src/styles/global.css`.
+The visual language is deliberately restrained ("professional finance dashboard"): Inter with global `tabular-nums`, solid surfaces with 1px outline borders and hairline shadows (`--shadow-sm`), 12px radii, sentence-case buttons, neutral (not primary-tinted) table stripes/group rows, and uppercase muted "eyebrow" labels via the global `.pill` class (defined in `global.css` alongside `.muted`). No gradients, glassmorphism, or backdrop blur — keep new components consistent with this. Tokens live in `src/styles/tokens.css`; global overrides in `src/styles/global.css`.
+
+App shell: `App.vue` renders a slim sticky top bar (brand + theme toggle + logout) with the page below it. `index.vue` opens with a page header — large household title, segmented month pager (`‹ Month ›`), and Import / Generate analysis / Rules actions — followed by underline-style nav tabs (`.nav-tabs`, no box). The Overview tab leads with `KpiStrip.vue`: four stat tiles (Income, Spending, Net, Savings rate) for the focus month with dollar deltas vs. the prior month.
 
 ## Configuration
 
