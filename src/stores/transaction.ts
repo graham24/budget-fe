@@ -17,7 +17,7 @@ export const useTransactionStore = defineStore("transaction", {
       income: [] as Sub_Category[],
       transfers: [] as Sub_Category[],
     },
-    monthsAgo: 0 as number,
+    monthsAgo: -1 as number,
   }),
   getters: {
     incomeTransactions: (state) =>
