@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useNetWorthStore } from "../stores/netWorth";
+import { useAccountStore } from "../stores/account";
 
 const props = defineProps({
   kind: {
@@ -16,8 +17,20 @@ const props = defineProps({
 const emit = defineEmits(["saved"]);
 
 const netWorthStore = useNetWorthStore();
+const accountStore = useAccountStore();
 const isDebt = props.kind === "debt";
 const isEdit = !!props.item;
+
+if (!accountStore.accounts.accounts.length) {
+  accountStore.fetchAccounts();
+}
+
+const accountOptions = computed(() =>
+  accountStore.accounts.accounts.map((a) => ({
+    title: a.description,
+    value: a.id,
+  }))
+);
 
 const typeOptions = isDebt
   ? ["Mortgage", "Auto Loan", "Credit Card", "Student Loan", "Personal Loan", "Other"]
@@ -25,6 +38,7 @@ const typeOptions = isDebt
 
 const name = ref(props.item?.name ?? "");
 const type = ref(props.item?.type ?? "");
+const accountId = ref(props.item?.account_id ?? null);
 const interestRate = ref(props.item?.interest_rate ?? null);
 const minimumPayment = ref(props.item?.minimum_payment ?? null);
 const initialBalance = ref(null);
@@ -48,6 +62,7 @@ async function save() {
     if (isEdit) {
       await netWorthStore.updateItem(props.item.id, {
         name: name.value.trim(),
+        account_id: accountId.value,
         type: type.value.trim(),
         interest_rate: toNumberOrNull(interestRate.value),
         minimum_payment: toNumberOrNull(minimumPayment.value),
@@ -55,6 +70,7 @@ async function save() {
     } else {
       await netWorthStore.createItem({
         name: name.value.trim(),
+        account_id: accountId.value,
         kind: props.kind,
         type: type.value.trim(),
         interest_rate: toNumberOrNull(interestRate.value),
@@ -88,6 +104,16 @@ async function save() {
       v-model="type"
       label="Type"
       :items="typeOptions"
+      density="compact"
+      variant="outlined"
+      hide-details
+      class="mb-2"
+    />
+    <v-select
+      v-model="accountId"
+      label="Linked account (optional)"
+      :items="accountOptions"
+      clearable
       density="compact"
       variant="outlined"
       hide-details

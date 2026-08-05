@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { useNetWorthStore } from "../stores/netWorth";
+import { useAccountStore } from "../stores/account";
 import Dialog from "./common/Dialog.vue";
 import NetWorthItemForm from "./NetWorthItemForm.vue";
 import BalanceHistoryDialog from "./BalanceHistoryDialog.vue";
@@ -13,6 +14,7 @@ const props = defineProps({
 });
 
 const netWorthStore = useNetWorthStore();
+const accountStore = useAccountStore();
 
 const showForm = ref(false);
 const editingItem = ref(null);
@@ -87,6 +89,14 @@ function stalenessTitle(item) {
   if (days <= STALE_WARNING_DAYS) return `Updated ${days} days ago`;
   return `Updated ${days} days ago — use the balance button to refresh`;
 }
+
+function accountLabel(item) {
+  if (!item.account_id) return null;
+  const account = accountStore.accounts.accounts.find(
+    (a) => a.id === item.account_id
+  );
+  return account?.description ?? null;
+}
 </script>
 
 <template>
@@ -109,6 +119,7 @@ function stalenessTitle(item) {
           <div class="item-row__name">
             {{ item.name }}
             <span class="pill">{{ item.type }}</span>
+            <span v-if="accountLabel(item)" class="pill">{{ accountLabel(item) }}</span>
           </div>
           <div v-if="isDebt && (item.interest_rate || item.minimum_payment)" class="item-row__debt muted">
             <span v-if="item.interest_rate">{{ item.interest_rate }}% APR</span>

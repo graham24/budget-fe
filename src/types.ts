@@ -88,6 +88,7 @@ export interface BalanceEntry {
 export interface NetWorthItem {
   id: number;
   household_id: number;
+  account_id: number | null;
   name: string;
   kind: "asset" | "debt";
   type: string;

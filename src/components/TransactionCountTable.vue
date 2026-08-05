@@ -103,13 +103,15 @@ const accountStore = useAccountStore();
 const transactionStore = useTransactionStore();
 const userStore = useUserStore();
 
-// Generate last 3 complete months (excluding current month)
+// Generate the 3 complete months ending at the focus month set by
+// transactionStore.monthsAgo (0 = the 3 months before the current month)
 const months = computed(() => {
   const result = [];
   const today = new Date();
+  const monthsAgo = transactionStore.monthsAgo;
 
   for (let i = 3; i >= 1; i--) {
-    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const date = new Date(today.getFullYear(), today.getMonth() - (monthsAgo + i), 1);
     result.push({
       key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
       label: date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' }),
@@ -126,8 +128,9 @@ const accountRows = computed(() => {
     return [];
   }
 
-  return accountStore.accounts.accounts.map(account => {
+  const rows = accountStore.accounts.accounts.map(account => {
     const user = userStore.users.users.find(u => u.id === account.user_id);
+    const userName = user?.first_name || 'Unknown';
     const counts = {};
     let total = 0;
 
@@ -152,11 +155,17 @@ const accountRows = computed(() => {
     return {
       accountId: account.id,
       accountName: account.description,
-      bankInfo: `${user?.first_name || 'Unknown'} - ${account.bank} ${account.type}`,
+      userName,
+      bankName: account.bank,
+      bankInfo: `${userName} - ${account.bank} ${account.type}`,
       counts,
       total,
     };
   });
+
+  return rows.sort((a, b) =>
+    a.userName.localeCompare(b.userName) || a.bankName.localeCompare(b.bankName)
+  );
 });
 
 // Calculate totals for each month

@@ -254,6 +254,7 @@ export const getNetWorthItems = async (
 
 export const createNetWorthItem = async (item: {
   household_id: number;
+  account_id?: number | null;
   name: string;
   kind: "asset" | "debt";
   type: string;
@@ -273,6 +274,7 @@ export const updateNetWorthItem = async (
   id: number,
   updates: {
     name?: string;
+    account_id?: number | null;
     type?: string;
     interest_rate?: number | null;
     minimum_payment?: number | null;

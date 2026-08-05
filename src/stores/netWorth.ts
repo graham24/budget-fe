@@ -67,6 +67,7 @@ export const useNetWorthStore = defineStore("netWorth", {
     },
     async createItem(payload: {
       name: string;
+      account_id?: number | null;
       kind: "asset" | "debt";
       type: string;
       interest_rate?: number | null;
@@ -88,6 +89,7 @@ export const useNetWorthStore = defineStore("netWorth", {
       id: number,
       updates: {
         name?: string;
+        account_id?: number | null;
         type?: string;
         interest_rate?: number | null;
         minimum_payment?: number | null;
