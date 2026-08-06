@@ -12,63 +12,12 @@
             Sign in to start your overview.
           </p>
         </div>
-        <v-form class="login-form mx-auto" @submit.prevent="submitLogin">
-          <v-text-field
-            v-model="email"
-            label="Email"
-            type="email"
-            variant="outlined"
-            density="comfortable"
-            prepend-inner-icon="mdi-email-outline"
-            autofocus
-            class="mb-3"
-            hide-details
-          />
-          <template v-if="signupMode">
-            <p class="text-caption muted mb-3">
-              New here? Finish setting up your account.
-            </p>
-            <v-text-field
-              v-model="firstName"
-              label="First name"
-              variant="outlined"
-              density="comfortable"
-              autofocus
-              class="mb-3"
-              hide-details
-            />
-            <v-text-field
-              v-model="lastName"
-              label="Last name"
-              variant="outlined"
-              density="comfortable"
-              class="mb-3"
-              hide-details
-            />
-          </template>
-          <v-alert v-if="loginError" type="error" density="compact" class="mb-3">
-            {{ loginError }}
-          </v-alert>
-          <v-btn
-            type="submit"
-            color="primary"
-            variant="flat"
-            block
-            :loading="loggingIn"
-            :disabled="!email.trim() || (signupMode && (!firstName.trim() || !lastName.trim()))"
-          >
-            {{ signupMode ? "Create Account" : "Sign In" }}
-          </v-btn>
-          <v-btn
-            v-if="signupMode"
-            variant="text"
-            block
-            class="mt-2"
-            @click="resetSignup"
-          >
-            Back
-          </v-btn>
-        </v-form>
+        <v-alert v-if="loginError" type="error" density="compact" class="mb-3">
+          {{ loginError }}
+        </v-alert>
+        <div class="google-login-wrap">
+          <GoogleLogin :callback="handleGoogleLogin" />
+        </div>
       </SurfaceCard>
     </div>
     <div v-else class="app-frame">
@@ -147,6 +96,7 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
+import { GoogleLogin } from "vue3-google-login";
 import { useAuthStore } from "@/stores/auth";
 import { useHouseholdStore } from "@/stores/household";
 import { useAccountStore } from "@/stores/account";
@@ -166,11 +116,6 @@ const userStore = useUserStore();
 const transactionStore = useTransactionStore();
 const theme = useTheme();
 const themeName = ref(theme.global.name.value);
-const email = ref("");
-const firstName = ref("");
-const lastName = ref("");
-const signupMode = ref(false);
-const loggingIn = ref(false);
 const loginError = ref(null);
 const profileDialog = ref(false);
 const householdDialog = ref(false);
@@ -193,48 +138,13 @@ onMounted(() => {
   }
 });
 
-async function submitLogin() {
-  if (!email.value.trim()) return;
-  if (signupMode.value && (!firstName.value.trim() || !lastName.value.trim()))
-    return;
-  loggingIn.value = true;
+async function handleGoogleLogin(response) {
   loginError.value = null;
   try {
-    if (signupMode.value) {
-      try {
-        await authStore.signup(
-          email.value.trim(),
-          firstName.value.trim(),
-          lastName.value.trim()
-        );
-      } catch (error) {
-        // User was created in the meantime — just log in
-        if (error.response?.status !== 409) throw error;
-        await authStore.login(email.value.trim());
-      }
-    } else {
-      await authStore.login(email.value.trim());
-    }
-    resetSignup();
-    email.value = "";
+    await authStore.loginWithGoogle(response.credential);
   } catch (error) {
-    if (!signupMode.value && error.response?.status === 404) {
-      // Unknown email — expand the form to create an account
-      signupMode.value = true;
-    } else {
-      loginError.value =
-        error.response?.data?.message || "Login failed";
-    }
-  } finally {
-    loggingIn.value = false;
+    loginError.value = error.response?.data?.message || "Login failed";
   }
-}
-
-function resetSignup() {
-  signupMode.value = false;
-  firstName.value = "";
-  lastName.value = "";
-  loginError.value = null;
 }
 
 function closeProfileDialog() {
@@ -291,8 +201,9 @@ watch(themeName, (val) => {
   width: 100%;
 }
 
-.login-form {
-  max-width: 380px;
+.google-login-wrap {
+  display: flex;
+  justify-content: center;
 }
 
 .app-frame {

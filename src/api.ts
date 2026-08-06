@@ -7,31 +7,42 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
-    // Authorization: "Bearer your-token",
   },
-  //   withCredentials: true, // Ensures cookies (for Google Login)
 });
+
+// Attach the session token (set by loginWithGoogle) to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Expired/invalid token — bounce back to the login screen
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.reload();
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;
 
-
-// Login (email-only, no password)
-export const login = async (email: string): Promise<User> => {
-  const response = await api.post<User>("/auth/login/", { email });
-  return response.data;
-};
-
-// Signup — creates the user plus their own household
-export const signup = async (
-  email: string,
-  first_name: string,
-  last_name: string
-): Promise<User> => {
-  const response = await api.post<User>("/auth/signup/", {
-    email,
-    first_name,
-    last_name,
-  });
+// Google Sign-In — verifies the ID token server-side and returns the user
+// plus our own session token
+export const googleLogin = async (
+  credential: string
+): Promise<{ user: User; token: string }> => {
+  const response = await api.post<{ user: User; token: string }>(
+    "/auth/google/",
+    { credential }
+  );
   return response.data;
 };
 
@@ -52,6 +63,19 @@ export const updateHousehold = async (
     { name }
   );
   return response.data.household;
+};
+
+// Only supplied fields are updated; raw values are never returned, only
+// whether each is now set
+export const updateHouseholdSecrets = async (
+  id: number,
+  updates: { anthropic_api_key?: string; simplefin_access_url?: string }
+): Promise<{ anthropic_api_key_set: boolean; simplefin_access_url_set: boolean }> => {
+  const response = await api.put<{
+    anthropic_api_key_set: boolean;
+    simplefin_access_url_set: boolean;
+  }>(`/household/${id}/secrets`, updates);
+  return response.data;
 };
 
 // Adds by email; unknown emails get a placeholder user in this household

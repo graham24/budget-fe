@@ -1,22 +1,18 @@
 import { defineStore } from "pinia";
 import type { User } from "../types";
-import { login, signup, updateUser } from "../api";
+import { googleLogin, updateUser } from "../api";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null as User | null,
   }),
   actions: {
-    // Errors propagate so the login form can show them (e.g. 404 unknown email)
-    async login(email: string) {
-      const user_response = await login(email);
-      this.user = user_response;
-      localStorage.setItem("user", JSON.stringify(user_response));
-    },
-    async signup(email: string, firstName: string, lastName: string) {
-      const user_response = await signup(email, firstName, lastName);
-      this.user = user_response;
-      localStorage.setItem("user", JSON.stringify(user_response));
+    // Errors propagate so the login screen can show them
+    async loginWithGoogle(credential: string) {
+      const { user, token } = await googleLogin(credential);
+      this.user = user;
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
     },
     async updateProfile(updates: {
       first_name?: string;
@@ -30,6 +26,7 @@ export const useAuthStore = defineStore("auth", {
     logout() {
       this.user = null;
       localStorage.removeItem("user");
+      localStorage.removeItem("token");
     },
     verifyUser(user: User) {
       this.user = user;

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useHouseholdStore } from "../stores/household";
 import { useUserStore } from "../stores/user";
 
@@ -13,6 +13,40 @@ const nameError = ref(null);
 const memberEmail = ref("");
 const adding = ref(false);
 const memberError = ref(null);
+
+const anthropicKeyInput = ref("");
+const simplefinUrlInput = ref("");
+const savingSecrets = ref(false);
+const secretsError = ref(null);
+const anthropicKeySet = computed(
+  () => householdStore.household?.household?.anthropic_api_key_set
+);
+const simplefinUrlSet = computed(
+  () => householdStore.household?.household?.simplefin_access_url_set
+);
+
+async function saveSecrets() {
+  const updates = {};
+  if (anthropicKeyInput.value.trim()) {
+    updates.anthropic_api_key = anthropicKeyInput.value.trim();
+  }
+  if (simplefinUrlInput.value.trim()) {
+    updates.simplefin_access_url = simplefinUrlInput.value.trim();
+  }
+  if (!Object.keys(updates).length) return;
+  savingSecrets.value = true;
+  secretsError.value = null;
+  try {
+    await householdStore.updateSecrets(updates);
+    anthropicKeyInput.value = "";
+    simplefinUrlInput.value = "";
+  } catch (err) {
+    secretsError.value =
+      err.response?.data?.message || "Failed to save integrations";
+  } finally {
+    savingSecrets.value = false;
+  }
+}
 
 async function saveName() {
   if (!name.value.trim()) {
@@ -114,6 +148,40 @@ function memberName(user) {
     </div>
     <v-alert v-if="memberError" type="error" density="compact" class="mt-3">
       {{ memberError }}
+    </v-alert>
+
+    <p class="pill mb-2 mt-6">Integrations</p>
+    <div class="d-flex flex-column ga-3">
+      <v-text-field
+        v-model="anthropicKeyInput"
+        type="password"
+        label="Anthropic API key"
+        :placeholder="anthropicKeySet ? 'Configured — enter a new key to replace it' : 'Not set — required before AI categorization will work'"
+        density="compact"
+        variant="outlined"
+        hide-details
+      />
+      <v-text-field
+        v-model="simplefinUrlInput"
+        type="password"
+        label="SimpleFin access URL"
+        :placeholder="simplefinUrlSet ? 'Configured — enter a new URL to replace it' : 'Not set — required before bank sync will work'"
+        density="compact"
+        variant="outlined"
+        hide-details
+      />
+      <v-btn
+        color="primary"
+        variant="flat"
+        :loading="savingSecrets"
+        :disabled="!anthropicKeyInput.trim() && !simplefinUrlInput.trim()"
+        @click="saveSecrets"
+      >
+        Save integrations
+      </v-btn>
+    </div>
+    <v-alert v-if="secretsError" type="error" density="compact" class="mt-3">
+      {{ secretsError }}
     </v-alert>
   </div>
 </template>

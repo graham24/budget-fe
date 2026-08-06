@@ -18,8 +18,14 @@ import "@/styles/global.css";
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 
+// Google Sign-In
+import vue3GoogleLogin from "vue3-google-login";
+
 const app = createApp(App);
 app.use(createPinia());
+app.use(vue3GoogleLogin, {
+  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+});
 
 interface FormatDate {
   (date: string | number | Date): string;
