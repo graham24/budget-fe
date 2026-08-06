@@ -4,7 +4,9 @@ export interface Household {
   id: number;
   name: string;
   anthropic_api_key_set: boolean;
+  anthropic_api_key_suffix: string;
   simplefin_access_url_set: boolean;
+  simplefin_access_url_suffix: string;
 }
 
 export interface User {

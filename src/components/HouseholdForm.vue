@@ -15,23 +15,29 @@ const adding = ref(false);
 const memberError = ref(null);
 
 const anthropicKeyInput = ref("");
-const simplefinUrlInput = ref("");
 const savingSecrets = ref(false);
 const secretsError = ref(null);
 const anthropicKeySet = computed(
   () => householdStore.household?.household?.anthropic_api_key_set
 );
+const anthropicKeySuffix = computed(
+  () => householdStore.household?.household?.anthropic_api_key_suffix
+);
 const simplefinUrlSet = computed(
   () => householdStore.household?.household?.simplefin_access_url_set
 );
+const simplefinUrlSuffix = computed(
+  () => householdStore.household?.household?.simplefin_access_url_suffix
+);
+
+const simplefinTokenInput = ref("");
+const claimingSimplefin = ref(false);
+const simplefinError = ref(null);
 
 async function saveSecrets() {
   const updates = {};
   if (anthropicKeyInput.value.trim()) {
     updates.anthropic_api_key = anthropicKeyInput.value.trim();
-  }
-  if (simplefinUrlInput.value.trim()) {
-    updates.simplefin_access_url = simplefinUrlInput.value.trim();
   }
   if (!Object.keys(updates).length) return;
   savingSecrets.value = true;
@@ -39,12 +45,26 @@ async function saveSecrets() {
   try {
     await householdStore.updateSecrets(updates);
     anthropicKeyInput.value = "";
-    simplefinUrlInput.value = "";
   } catch (err) {
     secretsError.value =
       err.response?.data?.message || "Failed to save integrations";
   } finally {
     savingSecrets.value = false;
+  }
+}
+
+async function claimSimplefin() {
+  if (!simplefinTokenInput.value.trim()) return;
+  claimingSimplefin.value = true;
+  simplefinError.value = null;
+  try {
+    await householdStore.claimSimplefin(simplefinTokenInput.value.trim());
+    simplefinTokenInput.value = "";
+  } catch (err) {
+    simplefinError.value =
+      err.response?.data?.message || "Failed to redeem setup token";
+  } finally {
+    claimingSimplefin.value = false;
   }
 }
 
@@ -156,16 +176,7 @@ function memberName(user) {
         v-model="anthropicKeyInput"
         type="password"
         label="Anthropic API key"
-        :placeholder="anthropicKeySet ? 'Configured — enter a new key to replace it' : 'Not set — required before AI categorization will work'"
-        density="compact"
-        variant="outlined"
-        hide-details
-      />
-      <v-text-field
-        v-model="simplefinUrlInput"
-        type="password"
-        label="SimpleFin access URL"
-        :placeholder="simplefinUrlSet ? 'Configured — enter a new URL to replace it' : 'Not set — required before bank sync will work'"
+        :placeholder="anthropicKeySet ? `Configured (••••${anthropicKeySuffix}) — enter a new key to replace it` : 'Not set — required before AI categorization will work'"
         density="compact"
         variant="outlined"
         hide-details
@@ -174,7 +185,7 @@ function memberName(user) {
         color="primary"
         variant="flat"
         :loading="savingSecrets"
-        :disabled="!anthropicKeyInput.trim() && !simplefinUrlInput.trim()"
+        :disabled="!anthropicKeyInput.trim()"
         @click="saveSecrets"
       >
         Save integrations
@@ -182,6 +193,38 @@ function memberName(user) {
     </div>
     <v-alert v-if="secretsError" type="error" density="compact" class="mt-3">
       {{ secretsError }}
+    </v-alert>
+
+    <p class="pill mb-2 mt-6">SimpleFin</p>
+    <p class="muted mb-2" style="font-size: 0.85rem">
+      {{
+        simplefinUrlSet
+          ? `Connected (••••${simplefinUrlSuffix}) — redeem a new setup token to reconnect`
+          : "Not connected — get a one-time setup token from your SimpleFin bridge and redeem it below"
+      }}
+    </p>
+    <div class="d-flex ga-2">
+      <v-text-field
+        v-model="simplefinTokenInput"
+        type="password"
+        label="Setup token"
+        density="compact"
+        variant="outlined"
+        hide-details
+        @keyup.enter="claimSimplefin"
+      />
+      <v-btn
+        color="primary"
+        variant="flat"
+        :loading="claimingSimplefin"
+        :disabled="!simplefinTokenInput.trim()"
+        @click="claimSimplefin"
+      >
+        Redeem
+      </v-btn>
+    </div>
+    <v-alert v-if="simplefinError" type="error" density="compact" class="mt-3">
+      {{ simplefinError }}
     </v-alert>
   </div>
 </template>

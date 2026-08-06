@@ -1,5 +1,10 @@
 import { defineStore } from "pinia";
-import { getHousehold, updateHousehold, updateHouseholdSecrets } from "../api";
+import {
+  claimSimplefinToken,
+  getHousehold,
+  updateHousehold,
+  updateHouseholdSecrets,
+} from "../api";
 import { useAuthStore } from "./auth";
 import type { Household } from "../types";
 
@@ -32,6 +37,14 @@ export const useHouseholdStore = defineStore("household", {
       const householdId = this.household?.household?.id;
       if (!householdId || !this.household) return;
       const flags = await updateHouseholdSecrets(householdId, updates);
+      this.household = {
+        household: { ...this.household.household, ...flags },
+      };
+    },
+    async claimSimplefin(setupToken: string) {
+      const householdId = this.household?.household?.id;
+      if (!householdId || !this.household) return;
+      const flags = await claimSimplefinToken(householdId, setupToken);
       this.household = {
         household: { ...this.household.household, ...flags },
       };

@@ -65,16 +65,35 @@ export const updateHousehold = async (
   return response.data.household;
 };
 
+type HouseholdSecretsFlags = {
+  anthropic_api_key_set: boolean;
+  anthropic_api_key_suffix: string;
+  simplefin_access_url_set: boolean;
+  simplefin_access_url_suffix: string;
+};
+
 // Only supplied fields are updated; raw values are never returned, only
-// whether each is now set
+// whether each is now set (plus a last-4-char suffix for identification)
 export const updateHouseholdSecrets = async (
   id: number,
   updates: { anthropic_api_key?: string; simplefin_access_url?: string }
-): Promise<{ anthropic_api_key_set: boolean; simplefin_access_url_set: boolean }> => {
-  const response = await api.put<{
-    anthropic_api_key_set: boolean;
-    simplefin_access_url_set: boolean;
-  }>(`/household/${id}/secrets`, updates);
+): Promise<HouseholdSecretsFlags> => {
+  const response = await api.put<HouseholdSecretsFlags>(
+    `/household/${id}/secrets`,
+    updates
+  );
+  return response.data;
+};
+
+// Exchanges a one-time SimpleFin setup token for a permanent access URL
+// server-side; the URL is never returned to the client, only whether it's set
+export const claimSimplefinToken = async (
+  id: number,
+  setup_token: string
+): Promise<Pick<HouseholdSecretsFlags, "simplefin_access_url_set" | "simplefin_access_url_suffix">> => {
+  const response = await api.post<
+    Pick<HouseholdSecretsFlags, "simplefin_access_url_set" | "simplefin_access_url_suffix">
+  >(`/household/${id}/simplefin-claim`, { setup_token });
   return response.data;
 };
 
