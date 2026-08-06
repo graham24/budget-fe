@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Household, User, Transaction, Account, BudgetAnalysis, DuplicateTransaction, CategoryRule, BudgetTarget, NetWorthItem, NetWorthSummary, BalanceEntry } from "./types";
+import type { Household, User, Transaction, Account, BudgetAnalysis, DuplicateTransaction, CategoryRule, BudgetTarget, NetWorthItem, NetWorthSummary, BalanceEntry, SimplefinAccount } from "./types";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Create Axios instance
@@ -136,6 +136,32 @@ export const updateAccount = async (
     updates
   );
   return response.data.account;
+};
+
+// SimpleFin account onboarding wizard
+export const fetchSimplefinAccounts = async (
+  household_id: number
+): Promise<{ accounts: SimplefinAccount[]; first_fetch: boolean }> => {
+  const response = await api.post<{
+    accounts: SimplefinAccount[];
+    first_fetch: boolean;
+  }>("/simplefin/accounts/", { household_id });
+  return response.data;
+};
+
+export const linkSimplefinAccount = async (
+  id: number,
+  household_id: number,
+  updates: {
+    bank_account_id?: number | null;
+    new_account?: { description: string; type: string; bank: string; user_id: number };
+  }
+): Promise<SimplefinAccount> => {
+  const response = await api.put<SimplefinAccount>(
+    `/simplefin/accounts/${id}/link`,
+    { household_id, ...updates }
+  );
+  return response.data;
 };
 
 // Fetch households

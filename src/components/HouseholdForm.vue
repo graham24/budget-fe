@@ -2,11 +2,13 @@
 import { ref, computed } from "vue";
 import { useHouseholdStore } from "../stores/household";
 import { useUserStore } from "../stores/user";
+import { useSimplefinStore } from "../stores/simplefin";
 
-const emit = defineEmits(["saved"]);
+const emit = defineEmits(["saved", "open-simplefin-wizard"]);
 
 const householdStore = useHouseholdStore();
 const userStore = useUserStore();
+const simplefinStore = useSimplefinStore();
 const name = ref(householdStore.household?.household?.name ?? "");
 const saving = ref(false);
 const nameError = ref(null);
@@ -60,12 +62,21 @@ async function claimSimplefin() {
   try {
     await householdStore.claimSimplefin(simplefinTokenInput.value.trim());
     simplefinTokenInput.value = "";
+    const householdId = householdStore.household?.household?.id;
+    if (householdId) {
+      await simplefinStore.fetchAccounts(householdId);
+      if (simplefinStore.firstFetch) emit("open-simplefin-wizard");
+    }
   } catch (err) {
     simplefinError.value =
       err.response?.data?.message || "Failed to redeem setup token";
   } finally {
     claimingSimplefin.value = false;
   }
+}
+
+function openWizard() {
+  emit("open-simplefin-wizard");
 }
 
 async function saveName() {
@@ -226,5 +237,15 @@ function memberName(user) {
     <v-alert v-if="simplefinError" type="error" density="compact" class="mt-3">
       {{ simplefinError }}
     </v-alert>
+    <v-btn
+      v-if="simplefinUrlSet"
+      variant="outlined"
+      density="comfortable"
+      prepend-icon="mdi-bank-transfer"
+      class="mt-3"
+      @click="openWizard"
+    >
+      Update Accounts
+    </v-btn>
   </div>
 </template>

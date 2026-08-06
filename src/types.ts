@@ -52,6 +52,17 @@ export interface Account {
   user_id: number;
 }
 
+export interface SimplefinAccount {
+  id: number;
+  simplefin_account_id: string;
+  name: string | null;
+  balance: number | null;
+  currency: string | null;
+  org_name: string | null;
+  bank_account_id: number | null;
+  linked_account: Account | null;
+}
+
 export interface Category {
   description: string;
 }

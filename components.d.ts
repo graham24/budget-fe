@@ -38,6 +38,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SavingsRate: typeof import('./src/components/SavingsRate.vue')['default']
     SectionHeader: typeof import('./src/components/common/SectionHeader.vue')['default']
+    SimplefinWizard: typeof import('./src/components/SimplefinWizard.vue')['default']
     SpendingMix: typeof import('./src/components/SpendingMix.vue')['default']
     SurfaceCard: typeof import('./src/components/common/SurfaceCard.vue')['default']
     TransactionCountTable: typeof import('./src/components/TransactionCountTable.vue')['default']

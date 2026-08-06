@@ -15,7 +15,7 @@ const props = defineProps({
 const emit = defineEmits(["saved", "cancel"]);
 
 // Must match the backend importer keys
-const BANKS = ["Wells Fargo", "Chase", "US Bank", "Apple"];
+const BANKS = ["Wells Fargo", "Chase", "US Bank", "Apple", "SimpleFin"];
 const TYPES = ["Checking", "Savings", "Credit Card"];
 
 const accountStore = useAccountStore();

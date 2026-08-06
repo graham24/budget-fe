@@ -18,6 +18,18 @@ npm run build     # Production build
 npm run lint      # Lint and auto-fix
 ```
 
+### Local dev service (systemd user unit)
+
+On this machine `npm run dev` also runs as a user systemd service instead of being started manually — `~/.config/systemd/user/budget-fe.service` runs `npm run dev` in this repo directory (Vite dev server, port 5173, auto-restart on crash). Vite's HMR usually picks up edits live, but restart it to confirm a clean start after config changes:
+
+```bash
+systemctl --user restart budget-fe.service
+systemctl --user status budget-fe.service --no-pager
+journalctl --user -u budget-fe.service -f
+```
+
+The backend (`budget` repo) has an equivalent `budget-api.service` — see that repo's `CLAUDE.md`.
+
 ## Architecture
 
 ### Time Window Navigation

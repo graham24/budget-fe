@@ -85,10 +85,17 @@
         />
       </Dialog>
       <Dialog v-model="householdDialog" title="Household">
-        <HouseholdForm @saved="householdDialog = false" />
+        <HouseholdForm @saved="householdDialog = false" @open-simplefin-wizard="openSimplefinWizard" />
       </Dialog>
       <Dialog v-model="accountsDialog" title="Accounts" max-width="760">
         <AccountsManager />
+      </Dialog>
+      <Dialog v-model="simplefinWizardDialog" title="Connect SimpleFin Accounts" max-width="760">
+        <SimplefinWizard
+          v-if="householdStore.household?.household?.id"
+          :household-id="householdStore.household.household.id"
+          @done="simplefinWizardDialog = false"
+        />
       </Dialog>
     </div>
   </v-app>
@@ -102,25 +109,34 @@ import { useHouseholdStore } from "@/stores/household";
 import { useAccountStore } from "@/stores/account";
 import { useUserStore } from "@/stores/user";
 import { useTransactionStore } from "@/stores/transaction";
+import { useSimplefinStore } from "@/stores/simplefin";
 import { useTheme } from "vuetify";
 import SurfaceCard from "./components/common/SurfaceCard.vue";
 import Dialog from "./components/common/Dialog.vue";
 import ProfileForm from "./components/ProfileForm.vue";
 import HouseholdForm from "./components/HouseholdForm.vue";
 import AccountsManager from "./components/AccountsManager.vue";
+import SimplefinWizard from "./components/SimplefinWizard.vue";
 
 const authStore = useAuthStore();
 const householdStore = useHouseholdStore();
 const accountStore = useAccountStore();
 const userStore = useUserStore();
 const transactionStore = useTransactionStore();
+const simplefinStore = useSimplefinStore();
 const theme = useTheme();
 const themeName = ref(theme.global.name.value);
 const loginError = ref(null);
 const profileDialog = ref(false);
 const householdDialog = ref(false);
 const accountsDialog = ref(false);
+const simplefinWizardDialog = ref(false);
 const namePrompt = ref(false);
+
+function openSimplefinWizard() {
+  householdDialog.value = false;
+  simplefinWizardDialog.value = true;
+}
 const displayName = computed(
   () => authStore.user?.first_name ?? "there"
 );
@@ -172,6 +188,7 @@ function logout() {
   accountStore.$reset();
   userStore.$reset();
   transactionStore.$reset();
+  simplefinStore.$reset();
 }
 
 const isDark = computed(() => theme.global.current.value.dark);
