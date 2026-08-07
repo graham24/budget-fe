@@ -23,6 +23,7 @@ declare module 'vue' {
     FiftyThirtyTwenty: typeof import('./src/components/FiftyThirtyTwenty.vue')['default']
     HeroBanner: typeof import('./src/components/common/HeroBanner.vue')['default']
     HouseholdForm: typeof import('./src/components/HouseholdForm.vue')['default']
+    ImportErrorsManager: typeof import('./src/components/ImportErrorsManager.vue')['default']
     ImportForm: typeof import('./src/components/ImportForm.vue')['default']
     ImportReviewStack: typeof import('./src/components/ImportReviewStack.vue')['default']
     IntegrationsPanel: typeof import('./src/components/IntegrationsPanel.vue')['default']

@@ -131,6 +131,14 @@ export interface NetWorthSummary {
   series: NetWorthPoint[];
 }
 
+export interface ImportError {
+  id: number;
+  household_id: number;
+  message: string;
+  created: string;
+  modified: string;
+}
+
 export interface BudgetAnalysis {
   id: number;
   household_id: number;

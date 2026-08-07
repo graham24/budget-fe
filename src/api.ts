@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Household, User, Transaction, Account, BudgetAnalysis, DuplicateTransaction, CategoryRule, BudgetTarget, NetWorthItem, NetWorthSummary, BalanceEntry, SimplefinAccount } from "./types";
+import type { Household, User, Transaction, Account, BudgetAnalysis, DuplicateTransaction, CategoryRule, BudgetTarget, NetWorthItem, NetWorthSummary, BalanceEntry, SimplefinAccount, ImportError } from "./types";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Create Axios instance
@@ -406,6 +406,21 @@ export const generateBudgetAnalysis = async (
 
   const response = await api.post("/budget-analysis/", data);
   return response.data;
+};
+
+// Import errors logged by the cron importer
+export const getImportErrors = async (
+  household_id: number
+): Promise<ImportError[]> => {
+  const response = await api.get<{ errors: ImportError[] }>(
+    "/import-errors/",
+    { params: { household_id } }
+  );
+  return response.data.errors;
+};
+
+export const deleteImportError = async (id: number): Promise<void> => {
+  await api.delete(`/import-errors/${id}`);
 };
 
 // Get latest budget analysis

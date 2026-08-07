@@ -53,6 +53,22 @@
             variant="text"
             density="comfortable"
             icon
+            aria-label="Import errors"
+            @click="importErrorsDialog = true"
+          >
+            <v-badge
+              :model-value="importErrorStore.errors.length > 0"
+              :content="importErrorStore.errors.length"
+              color="error"
+              floating
+            >
+              <v-icon icon="mdi-bell-outline" />
+            </v-badge>
+          </v-btn>
+          <v-btn
+            variant="text"
+            density="comfortable"
+            icon
             :aria-label="`Switch to ${isDark ? 'light' : 'dark'} mode`"
             @click="toggleTheme"
           >
@@ -138,6 +154,13 @@
           @done="simplefinWizardDialog = false"
         />
       </Dialog>
+      <Dialog
+        v-model="importErrorsDialog"
+        title="Import Errors"
+        max-width="600"
+      >
+        <ImportErrorsManager />
+      </Dialog>
     </div>
   </v-app>
 </template>
@@ -151,6 +174,7 @@ import { useAccountStore } from "@/stores/account";
 import { useUserStore } from "@/stores/user";
 import { useTransactionStore } from "@/stores/transaction";
 import { useSimplefinStore } from "@/stores/simplefin";
+import { useImportErrorStore } from "@/stores/importError";
 import { useTheme } from "vuetify";
 import SurfaceCard from "./components/common/SurfaceCard.vue";
 import Dialog from "./components/common/Dialog.vue";
@@ -158,6 +182,7 @@ import ProfileForm from "./components/ProfileForm.vue";
 import HouseholdForm from "./components/HouseholdForm.vue";
 import AccountsManager from "./components/AccountsManager.vue";
 import SimplefinWizard from "./components/SimplefinWizard.vue";
+import ImportErrorsManager from "./components/ImportErrorsManager.vue";
 
 const authStore = useAuthStore();
 const householdStore = useHouseholdStore();
@@ -165,6 +190,7 @@ const accountStore = useAccountStore();
 const userStore = useUserStore();
 const transactionStore = useTransactionStore();
 const simplefinStore = useSimplefinStore();
+const importErrorStore = useImportErrorStore();
 const theme = useTheme();
 const themeName = ref(theme.global.name.value);
 const loginError = ref(null);
@@ -172,6 +198,7 @@ const profileDialog = ref(false);
 const householdDialog = ref(false);
 const accountsDialog = ref(false);
 const simplefinWizardDialog = ref(false);
+const importErrorsDialog = ref(false);
 const namePrompt = ref(false);
 
 function openSimplefinWizard() {
@@ -226,6 +253,14 @@ watch(
   { immediate: true }
 );
 
+watch(
+  () => householdStore.household?.household?.id,
+  (householdId) => {
+    if (householdId) importErrorStore.fetchErrors();
+  },
+  { immediate: true }
+);
+
 function logout() {
   authStore.logout();
   // Clear per-user data so a different login doesn't see stale state
@@ -234,6 +269,7 @@ function logout() {
   userStore.$reset();
   transactionStore.$reset();
   simplefinStore.$reset();
+  importErrorStore.$reset();
 }
 
 const isDark = computed(() => theme.global.current.value.dark);
