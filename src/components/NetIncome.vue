@@ -17,7 +17,9 @@ const netValue = computed(() => incomeTotal.value + expensesTotal.value);
 <template>
   <div class="net-wrapper">
     <div class="net-header">
-      <div class="muted text-caption">Focus month</div>
+      <div class="muted text-caption">
+        Focus month
+      </div>
       <div class="text-h6 font-weight-bold">
         {{
           formatDate(
@@ -34,7 +36,9 @@ const netValue = computed(() => incomeTotal.value + expensesTotal.value);
       class="net-highlight"
       :class="[netValue >= 0 ? 'positive' : 'negative']"
     >
-      <div class="label muted">Net income</div>
+      <div class="label muted">
+        Net income
+      </div>
       <div class="value">
         {{ formatCurrency(netValue) }}
       </div>

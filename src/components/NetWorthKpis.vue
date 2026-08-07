@@ -58,16 +58,29 @@ function deltaClass(tile) {
       class="kpi"
       padding="14px 16px"
     >
-      <div class="pill">{{ tile.label }}</div>
-      <div class="kpi__value">{{ formatCurrency(tile.value) }}</div>
-      <div v-if="tile.delta !== null" class="kpi__delta" :class="deltaClass(tile)">
+      <div class="pill">
+        {{ tile.label }}
+      </div>
+      <div class="kpi__value">
+        {{ formatCurrency(tile.value) }}
+      </div>
+      <div
+        v-if="tile.delta !== null"
+        class="kpi__delta"
+        :class="deltaClass(tile)"
+      >
         <v-icon
           :icon="tile.delta >= 0 ? 'mdi-arrow-up-thin' : 'mdi-arrow-down-thin'"
           size="16"
         />
         {{ formatCurrency(Math.abs(tile.delta)) }} vs {{ priorLabel }}
       </div>
-      <div v-else class="kpi__delta muted">No history yet</div>
+      <div
+        v-else
+        class="kpi__delta muted"
+      >
+        No history yet
+      </div>
     </SurfaceCard>
   </div>
 </template>

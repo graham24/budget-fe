@@ -65,17 +65,42 @@ const plottedPoints = computed(() => {
 </script>
 
 <template>
-  <div class="trend-wrapper" v-if="currentSeries.length">
+  <div
+    v-if="currentSeries.length"
+    class="trend-wrapper"
+  >
     <div class="sparkline-header">
-      <div class="muted text-caption">Trend (3 months)</div>
+      <div class="muted text-caption">
+        Trend (3 months)
+      </div>
       <div class="controls">
-        <v-btn-toggle v-model="mode" density="compact" mandatory color="primary">
-          <v-btn value="net" text="Net" />
-          <v-btn value="income" text="Income" />
-          <v-btn value="expensesNeed" text="Needs" />
-          <v-btn value="expensesWant" text="Wants" />
+        <v-btn-toggle
+          v-model="mode"
+          density="compact"
+          mandatory
+          color="primary"
+        >
+          <v-btn
+            value="net"
+            text="Net"
+          />
+          <v-btn
+            value="income"
+            text="Income"
+          />
+          <v-btn
+            value="expensesNeed"
+            text="Needs"
+          />
+          <v-btn
+            value="expensesWant"
+            text="Wants"
+          />
         </v-btn-toggle>
-        <span class="delta" :class="trendDelta >= 0 ? 'positive' : 'negative'">
+        <span
+          class="delta"
+          :class="trendDelta >= 0 ? 'positive' : 'negative'"
+        >
           {{ trendDelta >= 0 ? "+" : "" }}{{ formatCurrency(trendDelta) }}
         </span>
       </div>
@@ -96,7 +121,12 @@ const plottedPoints = computed(() => {
       />
     </svg>
   </div>
-  <div v-else class="muted text-caption">Not enough data yet.</div>
+  <div
+    v-else
+    class="muted text-caption"
+  >
+    Not enough data yet.
+  </div>
 </template>
 
 <style scoped>

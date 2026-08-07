@@ -184,8 +184,14 @@ const filteredItems = computed(() => {
 <template>
   <div class="container">
     <div class="data-table">
-      <SurfaceCard class="transactions-card" padding="10px 12px">
-        <SectionHeader :label="props.type" :title="props.type" />
+      <SurfaceCard
+        class="transactions-card"
+        padding="10px 12px"
+      >
+        <SectionHeader
+          :label="props.type"
+          :title="props.type"
+        />
         <div class="table-wrapper">
           <v-data-table
             :items="filteredItems"
@@ -193,24 +199,22 @@ const filteredItems = computed(() => {
             density="compact"
             class="elevated-table"
           >
-            <template v-slot:item.value="{ item }">
+            <template #item.value="{ item }">
               {{ formatCurrency(item.value) }}
             </template>
-            <template v-slot:item.need="{ item }">
+            <template #item.need="{ item }">
               <div v-if="item.type === 'Expenses'">
                 <v-checkbox
                   v-model="item.need"
-                  @change="saveTransaction(item)"
                   density="compact"
                   hide-details
-                ></v-checkbox>
+                  @change="saveTransaction(item)"
+                />
               </div>
             </template>
-            <template v-slot:item.category="{ item }">
+            <template #item.category="{ item }">
               <v-combobox
                 v-model="item.category"
-                @focus="rememberEdit(item)"
-                @blur="saveIfChanged(item)"
                 density="compact"
                 variant="plain"
                 :items="
@@ -218,13 +222,13 @@ const filteredItems = computed(() => {
                     (category) => category.name
                   )
                 "
-              ></v-combobox>
-            </template>
-            <template v-slot:item.sub_category="{ item }">
-              <v-combobox
-                v-model="item.sub_category"
                 @focus="rememberEdit(item)"
                 @blur="saveIfChanged(item)"
+              />
+            </template>
+            <template #item.sub_category="{ item }">
+              <v-combobox
+                v-model="item.sub_category"
                 density="compact"
                 variant="plain"
                 :items="
@@ -232,12 +236,14 @@ const filteredItems = computed(() => {
                     (cat) => cat.name === item.category
                   )?.sub_categories
                 "
-              ></v-combobox>
+                @focus="rememberEdit(item)"
+                @blur="saveIfChanged(item)"
+              />
             </template>
-            <template v-slot:item.account_name="{ item }">
+            <template #item.account_name="{ item }">
               {{ accountLabel(item.account_id) }} ({{ item.account_id }})
             </template>
-            <template v-slot:item.actions="{ item }">
+            <template #item.actions="{ item }">
               <v-btn
                 icon="mdi-tag-plus-outline"
                 variant="text"
@@ -246,15 +252,18 @@ const filteredItems = computed(() => {
                 @click="ruleSource = item"
               />
             </template>
-            <template v-slot:item.date="{ item }">
+            <template #item.date="{ item }">
               {{ formatDate(item.date) }}
             </template>
-            <template v-slot:item.amount="{ item }">
+            <template #item.amount="{ item }">
               {{ formatCurrency(item.amount) }}
             </template>
-            <template v-slot:group.header="item">
+            <template #group.header="item">
               <td :colspan="headers.length">
-                <v-btn icon @click="item.toggle">
+                <v-btn
+                  icon
+                  @click="item.toggle"
+                >
                   <v-icon>{{ item.isOpen ? "mdi-minus" : "mdi-plus" }}</v-icon>
                 </v-btn>
                 {{ item.group }}
@@ -264,7 +273,10 @@ const filteredItems = computed(() => {
         </div>
       </SurfaceCard>
     </div>
-    <Dialog v-model="showRuleDialog" title="Create Category Rule">
+    <Dialog
+      v-model="showRuleDialog"
+      title="Create Category Rule"
+    >
       <CategoryRuleForm
         v-if="ruleSource"
         :initial-match-text="ruleSource.description"

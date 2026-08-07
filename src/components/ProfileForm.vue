@@ -46,7 +46,10 @@ async function save() {
 
 <template>
   <div class="profile-form">
-    <p v-if="prompt" class="text-caption muted mb-4">
+    <p
+      v-if="prompt"
+      class="text-caption muted mb-4"
+    >
       Welcome! Tell us your name so your household knows who you are.
     </p>
     <div class="d-flex ga-3 mb-3 profile-form__names">
@@ -74,14 +77,28 @@ async function save() {
       class="mb-3"
       hide-details
     />
-    <v-alert v-if="error" type="error" density="compact" class="mb-3">
+    <v-alert
+      v-if="error"
+      type="error"
+      density="compact"
+      class="mb-3"
+    >
       {{ error }}
     </v-alert>
     <div class="d-flex justify-end ga-2">
-      <v-btn variant="text" :disabled="saving" @click="emit('cancel')">
+      <v-btn
+        variant="text"
+        :disabled="saving"
+        @click="emit('cancel')"
+      >
         Cancel
       </v-btn>
-      <v-btn color="primary" variant="flat" :loading="saving" @click="save">
+      <v-btn
+        color="primary"
+        variant="flat"
+        :loading="saving"
+        @click="save"
+      >
         Save
       </v-btn>
     </div>

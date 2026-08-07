@@ -118,8 +118,12 @@ const plottedPoints = computed(() => {
   <div class="cashflow">
     <div class="net-header">
       <div>
-        <div class="muted text-caption">Focus month</div>
-        <div class="text-subtitle-1 font-weight-bold">{{ focusLabel }}</div>
+        <div class="muted text-caption">
+          Focus month
+        </div>
+        <div class="text-subtitle-1 font-weight-bold">
+          {{ focusLabel }}
+        </div>
       </div>
       <div
         class="net-value"
@@ -163,7 +167,10 @@ const plottedPoints = computed(() => {
       </span>
     </div>
 
-    <div v-if="currentSeries.length" class="trend-section">
+    <div
+      v-if="currentSeries.length"
+      class="trend-section"
+    >
       <div class="trend-header">
         <span class="muted text-caption">
           Trend ({{ currentSeries.length }} months)
@@ -174,10 +181,26 @@ const plottedPoints = computed(() => {
           mandatory
           color="primary"
         >
-          <v-btn value="net" text="Net" size="small" />
-          <v-btn value="income" text="Income" size="small" />
-          <v-btn value="expensesNeed" text="Needs" size="small" />
-          <v-btn value="expensesWant" text="Wants" size="small" />
+          <v-btn
+            value="net"
+            text="Net"
+            size="small"
+          />
+          <v-btn
+            value="income"
+            text="Income"
+            size="small"
+          />
+          <v-btn
+            value="expensesNeed"
+            text="Needs"
+            size="small"
+          />
+          <v-btn
+            value="expensesWant"
+            text="Wants"
+            size="small"
+          />
         </v-btn-toggle>
       </div>
       <svg

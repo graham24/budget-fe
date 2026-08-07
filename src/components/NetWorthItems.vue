@@ -113,15 +113,28 @@ function accountLabel(item) {
       </v-btn>
     </div>
 
-    <div v-if="rows().length" class="item-list">
-      <div v-for="item in rows()" :key="item.id" class="item-row">
+    <div
+      v-if="rows().length"
+      class="item-list"
+    >
+      <div
+        v-for="item in rows()"
+        :key="item.id"
+        class="item-row"
+      >
         <div class="item-row__main">
           <div class="item-row__name">
             {{ item.name }}
             <span class="pill">{{ item.type }}</span>
-            <span v-if="accountLabel(item)" class="pill">{{ accountLabel(item) }}</span>
+            <span
+              v-if="accountLabel(item)"
+              class="pill"
+            >{{ accountLabel(item) }}</span>
           </div>
-          <div v-if="isDebt && (item.interest_rate || item.minimum_payment)" class="item-row__debt muted">
+          <div
+            v-if="isDebt && (item.interest_rate || item.minimum_payment)"
+            class="item-row__debt muted"
+          >
             <span v-if="item.interest_rate">{{ item.interest_rate }}% APR</span>
             <span v-if="item.minimum_payment">
               {{ formatCurrency(item.minimum_payment) }}/mo min
@@ -182,7 +195,10 @@ function accountLabel(item) {
         </div>
       </div>
     </div>
-    <p v-else-if="netWorthStore.loaded" class="muted text-caption text-center py-3">
+    <p
+      v-else-if="netWorthStore.loaded"
+      class="muted text-caption text-center py-3"
+    >
       {{ isDebt
         ? "No debts yet. Add your mortgage, loans, or cards to track payoff."
         : "No assets yet. Add your home, vehicles, or accounts to track value." }}
@@ -206,7 +222,10 @@ function accountLabel(item) {
       :title="balanceItem ? `${balanceItem.name} — Balance history` : ''"
       max-width="500"
     >
-      <BalanceHistoryDialog v-if="showBalances && balanceItem" :item="balanceItem" />
+      <BalanceHistoryDialog
+        v-if="showBalances && balanceItem"
+        :item="balanceItem"
+      />
     </Dialog>
   </div>
 </template>

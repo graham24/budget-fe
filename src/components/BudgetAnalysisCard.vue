@@ -1,22 +1,51 @@
 <template>
   <div class="budget-analysis-card">
-    <div v-if="!latestAnalysis && !loading" class="empty-state text-center py-6">
-      <v-icon icon="mdi-chart-box-outline" size="48" class="mb-3" color="primary" />
-      <p class="text-body-1 mb-2">No analysis yet</p>
-      <p class="text-caption muted">Generate your first budget analysis to see insights here.</p>
+    <div
+      v-if="!latestAnalysis && !loading"
+      class="empty-state text-center py-6"
+    >
+      <v-icon
+        icon="mdi-chart-box-outline"
+        size="48"
+        class="mb-3"
+        color="primary"
+      />
+      <p class="text-body-1 mb-2">
+        No analysis yet
+      </p>
+      <p class="text-caption muted">
+        Generate your first budget analysis to see insights here.
+      </p>
     </div>
 
-    <div v-else-if="loading" class="text-center py-4">
-      <v-progress-circular indeterminate color="primary" size="32" />
+    <div
+      v-else-if="loading"
+      class="text-center py-4"
+    >
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        size="32"
+      />
     </div>
 
-    <div v-else class="analysis-display">
+    <div
+      v-else
+      class="analysis-display"
+    >
       <div class="analysis-meta mb-3">
         <div class="d-flex align-center flex-wrap gap-2 mb-2">
-          <v-chip size="small" color="primary" variant="tonal">
+          <v-chip
+            size="small"
+            color="primary"
+            variant="tonal"
+          >
             {{ formatDate(latestAnalysis.from_date) }} - {{ formatDate(latestAnalysis.to_date) }}
           </v-chip>
-          <v-chip size="small" variant="tonal">
+          <v-chip
+            size="small"
+            variant="tonal"
+          >
             {{ latestAnalysis.transaction_count }} transactions
           </v-chip>
         </div>
@@ -25,7 +54,10 @@
         </p>
       </div>
 
-      <div class="analysis-text" v-html="formattedAnalysis"></div>
+      <div
+        class="analysis-text"
+        v-html="formattedAnalysis"
+      />
     </div>
   </div>
 </template>

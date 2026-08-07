@@ -8,7 +8,10 @@ const netWorthStore = useNetWorthStore();
 </script>
 
 <template>
-  <SurfaceCard v-if="netWorthStore.items.length" padding="10px 16px">
+  <SurfaceCard
+    v-if="netWorthStore.items.length"
+    padding="10px 16px"
+  >
     <div class="nw-bar">
       <span class="pill">Net worth</span>
       <span class="nw-bar__value">
@@ -19,7 +22,12 @@ const netWorthStore = useNetWorthStore();
         Debts {{ formatCurrency(netWorthStore.totalDebts) }}
       </span>
       <v-spacer />
-      <v-btn size="small" variant="text" color="primary" @click="emit('details')">
+      <v-btn
+        size="small"
+        variant="text"
+        color="primary"
+        @click="emit('details')"
+      >
         Details
       </v-btn>
     </div>

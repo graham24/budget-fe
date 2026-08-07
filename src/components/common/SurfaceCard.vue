@@ -21,7 +21,10 @@ const props = defineProps({
     class="surface-card"
     :class="[{ 'surface-card--borderless': !border }]"
   >
-    <div class="surface-card__body" :style="{ padding }">
+    <div
+      class="surface-card__body"
+      :style="{ padding }"
+    >
       <slot />
     </div>
   </component>

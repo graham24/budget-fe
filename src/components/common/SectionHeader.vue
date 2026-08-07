@@ -18,9 +18,24 @@ defineProps({
 <template>
   <div class="section-header">
     <div class="section-header__text">
-      <div v-if="label" class="pill">{{ label }}</div>
-      <div v-if="title" class="title">{{ title }}</div>
-      <div v-if="subtitle" class="subtitle muted">{{ subtitle }}</div>
+      <div
+        v-if="label"
+        class="pill"
+      >
+        {{ label }}
+      </div>
+      <div
+        v-if="title"
+        class="title"
+      >
+        {{ title }}
+      </div>
+      <div
+        v-if="subtitle"
+        class="subtitle muted"
+      >
+        {{ subtitle }}
+      </div>
     </div>
     <div class="section-header__actions">
       <slot name="actions" />

@@ -143,7 +143,10 @@ function onDragLeave() {
 <template>
   <div class="import-form">
     <v-container v-if="showReview">
-      <ImportReviewStack :items="reviewItems" @done="finishReview" />
+      <ImportReviewStack
+        :items="reviewItems"
+        @done="finishReview"
+      />
     </v-container>
     <v-container v-else>
       <!-- File Drop Zone -->
@@ -155,10 +158,23 @@ function onDragLeave() {
         @dragleave="onDragLeave"
         @drop.prevent="handleFileDrop"
       >
-        <v-icon icon="mdi-cloud-upload" size="64" color="primary" class="mb-3" />
-        <p class="text-h6 mb-2">Drop CSV or JSON files here</p>
-        <p class="text-caption muted mb-4">or</p>
-        <v-btn color="primary" variant="flat" @click="$refs.fileInput.click()">
+        <v-icon
+          icon="mdi-cloud-upload"
+          size="64"
+          color="primary"
+          class="mb-3"
+        />
+        <p class="text-h6 mb-2">
+          Drop CSV or JSON files here
+        </p>
+        <p class="text-caption muted mb-4">
+          or
+        </p>
+        <v-btn
+          color="primary"
+          variant="flat"
+          @click="$refs.fileInput.click()"
+        >
           Select Files
         </v-btn>
         <input
@@ -168,7 +184,7 @@ function onDragLeave() {
           accept=".csv,.json"
           style="display: none"
           @change="handleFileSelect"
-        />
+        >
       </div>
 
       <!-- File List -->
@@ -192,7 +208,7 @@ function onDragLeave() {
             accept=".csv,.json"
             style="display: none"
             @change="handleFileSelect"
-          />
+          >
         </div>
 
         <div class="file-list">
@@ -207,17 +223,17 @@ function onDragLeave() {
                   fileObj.status === 'success'
                     ? 'mdi-check-circle'
                     : fileObj.status === 'error'
-                    ? 'mdi-alert-circle'
-                    : fileObj.status === 'uploading'
-                    ? 'mdi-loading'
-                    : 'mdi-file-document'
+                      ? 'mdi-alert-circle'
+                      : fileObj.status === 'uploading'
+                        ? 'mdi-loading'
+                        : 'mdi-file-document'
                 "
                 :color="
                   fileObj.status === 'success'
                     ? 'success'
                     : fileObj.status === 'error'
-                    ? 'error'
-                    : 'primary'
+                      ? 'error'
+                      : 'primary'
                 "
                 :class="{ 'rotating': fileObj.status === 'uploading' }"
                 size="20"

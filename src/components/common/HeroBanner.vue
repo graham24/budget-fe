@@ -18,12 +18,25 @@ const props = defineProps({
 </script>
 
 <template>
-  <SurfaceCard class="hero-banner" padding="18px 22px">
+  <SurfaceCard
+    class="hero-banner"
+    padding="18px 22px"
+  >
     <div class="hero-banner__content">
       <div class="hero-banner__text">
-        <div v-if="label" class="pill">{{ label }}</div>
-        <div class="hero-banner__title">{{ title }}</div>
-        <div v-if="subtitle" class="subtitle muted">
+        <div
+          v-if="label"
+          class="pill"
+        >
+          {{ label }}
+        </div>
+        <div class="hero-banner__title">
+          {{ title }}
+        </div>
+        <div
+          v-if="subtitle"
+          class="subtitle muted"
+        >
           {{ subtitle }}
         </div>
       </div>

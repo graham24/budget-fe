@@ -94,7 +94,10 @@ async function removeTarget(row) {
 
 <template>
   <div class="budget-targets">
-    <div v-if="!showForm" class="d-flex justify-end mb-2">
+    <div
+      v-if="!showForm"
+      class="d-flex justify-end mb-2"
+    >
       <v-btn
         size="small"
         variant="text"
@@ -105,7 +108,10 @@ async function removeTarget(row) {
         Add Target
       </v-btn>
     </div>
-    <div v-else class="target-form mb-3">
+    <div
+      v-else
+      class="target-form mb-3"
+    >
       <v-combobox
         v-model="formCategory"
         label="Category"
@@ -125,24 +131,50 @@ async function removeTarget(row) {
         hide-details
         class="mb-2"
       />
-      <v-alert v-if="error" type="error" density="compact" class="mb-2">
+      <v-alert
+        v-if="error"
+        type="error"
+        density="compact"
+        class="mb-2"
+      >
         {{ error }}
       </v-alert>
       <div class="d-flex justify-end ga-2">
-        <v-btn size="small" variant="text" :disabled="saving" @click="showForm = false">
+        <v-btn
+          size="small"
+          variant="text"
+          :disabled="saving"
+          @click="showForm = false"
+        >
           Cancel
         </v-btn>
-        <v-btn size="small" color="primary" variant="flat" :loading="saving" @click="saveTarget">
+        <v-btn
+          size="small"
+          color="primary"
+          variant="flat"
+          :loading="saving"
+          @click="saveTarget"
+        >
           Save
         </v-btn>
       </div>
     </div>
 
-    <div v-if="rows.length" class="target-list">
-      <div v-for="row in rows" :key="row.id" class="target-row">
+    <div
+      v-if="rows.length"
+      class="target-list"
+    >
+      <div
+        v-for="row in rows"
+        :key="row.id"
+        class="target-row"
+      >
         <div class="target-row__top">
           <span class="target-row__category">{{ row.category }}</span>
-          <span class="target-row__numbers" :class="row.pct > 100 ? 'over' : ''">
+          <span
+            class="target-row__numbers"
+            :class="row.pct > 100 ? 'over' : ''"
+          >
             {{ formatCurrency(row.spent) }} / {{ formatCurrency(row.monthly_limit) }}
           </span>
         </div>
@@ -170,7 +202,10 @@ async function removeTarget(row) {
         </div>
       </div>
     </div>
-    <p v-else-if="targetStore.loaded && !showForm" class="muted text-caption text-center py-3">
+    <p
+      v-else-if="targetStore.loaded && !showForm"
+      class="muted text-caption text-center py-3"
+    >
       No targets yet. Set a monthly limit per category to track plan vs. actual.
     </p>
   </div>

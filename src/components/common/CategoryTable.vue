@@ -293,10 +293,10 @@ const headers = computed(() => [
       density="compact"
       class="category-table"
     >
-      <template v-slot:header.data-table-group>
+      <template #header.data-table-group>
         <div>Category</div>
       </template>
-      <template v-slot:group-header="{ item, toggleGroup, isGroupOpen }">
+      <template #group-header="{ item, toggleGroup, isGroupOpen }">
         <tr class="group-row">
           <td>
             <div class="d-flex align-center">
@@ -307,14 +307,14 @@ const headers = computed(() => [
                 size="small"
                 variant="outlined"
                 @click="toggleGroup(item)"
-              ></v-btn>
+              />
               <span class="ms-4">
                 {{ item.value }}
                 <span class="text-caption">({{ item.items.length }})</span>
               </span>
             </div>
           </td>
-          <td class="text-caption text-medium-emphasis"></td>
+          <td class="text-caption text-medium-emphasis" />
           <td>
             {{ formatCurrency(sumField(item.items, "month3")) }}
           </td>
@@ -335,10 +335,10 @@ const headers = computed(() => [
               )
             }}
           </td>
-          <td></td>
+          <td />
         </tr>
       </template>
-      <template v-slot:expanded-row="{ columns, item }">
+      <template #expanded-row="{ columns, item }">
         <tr class="drill-row">
           <td :colspan="columns.length">
             <div class="drill">
@@ -387,35 +387,40 @@ const headers = computed(() => [
           </td>
         </tr>
       </template>
-      <template v-slot:item.month1="{ item }">
+      <template #item.month1="{ item }">
         <span
           v-if="isOverspend(item)"
           class="overspend"
           :title="overspendTitle(item)"
         >
           {{ formatCurrency(item.month1) }}
-          <v-icon icon="mdi-arrow-up-bold" size="x-small" />
+          <v-icon
+            icon="mdi-arrow-up-bold"
+            size="x-small"
+          />
         </span>
-        <template v-else>{{ formatCurrency(item.month1) }}</template>
+        <template v-else>
+          {{ formatCurrency(item.month1) }}
+        </template>
       </template>
-      <template v-slot:item.month2="{ item }">
+      <template #item.month2="{ item }">
         {{ formatCurrency(item.month2) }}
       </template>
-      <template v-slot:item.month3="{ item }">
+      <template #item.month3="{ item }">
         {{ formatCurrency(item.month3) }}
       </template>
-      <template v-slot:item.average="{ item }">
+      <template #item.average="{ item }">
         {{ formatCurrency(calculateAverage(item)) }}
       </template>
-      <template v-slot:body.append>
+      <template #body.append>
         <tr class="totals-row">
-          <td></td>
+          <td />
           <td>Totals</td>
           <td>{{ formatCurrency(totalsRow.month3) }}</td>
           <td>{{ formatCurrency(totalsRow.month2) }}</td>
           <td>{{ formatCurrency(totalsRow.month1) }}</td>
           <td>{{ formatCurrency(calculateAverage(totalsRow)) }}</td>
-          <td></td>
+          <td />
         </tr>
       </template>
     </v-data-table>

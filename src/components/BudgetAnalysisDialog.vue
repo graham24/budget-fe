@@ -1,25 +1,65 @@
 <template>
   <div class="budget-analysis">
-    <div v-if="loading" class="text-center py-8">
-      <v-progress-circular indeterminate color="primary" size="48" />
-      <p class="mt-4 muted">Generating your budget analysis...</p>
+    <div
+      v-if="loading"
+      class="text-center py-8"
+    >
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        size="48"
+      />
+      <p class="mt-4 muted">
+        Generating your budget analysis...
+      </p>
     </div>
-    <div v-else-if="error" class="error-state py-6">
-      <v-icon icon="mdi-alert-circle" color="error" size="48" class="mb-3" />
-      <p class="text-body-1 mb-2">Failed to generate analysis</p>
-      <p class="text-caption muted">{{ error }}</p>
+    <div
+      v-else-if="error"
+      class="error-state py-6"
+    >
+      <v-icon
+        icon="mdi-alert-circle"
+        color="error"
+        size="48"
+        class="mb-3"
+      />
+      <p class="text-body-1 mb-2">
+        Failed to generate analysis
+      </p>
+      <p class="text-caption muted">
+        {{ error }}
+      </p>
     </div>
-    <div v-else-if="analysis" class="analysis-content">
+    <div
+      v-else-if="analysis"
+      class="analysis-content"
+    >
       <div class="analysis-meta mb-4">
         <div class="d-flex align-center gap-2 mb-2">
-          <v-chip size="small" color="primary" variant="tonal">
+          <v-chip
+            size="small"
+            color="primary"
+            variant="tonal"
+          >
             {{ formatDate(analysis.from_date) }} - {{ formatDate(analysis.to_date) }}
           </v-chip>
-          <v-chip size="small" variant="tonal">
+          <v-chip
+            size="small"
+            variant="tonal"
+          >
             {{ analysis.transaction_count }} transactions
           </v-chip>
-          <v-chip v-if="cached" size="small" color="success" variant="tonal">
-            <v-icon icon="mdi-cached" start size="small" />
+          <v-chip
+            v-if="cached"
+            size="small"
+            color="success"
+            variant="tonal"
+          >
+            <v-icon
+              icon="mdi-cached"
+              start
+              size="small"
+            />
             Cached
           </v-chip>
           <v-btn
@@ -37,7 +77,10 @@
           Generated {{ formatDateTime(analysis.created) }}
         </p>
       </div>
-      <div class="analysis-text" v-html="formattedAnalysis"></div>
+      <div
+        class="analysis-text"
+        v-html="formattedAnalysis"
+      />
     </div>
   </div>
 </template>

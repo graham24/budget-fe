@@ -1,9 +1,17 @@
 <template>
   <v-app>
-    <div v-if="!authStore.user" class="auth-landing">
-      <SurfaceCard class="auth-card" tag="section">
+    <div
+      v-if="!authStore.user"
+      class="auth-landing"
+    >
+      <SurfaceCard
+        class="auth-card"
+        tag="section"
+      >
         <div class="text-center mb-6">
-          <p class="pill">Welcome back</p>
+          <p class="pill">
+            Welcome back
+          </p>
           <h1 class="text-h4 font-weight-bold mb-2">
             Track how your money moves
           </h1>
@@ -12,7 +20,12 @@
             Sign in to start your overview.
           </p>
         </div>
-        <v-alert v-if="loginError" type="error" density="compact" class="mb-3">
+        <v-alert
+          v-if="loginError"
+          type="error"
+          density="compact"
+          class="mb-3"
+        >
           {{ loginError }}
         </v-alert>
         <div class="google-login-wrap">
@@ -20,11 +33,18 @@
         </div>
       </SurfaceCard>
     </div>
-    <div v-else class="app-frame">
+    <div
+      v-else
+      class="app-frame"
+    >
       <header class="top-bar">
         <div class="top-bar__brand">
           <div class="brand-mark">
-            <v-icon icon="mdi-wallet-outline" size="18" color="primary" />
+            <v-icon
+              icon="mdi-wallet-outline"
+              size="18"
+              color="primary"
+            />
           </div>
           <span class="top-bar__name">Budget</span>
         </div>
@@ -69,7 +89,11 @@
             </v-list>
           </v-menu>
           <span class="top-bar__user muted">{{ displayName }}</span>
-          <v-btn variant="outlined" density="comfortable" @click="logout">
+          <v-btn
+            variant="outlined"
+            density="comfortable"
+            @click="logout"
+          >
             Log out
           </v-btn>
         </div>
@@ -77,20 +101,37 @@
       <v-main class="app-main">
         <router-view />
       </v-main>
-      <Dialog v-model="profileDialog" title="Profile">
+      <Dialog
+        v-model="profileDialog"
+        title="Profile"
+      >
         <ProfileForm
           :prompt="namePrompt"
           @saved="closeProfileDialog"
           @cancel="closeProfileDialog"
         />
       </Dialog>
-      <Dialog v-model="householdDialog" title="Household">
-        <HouseholdForm @saved="householdDialog = false" @open-simplefin-wizard="openSimplefinWizard" />
+      <Dialog
+        v-model="householdDialog"
+        title="Household"
+      >
+        <HouseholdForm
+          @saved="householdDialog = false"
+          @open-simplefin-wizard="openSimplefinWizard"
+        />
       </Dialog>
-      <Dialog v-model="accountsDialog" title="Accounts" max-width="760">
+      <Dialog
+        v-model="accountsDialog"
+        title="Accounts"
+        max-width="760"
+      >
         <AccountsManager />
       </Dialog>
-      <Dialog v-model="simplefinWizardDialog" title="Connect SimpleFin Accounts" max-width="760">
+      <Dialog
+        v-model="simplefinWizardDialog"
+        title="Connect SimpleFin Accounts"
+        max-width="760"
+      >
         <SimplefinWizard
           v-if="householdStore.household?.household?.id"
           :household-id="householdStore.household.household.id"

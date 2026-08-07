@@ -102,14 +102,28 @@ async function save() {
       class="mb-3"
       hide-details
     />
-    <v-alert v-if="error" type="error" density="compact" class="mb-3">
+    <v-alert
+      v-if="error"
+      type="error"
+      density="compact"
+      class="mb-3"
+    >
       {{ error }}
     </v-alert>
     <div class="d-flex justify-end ga-2">
-      <v-btn variant="text" :disabled="saving" @click="emit('cancel')">
+      <v-btn
+        variant="text"
+        :disabled="saving"
+        @click="emit('cancel')"
+      >
         Cancel
       </v-btn>
-      <v-btn color="primary" variant="flat" :loading="saving" @click="save">
+      <v-btn
+        color="primary"
+        variant="flat"
+        :loading="saving"
+        @click="save"
+      >
         {{ props.account ? "Save Account" : "Add Account" }}
       </v-btn>
     </div>

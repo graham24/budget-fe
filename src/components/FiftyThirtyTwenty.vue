@@ -43,11 +43,21 @@ const rows = computed(() => {
 </script>
 
 <template>
-  <div v-if="rows.length" class="fifty-rule">
-    <div v-for="row in rows" :key="row.label" class="rule-row">
+  <div
+    v-if="rows.length"
+    class="fifty-rule"
+  >
+    <div
+      v-for="row in rows"
+      :key="row.label"
+      class="rule-row"
+    >
       <div class="rule-row__labels">
         <span class="rule-row__name">{{ row.label }}</span>
-        <span class="rule-row__pct" :class="`text-${row.color}`">
+        <span
+          class="rule-row__pct"
+          :class="`text-${row.color}`"
+        >
           {{ row.pct.toFixed(0) }}%
           <span class="muted">/ {{ row.target }}%</span>
         </span>
@@ -59,7 +69,10 @@ const rows = computed(() => {
           height="8"
           rounded
         />
-        <div class="rule-row__marker" :style="{ left: `${row.target}%` }" />
+        <div
+          class="rule-row__marker"
+          :style="{ left: `${row.target}%` }"
+        />
       </div>
     </div>
     <p class="muted text-caption mt-1 mb-0">
@@ -67,7 +80,12 @@ const rows = computed(() => {
       Tick marks show the targets.
     </p>
   </div>
-  <div v-else class="muted text-caption">No income recorded this month.</div>
+  <div
+    v-else
+    class="muted text-caption"
+  >
+    No income recorded this month.
+  </div>
 </template>
 
 <style scoped>

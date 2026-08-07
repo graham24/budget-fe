@@ -52,11 +52,16 @@ export default defineComponent({
         />
       </v-card-title>
       <v-card-text>
-        <slot></slot>
+        <slot />
       </v-card-text>
       <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" @click="closeDialog">Close</v-btn>
+        <v-spacer />
+        <v-btn
+          color="primary"
+          @click="closeDialog"
+        >
+          Close
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

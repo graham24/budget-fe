@@ -31,7 +31,10 @@ async function removeRule(rule) {
       The newest matching rule wins.
     </p>
 
-    <div v-if="!showForm" class="d-flex justify-end mb-3">
+    <div
+      v-if="!showForm"
+      class="d-flex justify-end mb-3"
+    >
       <v-btn
         color="primary"
         variant="flat"
@@ -42,26 +45,37 @@ async function removeRule(rule) {
         Add Rule
       </v-btn>
     </div>
-    <div v-else class="form-panel mb-4">
+    <div
+      v-else
+      class="form-panel mb-4"
+    >
       <CategoryRuleForm
         @saved="showForm = false"
         @cancel="showForm = false"
       />
     </div>
 
-    <v-table v-if="ruleStore.rules.length" density="compact">
+    <v-table
+      v-if="ruleStore.rules.length"
+      density="compact"
+    >
       <thead>
         <tr>
           <th>Match text</th>
           <th>Category</th>
           <th>Sub-category</th>
           <th>Need</th>
-          <th></th>
+          <th />
         </tr>
       </thead>
       <tbody>
-        <tr v-for="rule in ruleStore.rules" :key="rule.id">
-          <td class="font-weight-medium">{{ rule.match_text }}</td>
+        <tr
+          v-for="rule in ruleStore.rules"
+          :key="rule.id"
+        >
+          <td class="font-weight-medium">
+            {{ rule.match_text }}
+          </td>
           <td>{{ rule.category }}</td>
           <td>{{ rule.sub_category }}</td>
           <td>
@@ -83,7 +97,10 @@ async function removeRule(rule) {
         </tr>
       </tbody>
     </v-table>
-    <p v-else-if="ruleStore.loaded && !showForm" class="text-center muted py-4">
+    <p
+      v-else-if="ruleStore.loaded && !showForm"
+      class="text-center muted py-4"
+    >
       No rules yet. Add one here, or use the tag button on any transaction row.
     </p>
   </div>

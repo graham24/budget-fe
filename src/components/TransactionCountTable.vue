@@ -3,7 +3,9 @@
     <v-table density="compact">
       <thead>
         <tr>
-          <th class="text-left">Account</th>
+          <th class="text-left">
+            Account
+          </th>
           <th
             v-for="month in months"
             :key="month.key"
@@ -11,7 +13,9 @@
           >
             {{ month.label }}
           </th>
-          <th class="text-center">Total</th>
+          <th class="text-center">
+            Total
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -20,8 +24,12 @@
           :key="row.accountId"
         >
           <td class="account-name">
-            <div class="text-subtitle-2">{{ row.accountName }}</div>
-            <div class="text-caption muted">{{ row.bankInfo }}</div>
+            <div class="text-subtitle-2">
+              {{ row.accountName }}
+            </div>
+            <div class="text-caption muted">
+              {{ row.bankInfo }}
+            </div>
           </td>
           <td
             v-for="month in months"
@@ -47,7 +55,9 @@
           </td>
         </tr>
         <tr class="total-row">
-          <td class="font-weight-bold">Total</td>
+          <td class="font-weight-bold">
+            Total
+          </td>
           <td
             v-for="month in months"
             :key="month.key"
@@ -77,15 +87,33 @@
     <div class="legend mt-4">
       <div class="d-flex gap-3 flex-wrap">
         <div class="d-flex align-center gap-1">
-          <v-chip color="error" variant="flat" size="x-small">0</v-chip>
+          <v-chip
+            color="error"
+            variant="flat"
+            size="x-small"
+          >
+            0
+          </v-chip>
           <span class="text-caption">No transactions</span>
         </div>
         <div class="d-flex align-center gap-1">
-          <v-chip color="warning" variant="tonal" size="x-small">1-5</v-chip>
+          <v-chip
+            color="warning"
+            variant="tonal"
+            size="x-small"
+          >
+            1-5
+          </v-chip>
           <span class="text-caption">Few transactions</span>
         </div>
         <div class="d-flex align-center gap-1">
-          <v-chip color="success" variant="tonal" size="x-small">6+</v-chip>
+          <v-chip
+            color="success"
+            variant="tonal"
+            size="x-small"
+          >
+            6+
+          </v-chip>
           <span class="text-caption">Normal activity</span>
         </div>
       </div>

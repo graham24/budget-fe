@@ -96,16 +96,17 @@ function selectDates() {
           class="position-absolute right-0 top-0"
           style="z-index: 2"
           @click="showDatePicker = !showDatePicker"
-          >mdi-calendar-blank</v-icon
         >
+          mdi-calendar-blank
+        </v-icon>
         <v-date-picker
           v-if="showDatePicker"
           v-model="selectedDates"
-          v-on:update:model-value="selectDates()"
           multiple="range"
           class="position-absolute top-0 right-0"
           style="z-index: 1"
-        ></v-date-picker>
+          @update:model-value="selectDates()"
+        />
         <div class="toolbar mb-3">
           <v-text-field
             v-model="searchTerm"
@@ -116,7 +117,7 @@ function selectDates() {
             single-line
             density="comfortable"
             class="search-input"
-          ></v-text-field>
+          />
           <v-btn
             v-if="transactionStore.unknownTransactions.length"
             color="warning"
@@ -136,23 +137,23 @@ function selectDates() {
         </div>
         <TransactionsTable
           :type="'income'"
-          :searchTerm="debouncedSearchTerm"
-          :dateRange="selectedDates"
+          :search-term="debouncedSearchTerm"
+          :date-range="selectedDates"
         />
-         <TransactionsTable
+        <TransactionsTable
           :type="'expenses-need'"
-          :searchTerm="debouncedSearchTerm"
-          :dateRange="selectedDates"
+          :search-term="debouncedSearchTerm"
+          :date-range="selectedDates"
         />
-         <TransactionsTable
+        <TransactionsTable
           :type="'expenses-want'"
-          :searchTerm="debouncedSearchTerm"
-          :dateRange="selectedDates"
+          :search-term="debouncedSearchTerm"
+          :date-range="selectedDates"
         />
-         <TransactionsTable
+        <TransactionsTable
           :type="'transfers'"
-          :searchTerm="debouncedSearchTerm"
-          :dateRange="selectedDates"
+          :search-term="debouncedSearchTerm"
+          :date-range="selectedDates"
         />
         <TransactionReviewDialog
           v-model="showReviewDialog"

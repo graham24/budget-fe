@@ -163,11 +163,21 @@ async function save() {
         class="mb-2"
       />
     </template>
-    <v-alert v-if="error" type="error" density="compact" class="mb-2">
+    <v-alert
+      v-if="error"
+      type="error"
+      density="compact"
+      class="mb-2"
+    >
       {{ error }}
     </v-alert>
     <div class="d-flex justify-end">
-      <v-btn color="primary" variant="flat" :loading="saving" @click="save">
+      <v-btn
+        color="primary"
+        variant="flat"
+        :loading="saving"
+        @click="save"
+      >
         Save
       </v-btn>
     </div>

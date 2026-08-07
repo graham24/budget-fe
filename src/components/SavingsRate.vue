@@ -23,7 +23,9 @@ const savingsRate = computed(() => {
 
 <template>
   <div class="savings-wrapper">
-    <div class="muted text-caption">Savings rate</div>
+    <div class="muted text-caption">
+      Savings rate
+    </div>
     <div class="savings-value">
       {{ savingsRate.toFixed(0) }}%
       <span class="savings-sub muted">of income saved</span>

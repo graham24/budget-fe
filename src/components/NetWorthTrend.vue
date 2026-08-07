@@ -57,15 +57,35 @@ const hasHistory = computed(
 </script>
 
 <template>
-  <div v-if="hasHistory" class="trend-section">
+  <div
+    v-if="hasHistory"
+    class="trend-section"
+  >
     <div class="trend-header">
       <span class="muted text-caption">
         Trend ({{ series.length }} months)
       </span>
-      <v-btn-toggle v-model="mode" density="compact" mandatory color="primary">
-        <v-btn value="net_worth" text="Net" size="small" />
-        <v-btn value="assets" text="Assets" size="small" />
-        <v-btn value="debts" text="Debts" size="small" />
+      <v-btn-toggle
+        v-model="mode"
+        density="compact"
+        mandatory
+        color="primary"
+      >
+        <v-btn
+          value="net_worth"
+          text="Net"
+          size="small"
+        />
+        <v-btn
+          value="assets"
+          text="Assets"
+          size="small"
+        />
+        <v-btn
+          value="debts"
+          text="Debts"
+          size="small"
+        />
       </v-btn-toggle>
     </div>
     <svg
@@ -95,7 +115,10 @@ const hasHistory = computed(
       <span>{{ series[series.length - 1]?.label }}</span>
     </div>
   </div>
-  <p v-else class="muted text-caption text-center py-3">
+  <p
+    v-else
+    class="muted text-caption text-center py-3"
+  >
     Add balance updates over time to see your trend.
   </p>
 </template>

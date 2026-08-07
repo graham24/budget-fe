@@ -80,21 +80,34 @@ function deltaClass(tile) {
       class="kpi"
       padding="14px 16px"
     >
-      <div class="pill">{{ tile.label }}</div>
+      <div class="pill">
+        {{ tile.label }}
+      </div>
       <div class="kpi__value">
         <template v-if="tile.percent">
           {{ tile.value === null ? "—" : `${tile.value.toFixed(0)}%` }}
         </template>
-        <template v-else>{{ formatCurrency(tile.value) }}</template>
+        <template v-else>
+          {{ formatCurrency(tile.value) }}
+        </template>
       </div>
-      <div v-if="tile.delta !== null" class="kpi__delta" :class="deltaClass(tile)">
+      <div
+        v-if="tile.delta !== null"
+        class="kpi__delta"
+        :class="deltaClass(tile)"
+      >
         <v-icon
           :icon="tile.delta >= 0 ? 'mdi-arrow-up-thin' : 'mdi-arrow-down-thin'"
           size="16"
         />
         {{ formatCurrency(Math.abs(tile.delta)) }} vs {{ priorLabel }}
       </div>
-      <div v-else class="kpi__delta muted">{{ tile.caption }}</div>
+      <div
+        v-else
+        class="kpi__delta muted"
+      >
+        {{ tile.caption }}
+      </div>
     </SurfaceCard>
   </div>
 </template>

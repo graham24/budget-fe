@@ -53,8 +53,16 @@ const totalSpent = computed(() =>
 </script>
 
 <template>
-  <div v-if="slices.length" class="spending-mix">
-    <svg viewBox="0 0 42 42" class="donut" role="img" aria-label="Spending by category">
+  <div
+    v-if="slices.length"
+    class="spending-mix"
+  >
+    <svg
+      viewBox="0 0 42 42"
+      class="donut"
+      role="img"
+      aria-label="Spending by category"
+    >
       <circle
         v-for="slice in slices"
         :key="slice.category"
@@ -67,14 +75,31 @@ const totalSpent = computed(() =>
         :stroke-dasharray="slice.dasharray"
         :stroke-dashoffset="slice.dashoffset"
       />
-      <text x="21" y="20" class="donut__total" text-anchor="middle">
+      <text
+        x="21"
+        y="20"
+        class="donut__total"
+        text-anchor="middle"
+      >
         {{ formatCurrency(totalSpent) }}
       </text>
-      <text x="21" y="24.5" class="donut__caption" text-anchor="middle">spent</text>
+      <text
+        x="21"
+        y="24.5"
+        class="donut__caption"
+        text-anchor="middle"
+      >spent</text>
     </svg>
     <div class="legend">
-      <div v-for="slice in slices" :key="slice.category" class="legend-row">
-        <span class="legend-dot" :style="{ background: slice.color }" />
+      <div
+        v-for="slice in slices"
+        :key="slice.category"
+        class="legend-row"
+      >
+        <span
+          class="legend-dot"
+          :style="{ background: slice.color }"
+        />
         <span class="legend-label">{{ slice.category }}</span>
         <span class="legend-amount">
           {{ formatCurrency(slice.amount) }}
@@ -83,7 +108,12 @@ const totalSpent = computed(() =>
       </div>
     </div>
   </div>
-  <div v-else class="muted text-caption">No expenses in the focus month.</div>
+  <div
+    v-else
+    class="muted text-caption"
+  >
+    No expenses in the focus month.
+  </div>
 </template>
 
 <style scoped>

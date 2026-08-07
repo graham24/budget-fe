@@ -89,7 +89,12 @@ function formatShortDate(value) {
         hide-details
         class="mb-2"
       />
-      <v-alert v-if="error" type="error" density="compact" class="mb-2">
+      <v-alert
+        v-if="error"
+        type="error"
+        density="compact"
+        class="mb-2"
+      >
         {{ error }}
       </v-alert>
       <div class="d-flex justify-end">
@@ -105,8 +110,15 @@ function formatShortDate(value) {
       </div>
     </div>
 
-    <div v-if="rows.length" class="entry-list">
-      <div v-for="row in rows" :key="row.id" class="entry-row">
+    <div
+      v-if="rows.length"
+      class="entry-list"
+    >
+      <div
+        v-for="row in rows"
+        :key="row.id"
+        class="entry-row"
+      >
         <span class="entry-row__date muted">
           {{ formatShortDate(row.effective_date) }}
         </span>
@@ -118,7 +130,10 @@ function formatShortDate(value) {
         >
           {{ row.delta >= 0 ? "+" : "−" }}{{ formatCurrency(Math.abs(row.delta)) }}
         </span>
-        <span v-else class="entry-row__delta muted">first entry</span>
+        <span
+          v-else
+          class="entry-row__delta muted"
+        >first entry</span>
         <v-btn
           icon="mdi-delete-outline"
           variant="text"
@@ -128,7 +143,10 @@ function formatShortDate(value) {
         />
       </div>
     </div>
-    <p v-else class="muted text-caption text-center py-3">
+    <p
+      v-else
+      class="muted text-caption text-center py-3"
+    >
       No balance history yet.
     </p>
   </div>

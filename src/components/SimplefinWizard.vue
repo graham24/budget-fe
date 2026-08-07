@@ -154,21 +154,38 @@ function formatBalance(account) {
 
 <template>
   <div class="simplefin-wizard">
-    <div v-if="loading" class="d-flex justify-center py-6">
-      <v-progress-circular indeterminate color="primary" />
+    <div
+      v-if="loading"
+      class="d-flex justify-center py-6"
+    >
+      <v-progress-circular
+        indeterminate
+        color="primary"
+      />
     </div>
-    <v-alert v-else-if="loadError" type="error" density="compact">
+    <v-alert
+      v-else-if="loadError"
+      type="error"
+      density="compact"
+    >
       {{ loadError }}
     </v-alert>
-    <div v-else-if="current" class="wizard-body">
+    <div
+      v-else-if="current"
+      class="wizard-body"
+    >
       <div class="stack-header">
         <div>
-          <div class="text-subtitle-1 font-weight-bold">Connect SimpleFin accounts</div>
+          <div class="text-subtitle-1 font-weight-bold">
+            Connect SimpleFin accounts
+          </div>
           <div class="muted text-caption">
             Link each account to one you already track, or create a new one.
           </div>
         </div>
-        <div class="counter muted">{{ index + 1 }} / {{ items.length }}</div>
+        <div class="counter muted">
+          {{ index + 1 }} / {{ items.length }}
+        </div>
       </div>
 
       <div class="wizard-card">
@@ -177,12 +194,29 @@ function formatBalance(account) {
             <span class="font-weight-bold">{{ current.name }}</span>
             <span class="muted text-caption">{{ current.org_name }}</span>
           </div>
-          <div class="card-balance">{{ formatBalance(current) }}</div>
+          <div class="card-balance">
+            {{ formatBalance(current) }}
+          </div>
         </div>
 
-        <v-btn-toggle v-model="mode" mandatory density="compact" class="mt-3 mb-3">
-          <v-btn value="existing" size="small">Link existing</v-btn>
-          <v-btn value="new" size="small">Create new</v-btn>
+        <v-btn-toggle
+          v-model="mode"
+          mandatory
+          density="compact"
+          class="mt-3 mb-3"
+        >
+          <v-btn
+            value="existing"
+            size="small"
+          >
+            Link existing
+          </v-btn>
+          <v-btn
+            value="new"
+            size="small"
+          >
+            Create new
+          </v-btn>
         </v-btn-toggle>
 
         <div v-if="mode === 'existing'">
@@ -197,7 +231,10 @@ function formatBalance(account) {
             hide-details
           />
         </div>
-        <div v-else class="d-flex flex-column ga-3">
+        <div
+          v-else
+          class="d-flex flex-column ga-3"
+        >
           <v-text-field
             v-model="newDescription"
             label="Description"
@@ -233,21 +270,40 @@ function formatBalance(account) {
           />
         </div>
 
-        <v-alert v-if="error" type="error" density="compact" class="mt-3">
+        <v-alert
+          v-if="error"
+          type="error"
+          density="compact"
+          class="mt-3"
+        >
           {{ error }}
         </v-alert>
 
         <div class="card-actions">
-          <v-btn variant="text" :disabled="busy" @click="skip">
+          <v-btn
+            variant="text"
+            :disabled="busy"
+            @click="skip"
+          >
             {{ remaining > 1 ? "Skip" : "Skip & Finish" }}
           </v-btn>
-          <v-btn color="primary" variant="flat" :loading="busy" @click="save">
+          <v-btn
+            color="primary"
+            variant="flat"
+            :loading="busy"
+            @click="save"
+          >
             {{ remaining > 1 ? "Save & Next" : "Save & Finish" }}
           </v-btn>
         </div>
       </div>
     </div>
-    <p v-else class="text-center muted py-4">No SimpleFin accounts found.</p>
+    <p
+      v-else
+      class="text-center muted py-4"
+    >
+      No SimpleFin accounts found.
+    </p>
   </div>
 </template>
 

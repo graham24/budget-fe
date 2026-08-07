@@ -41,7 +41,10 @@ function closeForm() {
       format the importer expects.
     </p>
 
-    <div v-if="!showForm" class="d-flex justify-end mb-3">
+    <div
+      v-if="!showForm"
+      class="d-flex justify-end mb-3"
+    >
       <v-btn
         color="primary"
         variant="flat"
@@ -52,7 +55,10 @@ function closeForm() {
         Add Account
       </v-btn>
     </div>
-    <div v-else class="form-panel mb-4">
+    <div
+      v-else
+      class="form-panel mb-4"
+    >
       <AccountForm
         :key="editingAccount?.id ?? 'new'"
         :account="editingAccount"
@@ -61,14 +67,17 @@ function closeForm() {
       />
     </div>
 
-    <v-table v-if="accountStore.accounts.accounts.length" density="compact">
+    <v-table
+      v-if="accountStore.accounts.accounts.length"
+      density="compact"
+    >
       <thead>
         <tr>
           <th>Description</th>
           <th>Type</th>
           <th>Bank</th>
           <th>Owner</th>
-          <th></th>
+          <th />
         </tr>
       </thead>
       <tbody>
@@ -76,7 +85,9 @@ function closeForm() {
           v-for="account in accountStore.accounts.accounts"
           :key="account.id"
         >
-          <td class="font-weight-medium">{{ account.description }}</td>
+          <td class="font-weight-medium">
+            {{ account.description }}
+          </td>
           <td>{{ account.type }}</td>
           <td>{{ account.bank }}</td>
           <td>{{ ownerNames[account.user_id] ?? "—" }}</td>
@@ -91,7 +102,10 @@ function closeForm() {
         </tr>
       </tbody>
     </v-table>
-    <p v-else-if="!showForm" class="text-center muted py-4">
+    <p
+      v-else-if="!showForm"
+      class="text-center muted py-4"
+    >
       No accounts yet. Add one to start importing transactions.
     </p>
   </div>

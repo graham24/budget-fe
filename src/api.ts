@@ -230,7 +230,7 @@ export const saveTransaction = async (
 };
 
 export const uploadTransactions = async (
-  accountId: Number,
+  accountId: number,
   importFile: File
 ): Promise<{ imported_transactions: Transaction[]; duplicate_transactions: DuplicateTransaction[] }> => {
   const formData = new FormData();

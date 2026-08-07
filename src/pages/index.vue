@@ -22,6 +22,7 @@ import NetWorthItems from "../components/NetWorthItems.vue";
 import NetWorthSummaryBar from "../components/NetWorthSummaryBar.vue";
 import SurfaceCard from "../components/common/SurfaceCard.vue";
 import SectionHeader from "../components/common/SectionHeader.vue";
+import OnboardingWizard from "../components/OnboardingWizard.vue";
 import { useHouseholdStore } from "../stores/household";
 import { useAccountStore } from "../stores/account";
 import { useTransactionStore } from "../stores/transaction";
@@ -43,6 +44,7 @@ const activeTab = ref("overview");
 const showDialog = ref(false);
 const showAnalysisDialog = ref(false);
 const showRulesDialog = ref(false);
+const showOnboarding = ref(false);
 const analysisRefreshTrigger = ref(0);
 const monthFormatter = new Intl.DateTimeFormat(undefined, {
   month: "long",
@@ -64,6 +66,9 @@ onMounted(async () => {
       userStore.fetchUsers(),
       netWorthStore.fetchAll(),
     ]);
+    if (!accountsStore.accounts.accounts.length) {
+      showOnboarding.value = true;
+    }
   } catch (error) {
     console.log(error);
   } finally {
@@ -115,99 +120,237 @@ const focusMonthLabel = computed(() => {
 </script>
 
 <template>
-  <div id="home" class="page-shell">
-    <v-container v-if="!loading" fluid>
+  <div
+    id="home"
+    class="page-shell"
+  >
+    <v-container
+      v-if="!loading"
+      fluid
+    >
       <header class="page-header">
         <div class="page-header__text">
-          <p class="pill mb-1">{{ windowLabel }}</p>
+          <p class="pill mb-1">
+            {{ windowLabel }}
+          </p>
           <h1 class="page-title">
             {{ householdStore.household?.household?.name ?? "Household" }}
           </h1>
         </div>
         <div class="page-header__actions">
           <div class="month-pager">
-            <v-btn icon="mdi-chevron-left" variant="text" density="comfortable" aria-label="Previous month"
-              :disabled="transactionsStore.monthsAgo >= 2" @click="transactionsStore.monthsAgo += 1" />
+            <v-btn
+              icon="mdi-chevron-left"
+              variant="text"
+              density="comfortable"
+              aria-label="Previous month"
+              :disabled="transactionsStore.monthsAgo >= 2"
+              @click="transactionsStore.monthsAgo += 1"
+            />
             <span class="month-pager__label">{{ focusMonthLabel }}</span>
-            <v-btn icon="mdi-chevron-right" variant="text" density="comfortable" aria-label="Next month"
-              :disabled="transactionsStore.monthsAgo <= -1" @click="transactionsStore.monthsAgo -= 1" />
+            <v-btn
+              icon="mdi-chevron-right"
+              variant="text"
+              density="comfortable"
+              aria-label="Next month"
+              :disabled="transactionsStore.monthsAgo <= -1"
+              @click="transactionsStore.monthsAgo -= 1"
+            />
           </div>
-          <v-btn color="primary" variant="flat" prepend-icon="mdi-upload" @click="showDialog = true">Import</v-btn>
-          <v-btn variant="outlined" prepend-icon="mdi-chart-line" @click="showAnalysisDialog = true">{{ smAndDown ?
-            "Analysis" : "Generate analysis" }}</v-btn>
-          <v-btn variant="text" prepend-icon="mdi-tag-multiple" @click="showRulesDialog = true">Rules</v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            prepend-icon="mdi-upload"
+            @click="showDialog = true"
+          >
+            Import
+          </v-btn>
+          <v-btn
+            variant="outlined"
+            prepend-icon="mdi-chart-line"
+            @click="showAnalysisDialog = true"
+          >
+            {{ smAndDown ?
+              "Analysis" : "Generate analysis" }}
+          </v-btn>
+          <v-btn
+            variant="text"
+            prepend-icon="mdi-tag-multiple"
+            @click="showRulesDialog = true"
+          >
+            Rules
+          </v-btn>
         </div>
       </header>
 
-      <Dialog v-model="showDialog" title="Import Transactions" max-width="900">
-        <ImportForm @update:isOpen="showDialog = $event" />
+      <Dialog
+        v-model="showDialog"
+        title="Import Transactions"
+        max-width="900"
+      >
+        <ImportForm @update:is-open="showDialog = $event" />
       </Dialog>
-      <Dialog v-model="showRulesDialog" title="Category Rules">
+      <Dialog
+        v-model="showRulesDialog"
+        title="Category Rules"
+      >
         <CategoryRulesManager v-if="showRulesDialog" />
       </Dialog>
-      <Dialog v-model="showAnalysisDialog" title="Budget Analysis" max-width="800">
-        <BudgetAnalysisDialog v-if="showAnalysisDialog && authStore.user && householdStore.household"
-          :user-id="authStore.user.id" :household-id="householdStore.household.household.id"
-          @success="handleAnalysisGenerated" />
+      <Dialog
+        v-model="showAnalysisDialog"
+        title="Budget Analysis"
+        max-width="800"
+      >
+        <BudgetAnalysisDialog
+          v-if="showAnalysisDialog && authStore.user && householdStore.household"
+          :user-id="authStore.user.id"
+          :household-id="householdStore.household.household.id"
+          @success="handleAnalysisGenerated"
+        />
+      </Dialog>
+      <Dialog
+        v-model="showOnboarding"
+        title="Set up your household"
+        max-width="640"
+      >
+        <OnboardingWizard
+          v-if="showOnboarding"
+          @done="showOnboarding = false"
+        />
       </Dialog>
 
-      <v-tabs v-model="activeTab" color="primary" class="nav-tabs mb-5" :grow="smAndDown" density="comfortable">
-        <v-tab value="overview" prepend-icon="mdi-view-dashboard-outline">
+      <v-tabs
+        v-model="activeTab"
+        color="primary"
+        class="nav-tabs mb-5"
+        :grow="smAndDown"
+        density="comfortable"
+      >
+        <v-tab
+          value="overview"
+          prepend-icon="mdi-view-dashboard-outline"
+        >
           Overview
         </v-tab>
-        <v-tab value="insights" prepend-icon="mdi-lightbulb-on-outline">
+        <v-tab
+          value="insights"
+          prepend-icon="mdi-lightbulb-on-outline"
+        >
           Insights
         </v-tab>
-        <v-tab value="net-worth" prepend-icon="mdi-scale-balance">
+        <v-tab
+          value="net-worth"
+          prepend-icon="mdi-scale-balance"
+        >
           Net Worth
         </v-tab>
-        <v-tab value="transactions" prepend-icon="mdi-format-list-bulleted">
+        <v-tab
+          value="transactions"
+          prepend-icon="mdi-format-list-bulleted"
+        >
           Transactions
-          <v-badge v-if="transactionsStore.unknownTransactions.length" color="warning"
-            :content="transactionsStore.unknownTransactions.length" inline />
+          <v-badge
+            v-if="transactionsStore.unknownTransactions.length"
+            color="warning"
+            :content="transactionsStore.unknownTransactions.length"
+            inline
+          />
         </v-tab>
       </v-tabs>
 
       <!-- touch disabled so swiping inside scrollable tables doesn't switch tabs -->
-      <v-window v-model="activeTab" :touch="false">
+      <v-window
+        v-model="activeTab"
+        :touch="false"
+      >
         <v-window-item value="overview">
           <v-row dense>
             <v-col cols="12">
               <KpiStrip />
             </v-col>
-            <v-col v-if="netWorthStore.items.length" cols="12">
+            <v-col
+              v-if="netWorthStore.items.length"
+              cols="12"
+            >
               <NetWorthSummaryBar @details="activeTab = 'net-worth'" />
             </v-col>
-            <v-col cols="12" md="6">
-              <SurfaceCard class="panel-card fill-height" padding="14px 16px">
-                <SectionHeader label="AI Insights" title="Budget Analysis"
-                  subtitle="AI-powered analysis of your spending patterns and recommendations." />
-                <BudgetAnalysisCard v-if="householdStore.household"
-                  :household-id="householdStore.household.household.id" :refresh-trigger="analysisRefreshTrigger" />
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <SurfaceCard
+                class="panel-card fill-height"
+                padding="14px 16px"
+              >
+                <SectionHeader
+                  label="AI Insights"
+                  title="Budget Analysis"
+                  subtitle="AI-powered analysis of your spending patterns and recommendations."
+                />
+                <BudgetAnalysisCard
+                  v-if="householdStore.household"
+                  :household-id="householdStore.household.household.id"
+                  :refresh-trigger="analysisRefreshTrigger"
+                />
               </SurfaceCard>
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <div class="stack gap-md stack-fill fill-height">
-                <SurfaceCard class="panel-card" padding="14px 16px">
-                  <SectionHeader label="Cash flow" title="Net income & trend" />
+                <SurfaceCard
+                  class="panel-card"
+                  padding="14px 16px"
+                >
+                  <SectionHeader
+                    label="Cash flow"
+                    title="Net income & trend"
+                  />
                   <CashFlow />
                 </SurfaceCard>
-                <SurfaceCard class="panel-card" padding="14px 16px">
-                  <SectionHeader label="Mix" title="Where the money went" />
+                <SurfaceCard
+                  class="panel-card"
+                  padding="14px 16px"
+                >
+                  <SectionHeader
+                    label="Mix"
+                    title="Where the money went"
+                  />
                   <SpendingMix />
                 </SurfaceCard>
               </div>
             </v-col>
-            <v-col cols="12" sm="6" md="6">
-              <SurfaceCard class="fill-height" padding="14px 16px">
-                <SectionHeader label="50/30/20" title="Budget rule check" />
+            <v-col
+              cols="12"
+              sm="6"
+              md="6"
+            >
+              <SurfaceCard
+                class="fill-height"
+                padding="14px 16px"
+              >
+                <SectionHeader
+                  label="50/30/20"
+                  title="Budget rule check"
+                />
                 <FiftyThirtyTwenty />
               </SurfaceCard>
             </v-col>
-            <v-col cols="12" sm="6" md="6">
-              <SurfaceCard class="panel-card fill-height" padding="14px 16px">
-                <SectionHeader label="Targets" title="Budget vs. actual"
-                  subtitle="Focus-month spending against your monthly limits." />
+            <v-col
+              cols="12"
+              sm="6"
+              md="6"
+            >
+              <SurfaceCard
+                class="panel-card fill-height"
+                padding="14px 16px"
+              >
+                <SectionHeader
+                  label="Targets"
+                  title="Budget vs. actual"
+                  subtitle="Focus-month spending against your monthly limits."
+                />
                 <BudgetTargets />
               </SurfaceCard>
             </v-col>
@@ -216,16 +359,34 @@ const focusMonthLabel = computed(() => {
 
         <v-window-item value="insights">
           <v-row dense>
-            <v-col cols="12" md="8">
-              <SurfaceCard class="panel-card fill-height" padding="14px 16px">
-                <SectionHeader label="Categories" title="Spending by category" />
+            <v-col
+              cols="12"
+              md="8"
+            >
+              <SurfaceCard
+                class="panel-card fill-height"
+                padding="14px 16px"
+              >
+                <SectionHeader
+                  label="Categories"
+                  title="Spending by category"
+                />
                 <Categories />
               </SurfaceCard>
             </v-col>
-            <v-col cols="12" md="4">
-              <SurfaceCard class="fill-height" padding="12px 14px">
-                <SectionHeader label="Fixed costs" title="Recurring charges"
-                  subtitle="Charges seen 3+ months in a row at a similar amount." />
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <SurfaceCard
+                class="fill-height"
+                padding="12px 14px"
+              >
+                <SectionHeader
+                  label="Fixed costs"
+                  title="Recurring charges"
+                  subtitle="Charges seen 3+ months in a row at a similar amount."
+                />
                 <RecurringCosts />
               </SurfaceCard>
             </v-col>
@@ -238,21 +399,45 @@ const focusMonthLabel = computed(() => {
               <NetWorthKpis />
             </v-col>
             <v-col cols="12">
-              <SurfaceCard class="panel-card" padding="14px 16px">
-                <SectionHeader label="Trend" title="Net worth over time"
-                  subtitle="Monthly snapshots; balances carry forward between updates." />
+              <SurfaceCard
+                class="panel-card"
+                padding="14px 16px"
+              >
+                <SectionHeader
+                  label="Trend"
+                  title="Net worth over time"
+                  subtitle="Monthly snapshots; balances carry forward between updates."
+                />
                 <NetWorthTrend />
               </SurfaceCard>
             </v-col>
-            <v-col cols="12" md="6">
-              <SurfaceCard class="panel-card fill-height" padding="14px 16px">
-                <SectionHeader label="Assets" title="What you own" />
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <SurfaceCard
+                class="panel-card fill-height"
+                padding="14px 16px"
+              >
+                <SectionHeader
+                  label="Assets"
+                  title="What you own"
+                />
                 <NetWorthItems kind="asset" />
               </SurfaceCard>
             </v-col>
-            <v-col cols="12" md="6">
-              <SurfaceCard class="panel-card fill-height" padding="14px 16px">
-                <SectionHeader label="Debts" title="What you owe" />
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <SurfaceCard
+                class="panel-card fill-height"
+                padding="14px 16px"
+              >
+                <SectionHeader
+                  label="Debts"
+                  title="What you owe"
+                />
                 <NetWorthItems kind="debt" />
               </SurfaceCard>
             </v-col>
@@ -262,13 +447,22 @@ const focusMonthLabel = computed(() => {
         <v-window-item value="transactions">
           <div class="stack gap-md">
             <SurfaceCard padding="14px 16px">
-              <SectionHeader label="Import status" title="Transactions by Account"
-                subtitle="Red = no transactions imported yet." />
+              <SectionHeader
+                label="Import status"
+                title="Transactions by Account"
+                subtitle="Red = no transactions imported yet."
+              />
               <TransactionCountTable />
             </SurfaceCard>
-            <SurfaceCard class="panel-card" padding="14px 16px">
-              <SectionHeader label="All activity" title="Transactions"
-                subtitle="Search and update categories without leaving the table." />
+            <SurfaceCard
+              class="panel-card"
+              padding="14px 16px"
+            >
+              <SectionHeader
+                label="All activity"
+                title="Transactions"
+                subtitle="Search and update categories without leaving the table."
+              />
               <Transactions />
             </SurfaceCard>
           </div>
@@ -277,8 +471,12 @@ const focusMonthLabel = computed(() => {
     </v-container>
     <v-container v-else>
       <SurfaceCard class="text-center">
-        <h1 class="text-h5 mb-2">Loading your dashboard…</h1>
-        <p class="muted">Fetching households, accounts, and recent activity.</p>
+        <h1 class="text-h5 mb-2">
+          Loading your dashboard…
+        </h1>
+        <p class="muted">
+          Fetching households, accounts, and recent activity.
+        </p>
       </SurfaceCard>
     </v-container>
   </div>

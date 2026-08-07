@@ -100,16 +100,24 @@ function onEnter() {
 </script>
 
 <template>
-  <div v-if="current" class="review-stack" @keydown.enter.prevent="onEnter">
+  <div
+    v-if="current"
+    class="review-stack"
+    @keydown.enter.prevent="onEnter"
+  >
     <div class="stack-header">
       <div>
-        <div class="text-subtitle-1 font-weight-bold">Review imported transactions</div>
+        <div class="text-subtitle-1 font-weight-bold">
+          Review imported transactions
+        </div>
         <div class="muted text-caption">
           Edit and press Enter (or Save) to confirm each one.
           Duplicates are at the back of the stack.
         </div>
       </div>
-      <div class="counter muted">{{ index + 1 }} / {{ items.length }}</div>
+      <div class="counter muted">
+        {{ index + 1 }} / {{ items.length }}
+      </div>
     </div>
 
     <div class="stack-area">
@@ -166,11 +174,20 @@ function onEnter() {
               hide-details
             />
           </div>
-          <v-alert v-if="error" type="error" density="compact" class="mt-2">
+          <v-alert
+            v-if="error"
+            type="error"
+            density="compact"
+            class="mt-2"
+          >
             {{ error }}
           </v-alert>
           <div class="card-actions">
-            <v-btn variant="text" :disabled="busy" @click="skipCurrent">
+            <v-btn
+              variant="text"
+              :disabled="busy"
+              @click="skipCurrent"
+            >
               Skip
             </v-btn>
             <v-btn
@@ -180,14 +197,27 @@ function onEnter() {
               @click="saveCurrent"
             >
               Save & Next
-              <v-icon icon="mdi-keyboard-return" end size="small" />
+              <v-icon
+                icon="mdi-keyboard-return"
+                end
+                size="small"
+              />
             </v-btn>
           </div>
         </template>
 
         <template v-else>
-          <v-chip color="warning" variant="tonal" size="small" class="mt-2">
-            <v-icon icon="mdi-content-duplicate" start size="small" />
+          <v-chip
+            color="warning"
+            variant="tonal"
+            size="small"
+            class="mt-2"
+          >
+            <v-icon
+              icon="mdi-content-duplicate"
+              start
+              size="small"
+            />
             Duplicate
           </v-chip>
           <p class="muted text-caption mt-2 mb-0">
@@ -195,11 +225,20 @@ function onEnter() {
             account) already exists, so this one was skipped. Force import it
             if it's a genuinely separate charge.
           </p>
-          <v-alert v-if="error" type="error" density="compact" class="mt-2">
+          <v-alert
+            v-if="error"
+            type="error"
+            density="compact"
+            class="mt-2"
+          >
             {{ error }}
           </v-alert>
           <div class="card-actions">
-            <v-btn variant="text" :disabled="busy" @click="skipCurrent">
+            <v-btn
+              variant="text"
+              :disabled="busy"
+              @click="skipCurrent"
+            >
               Skip
             </v-btn>
             <v-btn

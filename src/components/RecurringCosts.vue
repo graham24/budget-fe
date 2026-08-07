@@ -72,13 +72,20 @@ const monthlyBaseline = computed(() =>
 </script>
 
 <template>
-  <div v-if="recurring.length" class="recurring">
+  <div
+    v-if="recurring.length"
+    class="recurring"
+  >
     <div class="baseline mb-2">
       <span class="muted text-caption">Monthly baseline</span>
       <span class="baseline__value">{{ formatCurrency(monthlyBaseline) }}</span>
     </div>
     <div class="recurring-list">
-      <div v-for="row in recurring" :key="row.label" class="recurring-row">
+      <div
+        v-for="row in recurring"
+        :key="row.label"
+        class="recurring-row"
+      >
         <div class="recurring-row__info">
           <span class="recurring-row__label">{{ row.label }}</span>
           <span class="muted text-caption">{{ row.months }} months</span>
@@ -96,7 +103,10 @@ const monthlyBaseline = computed(() =>
       </div>
     </div>
   </div>
-  <div v-else class="muted text-caption">
+  <div
+    v-else
+    class="muted text-caption"
+  >
     No recurring charges detected yet — needs 3+ months of similar charges.
   </div>
 </template>

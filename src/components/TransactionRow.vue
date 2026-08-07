@@ -46,28 +46,28 @@ function getUser(userId) {
     <div>{{ transaction.description }}</div>
     <div>
       <input
-        :list="`${type}-category`"
         v-model="transaction.category"
+        :list="`${type}-category`"
         @blur="transactionStore.saveTransaction(transaction)"
-      />
+      >
       <datalist :id="`${type}-category`">
         <option
           v-for="category in categories"
           :value="category.description"
-        ></option>
+        />
       </datalist>
     </div>
     <div>
       <input
-        :list="`${type}-sub-category`"
         v-model="transaction.sub_category"
+        :list="`${type}-sub-category`"
         @blur="transactionStore.saveTransaction(transaction)"
-      />
+      >
       <datalist :id="`${type}-sub-category`">
         <option
           v-for="sub_category in sub_categories"
           :value="sub_category.description"
-        ></option>
+        />
       </datalist>
     </div>
     <div>{{ transaction.amount }}</div>

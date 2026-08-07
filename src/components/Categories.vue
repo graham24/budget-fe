@@ -8,26 +8,41 @@ const transactionStore = useTransactionStore();
 </script>
 <template>
   <div class="category-stack">
-    <SurfaceCard class="category-card" padding="14px 14px 10px">
+    <SurfaceCard
+      class="category-card"
+      padding="14px 14px 10px"
+    >
       <SectionHeader
         label="Income"
         title="Primary earnings"
       />
       <CategoryTable :type="'income'" />
     </SurfaceCard>
-    <SurfaceCard class="category-card" padding="14px 14px 10px">
+    <SurfaceCard
+      class="category-card"
+      padding="14px 14px 10px"
+    >
       <SectionHeader
         label="Must-Haves"
         title="Rent, utilities, groceries"
       />
-      <CategoryTable :type="'expenses'" :need="true" />
+      <CategoryTable
+        :type="'expenses'"
+        :need="true"
+      />
     </SurfaceCard>
-    <SurfaceCard class="category-card" padding="14px 14px 10px">
+    <SurfaceCard
+      class="category-card"
+      padding="14px 14px 10px"
+    >
       <SectionHeader
         label="Nice-to-Haves"
         title="Dining out, travel, fun"
       />
-      <CategoryTable :type="'expenses'" :need="false" />
+      <CategoryTable
+        :type="'expenses'"
+        :need="false"
+      />
     </SurfaceCard>
   </div>
 </template>

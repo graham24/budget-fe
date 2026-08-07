@@ -104,7 +104,9 @@ async function mark(status) {
     <SurfaceCard padding="16px">
       <div class="header">
         <div>
-          <div class="text-subtitle-1 font-weight-bold">Review transactions</div>
+          <div class="text-subtitle-1 font-weight-bold">
+            Review transactions
+          </div>
           <div class="muted text-caption">
             Swipe-style: X to ignore, Check to mark reviewed. Newest first.
           </div>
@@ -112,16 +114,28 @@ async function mark(status) {
         <div class="muted text-caption">
           {{ currentIndex + 1 }} / {{ sortedTransactions.length || 0 }}
         </div>
-        <v-btn icon variant="text" @click="close" aria-label="Close review dialog">
+        <v-btn
+          icon
+          variant="text"
+          aria-label="Close review dialog"
+          @click="close"
+        >
           <v-icon icon="mdi-close" />
         </v-btn>
       </div>
 
-      <div v-if="currentTransaction" class="card">
+      <div
+        v-if="currentTransaction"
+        class="card"
+      >
         <div class="row">
           <div class="primary">
-            <div class="text-subtitle-2">{{ currentTransaction.description }}</div>
-            <div class="muted text-caption">{{ formatDate(currentTransaction.date) }}</div>
+            <div class="text-subtitle-2">
+              {{ currentTransaction.description }}
+            </div>
+            <div class="muted text-caption">
+              {{ formatDate(currentTransaction.date) }}
+            </div>
           </div>
           <div
             class="amount"
@@ -172,8 +186,8 @@ async function mark(status) {
             icon="mdi-close"
             size="large"
             :disabled="busy"
-            @click="mark('ignored')"
             aria-label="Ignore transaction"
+            @click="mark('ignored')"
           />
           <v-btn
             color="success"
@@ -181,13 +195,18 @@ async function mark(status) {
             icon="mdi-check"
             size="large"
             :disabled="busy"
-            @click="mark('reviewed')"
             aria-label="Mark transaction reviewed"
+            @click="mark('reviewed')"
           />
         </div>
       </div>
 
-      <div v-else class="muted text-caption">No transactions to review.</div>
+      <div
+        v-else
+        class="muted text-caption"
+      >
+        No transactions to review.
+      </div>
     </SurfaceCard>
   </v-dialog>
 </template>
