@@ -35,6 +35,7 @@ const simplefinUrlSuffix = computed(
 const simplefinTokenInput = ref("");
 const claimingSimplefin = ref(false);
 const simplefinError = ref(null);
+const showSimplefinHelp = ref(false);
 
 async function saveSecrets() {
   const updates = {};
@@ -214,6 +215,37 @@ function memberName(user) {
           : "Not connected — get a one-time setup token from your SimpleFin bridge and redeem it below"
       }}
     </p>
+    <button
+      type="button"
+      class="text-primary mb-2"
+      style="font-size: 0.85rem; background: none; border: none; padding: 0; cursor: pointer"
+      @click="showSimplefinHelp = !showSimplefinHelp"
+    >
+      {{ showSimplefinHelp ? "Hide" : "How do I get a setup token?" }}
+    </button>
+    <ol class="muted mb-3" v-if="showSimplefinHelp" style="font-size: 0.85rem; padding-left: 1.1rem">
+      <li class="mb-1">
+        Go to
+        <a href="https://beta-bridge.simplefin.org/" target="_blank" rel="noopener">
+          beta-bridge.simplefin.org
+        </a>
+        and create a SimpleFin account (a small subscription fee applies).
+      </li>
+      <li class="mb-1">Under "Financial Institutions", add each bank account you want to sync.</li>
+      <li class="mb-1">
+        Go to "My Accounts" &rarr; Apps &rarr; New Connection, name it (e.g. "Budget App"),
+        and click "Create Setup Token".
+      </li>
+      <li class="mb-1">
+        Copy the token and paste it into the field below, then click Redeem —
+        it's one-time use only, and once claimed you'll be walked through
+        matching each SimpleFin account to one in this app.
+      </li>
+      <li>
+        Lost or expired the token? Generate a new one from the same Apps page
+        and redeem it again — this replaces the old connection.
+      </li>
+    </ol>
     <div class="d-flex ga-2">
       <v-text-field
         v-model="simplefinTokenInput"

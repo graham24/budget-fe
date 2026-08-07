@@ -149,8 +149,12 @@ onMounted(() => {
   }
 
   const storedUser = localStorage.getItem("user");
-  if (storedUser) {
+  const storedToken = localStorage.getItem("token");
+  if (storedUser && storedToken) {
     authStore.verifyUser(JSON.parse(storedUser));
+  } else {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
   }
 });
 
