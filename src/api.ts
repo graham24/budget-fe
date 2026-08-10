@@ -164,6 +164,17 @@ export const linkSimplefinAccount = async (
   return response.data;
 };
 
+export const updateSimplefinAccount = async (
+  id: number,
+  household_id: number,
+): Promise<SimplefinAccount> => {
+  const response = await api.put<SimplefinAccount>(
+    `/simplefin/accounts/${id}/update`,
+    { household_id }
+  );
+  return response.data;
+};
+
 // Fetch households
 export const getHousehold = async (
   user_id: number

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { fetchSimplefinAccounts, linkSimplefinAccount } from "../api";
+import { fetchSimplefinAccounts, linkSimplefinAccount, updateSimplefinAccount } from "../api";
 import { useAccountStore } from "./account";
 import type { SimplefinAccount } from "../types";
 
@@ -30,6 +30,7 @@ export const useSimplefinStore = defineStore("simplefin", {
       }
     ) {
       const updated = await linkSimplefinAccount(id, householdId, updates);
+      const update_account = updateSimplefinAccount(id, householdId);
       const index = this.accounts.findIndex((a) => a.id === id);
       if (index !== -1) this.accounts[index] = updated;
       if (updates.new_account) {
