@@ -1,13 +1,19 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useAccountStore } from "../stores/account";
+import { useHouseholdStore } from "../stores/household";
+import { useSimplefinStore } from "../stores/simplefin";
 import { useUserStore } from "../stores/user";
 import AccountForm from "./AccountForm.vue";
 
 const accountStore = useAccountStore();
+const householdStore = useHouseholdStore();
+const simplefinStore = useSimplefinStore();
 const userStore = useUserStore();
 const showForm = ref(false);
 const editingAccount = ref(null);
+const refreshSummary = ref(null);
+const refreshError = ref(null);
 
 const ownerNames = computed(() => {
   const names = {};
@@ -16,6 +22,23 @@ const ownerNames = computed(() => {
       `${user.first_name} ${user.last_name}`.trim() || user.email;
   }
   return names;
+});
+
+// Maps internal Account id -> linked SimplefinAccount, so the table can
+// show a "Refresh Transactions" action only for SimpleFin-synced accounts
+const simplefinByAccountId = computed(() => {
+  const map = {};
+  for (const sfAccount of simplefinStore.accounts) {
+    if (sfAccount.bank_account_id) map[sfAccount.bank_account_id] = sfAccount;
+  }
+  return map;
+});
+
+onMounted(() => {
+  const householdId = householdStore.household?.household?.id;
+  if (householdId && householdStore.household?.household?.simplefin_access_url_set) {
+    simplefinStore.fetchAccounts(householdId);
+  }
 });
 
 function addAccount() {
@@ -31,6 +54,21 @@ function editAccount(account) {
 function closeForm() {
   showForm.value = false;
   editingAccount.value = null;
+}
+
+async function refreshAccount(account) {
+  const sfAccount = simplefinByAccountId.value[account.id];
+  const householdId = householdStore.household?.household?.id;
+  if (!sfAccount || !householdId) return;
+  refreshSummary.value = null;
+  refreshError.value = null;
+  try {
+    const result = await simplefinStore.refreshAccountTransactions(sfAccount.id, householdId);
+    refreshSummary.value = `${account.description}: imported ${result.imported} new transaction${result.imported === 1 ? "" : "s"} (${result.duplicates} duplicate${result.duplicates === 1 ? "" : "s"} skipped)`;
+  } catch (err) {
+    refreshError.value =
+      err.response?.data?.message || `Failed to refresh ${account.description}`;
+  }
 }
 </script>
 
@@ -93,6 +131,15 @@ function closeForm() {
           <td>{{ ownerNames[account.user_id] ?? "—" }}</td>
           <td class="text-right">
             <v-btn
+              v-if="simplefinByAccountId[account.id]"
+              icon="mdi-refresh"
+              variant="text"
+              size="small"
+              :loading="simplefinStore.refreshingAccountId === simplefinByAccountId[account.id].id"
+              title="Refresh transactions"
+              @click="refreshAccount(account)"
+            />
+            <v-btn
               icon="mdi-pencil-outline"
               variant="text"
               size="small"
@@ -108,6 +155,22 @@ function closeForm() {
     >
       No accounts yet. Add one to start importing transactions.
     </p>
+    <v-alert
+      v-if="refreshSummary"
+      type="success"
+      density="compact"
+      class="mt-3"
+    >
+      {{ refreshSummary }}
+    </v-alert>
+    <v-alert
+      v-if="refreshError"
+      type="error"
+      density="compact"
+      class="mt-3"
+    >
+      {{ refreshError }}
+    </v-alert>
   </div>
 </template>
 

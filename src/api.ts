@@ -164,12 +164,15 @@ export const linkSimplefinAccount = async (
   return response.data;
 };
 
-export const updateSimplefinAccount = async (
+// Pulls the last 3 months of transactions for one already-linked SimpleFin
+// account (vs. importSimplefinTransactions below, which runs every linked
+// account in the household)
+export const refreshSimplefinAccountTransactions = async (
   id: number,
   household_id: number,
-): Promise<SimplefinAccount> => {
-  const response = await api.put<SimplefinAccount>(
-    `/simplefin/accounts/${id}/update`,
+): Promise<SimplefinAccount & { imported: number; duplicates: number }> => {
+  const response = await api.put<SimplefinAccount & { imported: number; duplicates: number }>(
+    `/simplefin/accounts/${id}/refresh`,
     { household_id }
   );
   return response.data;
