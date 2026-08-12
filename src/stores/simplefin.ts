@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { fetchSimplefinAccounts, importSimplefinTransactions, linkSimplefinAccount, updateSimplefinAccount } from "../api";
+import { fetchSimplefinAccounts, importSimplefinTransactions, linkSimplefinAccount, refreshSimplefinAccountTransactions } from "../api";
 import { useAccountStore } from "./account";
 import { useTransactionStore } from "./transaction";
 import type { SimplefinAccount, SimplefinImportResult } from "../types";
@@ -10,6 +10,7 @@ export const useSimplefinStore = defineStore("simplefin", {
     firstFetch: false,
     importing: false,
     lastImportResult: null as SimplefinImportResult | null,
+    refreshingAccountId: null as number | null,
   }),
   actions: {
     async fetchAccounts(householdId: number) {
@@ -33,12 +34,20 @@ export const useSimplefinStore = defineStore("simplefin", {
       }
     ) {
       const updated = await linkSimplefinAccount(id, householdId, updates);
-      const update_account = updateSimplefinAccount(id, householdId);
       const index = this.accounts.findIndex((a) => a.id === id);
       if (index !== -1) this.accounts[index] = updated;
       if (updates.new_account) {
         const accountStore = useAccountStore();
         await accountStore.fetchAccounts();
+      }
+      // Backfill 3 months of history for the newly-linked account. Best
+      // effort — a failure here shouldn't undo the link itself.
+      if (updated.bank_account_id) {
+        try {
+          await this.refreshAccountTransactions(id, householdId);
+        } catch (error) {
+          console.error("Error backfilling newly linked account:", error);
+        }
       }
     },
     // Errors propagate so the caller can show them
@@ -52,6 +61,21 @@ export const useSimplefinStore = defineStore("simplefin", {
         return result;
       } finally {
         this.importing = false;
+      }
+    },
+    // Pulls the last 3 months for a single linked account. Errors propagate
+    // so the caller can show them.
+    async refreshAccountTransactions(id: number, householdId: number) {
+      this.refreshingAccountId = id;
+      try {
+        const result = await refreshSimplefinAccountTransactions(id, householdId);
+        const index = this.accounts.findIndex((a) => a.id === id);
+        if (index !== -1) this.accounts[index] = result;
+        const transactionStore = useTransactionStore();
+        await transactionStore.fetchTransactions();
+        return result;
+      } finally {
+        this.refreshingAccountId = null;
       }
     },
   },
