@@ -131,6 +131,18 @@ export interface NetWorthSummary {
   series: NetWorthPoint[];
 }
 
+export interface SimplefinImportAccountResult {
+  account: string;
+  imported?: number;
+  duplicates?: number;
+  error?: string;
+}
+
+export interface SimplefinImportResult {
+  results: SimplefinImportAccountResult[];
+  errors: string[];
+}
+
 export interface ImportError {
   id: number;
   household_id: number;

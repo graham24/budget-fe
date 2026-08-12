@@ -19,6 +19,8 @@ const simplefinTokenInput = ref("");
 const claimingSimplefin = ref(false);
 const simplefinError = ref(null);
 const showSimplefinHelp = ref(false);
+const importError = ref(null);
+const importSummary = ref(null);
 
 async function claimSimplefin() {
   if (!simplefinTokenInput.value.trim()) return;
@@ -42,6 +44,25 @@ async function claimSimplefin() {
 
 function openWizard() {
   emit("open-simplefin-wizard");
+}
+
+async function importTransactions() {
+  const householdId = householdStore.household?.household?.id;
+  if (!householdId) return;
+  importError.value = null;
+  importSummary.value = null;
+  try {
+    const result = await simplefinStore.importTransactions(householdId);
+    const imported = result.results.reduce((sum, r) => sum + (r.imported ?? 0), 0);
+    const duplicates = result.results.reduce((sum, r) => sum + (r.duplicates ?? 0), 0);
+    importSummary.value = `Imported ${imported} new transaction${imported === 1 ? "" : "s"} (${duplicates} duplicate${duplicates === 1 ? "" : "s"} skipped)`;
+    if (result.errors.length) {
+      importError.value = result.errors.join("; ");
+    }
+  } catch (err) {
+    importError.value =
+      err.response?.data?.message || "Failed to import transactions";
+  }
 }
 </script>
 
@@ -129,15 +150,43 @@ function openWizard() {
     >
       {{ simplefinError }}
     </v-alert>
-    <v-btn
+    <div
       v-if="simplefinUrlSet"
-      variant="outlined"
-      density="comfortable"
-      prepend-icon="mdi-bank-transfer"
-      class="mt-3"
-      @click="openWizard"
+      class="d-flex ga-2 mt-3"
     >
-      Update Accounts
-    </v-btn>
+      <v-btn
+        variant="outlined"
+        density="comfortable"
+        prepend-icon="mdi-bank-transfer"
+        @click="openWizard"
+      >
+        Update Accounts
+      </v-btn>
+      <v-btn
+        variant="outlined"
+        density="comfortable"
+        prepend-icon="mdi-database-import"
+        :loading="simplefinStore.importing"
+        @click="importTransactions"
+      >
+        Import Transactions
+      </v-btn>
+    </div>
+    <v-alert
+      v-if="importSummary"
+      type="success"
+      density="compact"
+      class="mt-3"
+    >
+      {{ importSummary }}
+    </v-alert>
+    <v-alert
+      v-if="importError"
+      type="error"
+      density="compact"
+      class="mt-3"
+    >
+      {{ importError }}
+    </v-alert>
   </div>
 </template>

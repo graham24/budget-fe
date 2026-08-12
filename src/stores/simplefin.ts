@@ -1,12 +1,15 @@
 import { defineStore } from "pinia";
-import { fetchSimplefinAccounts, linkSimplefinAccount, updateSimplefinAccount } from "../api";
+import { fetchSimplefinAccounts, importSimplefinTransactions, linkSimplefinAccount, updateSimplefinAccount } from "../api";
 import { useAccountStore } from "./account";
-import type { SimplefinAccount } from "../types";
+import { useTransactionStore } from "./transaction";
+import type { SimplefinAccount, SimplefinImportResult } from "../types";
 
 export const useSimplefinStore = defineStore("simplefin", {
   state: () => ({
     accounts: [] as SimplefinAccount[],
     firstFetch: false,
+    importing: false,
+    lastImportResult: null as SimplefinImportResult | null,
   }),
   actions: {
     async fetchAccounts(householdId: number) {
@@ -36,6 +39,19 @@ export const useSimplefinStore = defineStore("simplefin", {
       if (updates.new_account) {
         const accountStore = useAccountStore();
         await accountStore.fetchAccounts();
+      }
+    },
+    // Errors propagate so the caller can show them
+    async importTransactions(householdId: number) {
+      this.importing = true;
+      try {
+        const result = await importSimplefinTransactions(householdId);
+        this.lastImportResult = result;
+        const transactionStore = useTransactionStore();
+        await transactionStore.fetchTransactions();
+        return result;
+      } finally {
+        this.importing = false;
       }
     },
   },

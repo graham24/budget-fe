@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Household, User, Transaction, Account, BudgetAnalysis, DuplicateTransaction, CategoryRule, BudgetTarget, NetWorthItem, NetWorthSummary, BalanceEntry, SimplefinAccount, ImportError } from "./types";
+import type { Household, User, Transaction, Account, BudgetAnalysis, DuplicateTransaction, CategoryRule, BudgetTarget, NetWorthItem, NetWorthSummary, BalanceEntry, SimplefinAccount, ImportError, SimplefinImportResult } from "./types";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Create Axios instance
@@ -172,6 +172,17 @@ export const updateSimplefinAccount = async (
     `/simplefin/accounts/${id}/update`,
     { household_id }
   );
+  return response.data;
+};
+
+// Manually run the SimpleFin import (same logic as the daily cron) for
+// every linked account in the household
+export const importSimplefinTransactions = async (
+  household_id: number
+): Promise<SimplefinImportResult> => {
+  const response = await api.post<SimplefinImportResult>("/simplefin/import/", {
+    household_id,
+  });
   return response.data;
 };
 
