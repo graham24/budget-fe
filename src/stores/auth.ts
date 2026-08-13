@@ -32,5 +32,17 @@ export const useAuthStore = defineStore("auth", {
       this.user = user;
       localStorage.setItem("user", JSON.stringify(user));
     },
+    // Restores the session from localStorage. Called before the router's
+    // first navigation so the auth guard sees the correct state.
+    restore() {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("token");
+      if (storedUser && storedToken) {
+        this.user = JSON.parse(storedUser);
+      } else {
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
+    },
   },
 });

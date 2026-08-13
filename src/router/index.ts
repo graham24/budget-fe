@@ -7,10 +7,21 @@
 // Composables
 import { createRouter, createWebHistory } from 'vue-router/auto'
 import { routes } from 'vue-router/auto-routes'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+})
+
+// Logged-out visitors are bounced to the landing page (the root route);
+// logged-in users hitting the landing page are sent to the dashboard instead.
+router.beforeEach((to) => {
+  const authStore = useAuthStore()
+  const isAuthed = !!authStore.user
+
+  if (to.path !== '/' && !isAuthed) return '/'
+  if (to.path === '/' && isAuthed) return '/dashboard'
 })
 
 // Workaround for https://github.com/vitejs/vite/issues/11804

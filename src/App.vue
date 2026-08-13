@@ -1,38 +1,6 @@
 <template>
   <v-app>
-    <div
-      v-if="!authStore.user"
-      class="auth-landing"
-    >
-      <SurfaceCard
-        class="auth-card"
-        tag="section"
-      >
-        <div class="text-center mb-6">
-          <p class="pill">
-            Welcome back
-          </p>
-          <h1 class="text-h4 font-weight-bold mb-2">
-            Track how your money moves
-          </h1>
-          <p class="muted">
-            Stay on top of income and expenses with an easy three-month view.
-            Sign in to start your overview.
-          </p>
-        </div>
-        <v-alert
-          v-if="loginError"
-          type="error"
-          density="compact"
-          class="mb-3"
-        >
-          {{ loginError }}
-        </v-alert>
-        <div class="google-login-wrap">
-          <GoogleLogin :callback="handleGoogleLogin" />
-        </div>
-      </SurfaceCard>
-    </div>
+    <router-view v-if="!authStore.user" />
     <div
       v-else
       class="app-frame"
@@ -167,7 +135,7 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
-import { GoogleLogin } from "vue3-google-login";
+import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useHouseholdStore } from "@/stores/household";
 import { useAccountStore } from "@/stores/account";
@@ -176,7 +144,6 @@ import { useTransactionStore } from "@/stores/transaction";
 import { useSimplefinStore } from "@/stores/simplefin";
 import { useImportErrorStore } from "@/stores/importError";
 import { useTheme } from "vuetify";
-import SurfaceCard from "./components/common/SurfaceCard.vue";
 import Dialog from "./components/common/Dialog.vue";
 import ProfileForm from "./components/ProfileForm.vue";
 import HouseholdForm from "./components/HouseholdForm.vue";
@@ -184,6 +151,7 @@ import AccountsManager from "./components/AccountsManager.vue";
 import SimplefinWizard from "./components/SimplefinWizard.vue";
 import ImportErrorsManager from "./components/ImportErrorsManager.vue";
 
+const router = useRouter();
 const authStore = useAuthStore();
 const householdStore = useHouseholdStore();
 const accountStore = useAccountStore();
@@ -193,7 +161,6 @@ const simplefinStore = useSimplefinStore();
 const importErrorStore = useImportErrorStore();
 const theme = useTheme();
 const themeName = ref(theme.global.name.value);
-const loginError = ref(null);
 const profileDialog = ref(false);
 const householdDialog = ref(false);
 const accountsDialog = ref(false);
@@ -215,25 +182,7 @@ onMounted(() => {
     themeName.value = storedTheme;
     theme.global.name.value = storedTheme;
   }
-
-  const storedUser = localStorage.getItem("user");
-  const storedToken = localStorage.getItem("token");
-  if (storedUser && storedToken) {
-    authStore.verifyUser(JSON.parse(storedUser));
-  } else {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-  }
 });
-
-async function handleGoogleLogin(response) {
-  loginError.value = null;
-  try {
-    await authStore.loginWithGoogle(response.credential);
-  } catch (error) {
-    loginError.value = error.response?.data?.message || "Login failed";
-  }
-}
 
 function closeProfileDialog() {
   profileDialog.value = false;
@@ -270,6 +219,7 @@ function logout() {
   transactionStore.$reset();
   simplefinStore.$reset();
   importErrorStore.$reset();
+  router.push("/");
 }
 
 const isDark = computed(() => theme.global.current.value.dark);
@@ -285,25 +235,6 @@ watch(themeName, (val) => {
 </script>
 
 <style scoped>
-.auth-landing {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 14px;
-}
-
-.auth-card {
-  text-align: center;
-  max-width: 720px;
-  width: 100%;
-}
-
-.google-login-wrap {
-  display: flex;
-  justify-content: center;
-}
-
 .app-frame {
   min-height: 100vh;
   background: rgb(var(--v-theme-background));
