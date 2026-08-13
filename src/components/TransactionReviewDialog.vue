@@ -221,7 +221,7 @@ async function mark(status) {
 }
 .card {
   border: 1px solid rgba(var(--v-theme-outline), 0.3);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 12px 14px;
   background: rgba(var(--v-theme-surface), 0.9);
 }

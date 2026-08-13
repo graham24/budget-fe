@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <router-view v-if="!authStore.user" />
+    <router-view v-if="!authStore.user || authStore.previewing" />
     <div
       v-else
       class="app-frame"
@@ -14,7 +14,7 @@
               color="primary"
             />
           </div>
-          <span class="top-bar__name">Budget</span>
+          <span class="top-bar__name">Debrief</span>
         </div>
         <div class="top-bar__actions">
           <v-btn

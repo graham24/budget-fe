@@ -146,7 +146,4 @@ const hasHistory = computed(
 .negative {
   color: rgb(var(--v-theme-error));
 }
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
 </style>

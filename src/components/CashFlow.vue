@@ -280,7 +280,7 @@ const plottedPoints = computed(() => {
 }
 .amount-chip {
   padding: 6px 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: rgba(var(--v-theme-outline), 0.1);
   font-size: 0.9rem;
   font-weight: 600;
@@ -310,8 +310,5 @@ const plottedPoints = computed(() => {
 }
 .negative {
   color: rgb(var(--v-theme-error));
-}
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
 }
 </style>

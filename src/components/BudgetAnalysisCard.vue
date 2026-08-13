@@ -202,10 +202,6 @@ onMounted(() => {
   font-style: italic;
 }
 
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
-
 .empty-state {
   color: rgba(var(--v-theme-on-surface), 0.6);
 }

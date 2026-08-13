@@ -429,11 +429,11 @@ const headers = computed(() => [
 <style scoped>
 .income.negative,
 .expense.negative {
-  color: red;
+  color: rgb(var(--v-theme-error));
 }
 .income.positive,
 .expense.positive {
-  color: green;
+  color: rgb(var(--v-theme-success));
 }
 .totals-row {
   font-weight: 700;
@@ -518,9 +518,6 @@ const headers = computed(() => [
 .drill-tx__amount {
   font-weight: 600;
   white-space: nowrap;
-}
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
 }
 .category-table :deep(table) {
   min-width: 560px;

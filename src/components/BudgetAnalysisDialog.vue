@@ -189,10 +189,6 @@ onMounted(() => {
   font-style: italic;
 }
 
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
-
 .error-state {
   text-align: center;
 }

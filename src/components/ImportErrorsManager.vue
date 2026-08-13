@@ -72,9 +72,6 @@ async function dismiss(error) {
 </template>
 
 <style scoped>
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
 .error-item {
   border-bottom: 1px solid rgba(var(--v-theme-outline), 0.2);
 }

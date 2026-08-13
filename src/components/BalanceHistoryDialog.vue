@@ -155,7 +155,7 @@ function formatShortDate(value) {
 <style scoped>
 .entry-form {
   border: 1px solid rgba(var(--v-theme-outline), 0.3);
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   padding: 12px;
 }
 .entry-list {
@@ -183,8 +183,5 @@ function formatShortDate(value) {
   font-weight: 600;
   min-width: 70px;
   text-align: right;
-}
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
 }
 </style>

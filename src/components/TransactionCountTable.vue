@@ -240,14 +240,10 @@ function getCountColor(count) {
   font-weight: 600;
 }
 
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
-
 .legend {
   padding: 12px;
   background: rgba(var(--v-theme-surface-variant), 0.3);
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
 }
 
 .gap-3 {

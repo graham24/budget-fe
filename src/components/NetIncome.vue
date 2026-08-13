@@ -75,7 +75,7 @@ const netValue = computed(() => incomeTotal.value + expensesTotal.value);
 }
 .net-highlight {
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: rgba(var(--v-theme-primary), 0.05);
   border: 1px solid rgba(var(--v-theme-outline), 0.3);
 }
@@ -94,7 +94,7 @@ const netValue = computed(() => incomeTotal.value + expensesTotal.value);
 }
 .amount-chip {
   padding: 8px 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   background: rgba(var(--v-theme-outline), 0.1);
   font-weight: 600;
 }

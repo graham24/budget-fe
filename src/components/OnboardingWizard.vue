@@ -325,7 +325,4 @@ function finish() {
   font-weight: 700;
   white-space: nowrap;
 }
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
 </style>

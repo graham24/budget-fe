@@ -280,19 +280,19 @@ function onEnter() {
 .ghost-card {
   position: absolute;
   inset: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid rgba(var(--v-theme-outline), 0.3);
   background: rgba(var(--v-theme-surface), 0.9);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 .review-card {
   position: relative;
   z-index: 3;
   border: 1px solid rgba(var(--v-theme-outline), 0.4);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 14px 16px;
   background: rgb(var(--v-theme-surface));
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow);
 }
 .review-card--duplicate {
   border-color: rgba(var(--v-theme-warning), 0.7);
@@ -337,10 +337,6 @@ function onEnter() {
 .negative {
   color: rgb(var(--v-theme-error));
 }
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
-
 @media (max-width: 700px) {
   .edit-grid {
     grid-template-columns: 1fr;

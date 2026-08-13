@@ -11,6 +11,10 @@ const props = defineProps({
     type: String,
     required: true, // "asset" | "debt"
   },
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const netWorthStore = useNetWorthStore();
@@ -101,7 +105,10 @@ function accountLabel(item) {
 
 <template>
   <div class="nw-items">
-    <div class="d-flex justify-end mb-2">
+    <div
+      v-if="!readOnly"
+      class="d-flex justify-end mb-2"
+    >
       <v-btn
         size="small"
         variant="text"
@@ -160,7 +167,7 @@ function accountLabel(item) {
             </div>
           </template>
           <v-btn
-            v-else
+            v-else-if="!readOnly"
             size="x-small"
             variant="text"
             color="primary"
@@ -169,7 +176,10 @@ function accountLabel(item) {
             Add balance
           </v-btn>
         </div>
-        <div class="item-row__actions">
+        <div
+          v-if="!readOnly"
+          class="item-row__actions"
+        >
           <v-btn
             icon="mdi-cash-edit"
             variant="text"
@@ -284,8 +294,5 @@ function accountLabel(item) {
 .stale--error {
   color: rgb(var(--v-theme-error));
   font-weight: 600;
-}
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
 }
 </style>

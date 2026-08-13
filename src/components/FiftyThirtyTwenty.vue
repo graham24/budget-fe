@@ -117,7 +117,4 @@ const rows = computed(() => {
   background: rgba(var(--v-theme-on-surface), 0.5);
   border-radius: 1px;
 }
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
 </style>

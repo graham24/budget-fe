@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { Household, User, Transaction, Account, BudgetAnalysis, DuplicateTransaction, CategoryRule, BudgetTarget, NetWorthItem, NetWorthSummary, BalanceEntry, SimplefinAccount, ImportError, SimplefinImportResult } from "./types";
+import { useAuthStore } from "./stores/auth";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Create Axios instance
@@ -10,20 +11,25 @@ const api = axios.create({
   },
 });
 
-// Attach the session token (set by loginWithGoogle) to every request
+// Attach the session token to every request. Read from the auth store
+// (not localStorage directly) so a landing-page preview session — which
+// deliberately never touches localStorage, see authStore.startPreview —
+// can still make authenticated calls.
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = useAuthStore().token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// Expired/invalid token — bounce back to the login screen
+// Expired/invalid token — bounce back to the login screen. Only applies to
+// a real session: a preview session hitting a 401 (e.g. demo data isn't
+// seeded) shouldn't force a reload out from under a marketing-page visitor.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !useAuthStore().previewing) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.reload();
@@ -43,6 +49,13 @@ export const googleLogin = async (
     "/auth/google/",
     { credential }
   );
+  return response.data;
+};
+
+// Demo account login — no credential needed, mints a token for the seeded
+// demo household. 404s if the demo data hasn't been seeded server-side.
+export const demoLogin = async (): Promise<{ user: User; token: string }> => {
+  const response = await api.post<{ user: User; token: string }>("/auth/demo/");
   return response.data;
 };
 

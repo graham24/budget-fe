@@ -9,6 +9,13 @@ import TransactionReviewDialog from "./TransactionReviewDialog.vue";
 import TransactionsTable from "./TransactionsTable.vue";
 // import DayJsAdapter from '@date-io/dayjs'
 
+defineProps({
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const transactionStore = useTransactionStore();
 const showDatePicker = ref(false);
 const selectedDates = ref(null);
@@ -119,7 +126,7 @@ function selectDates() {
             class="search-input"
           />
           <v-btn
-            v-if="transactionStore.unknownTransactions.length"
+            v-if="!readOnly && transactionStore.unknownTransactions.length"
             color="warning"
             variant="tonal"
             prepend-icon="mdi-eye-check"
@@ -139,23 +146,28 @@ function selectDates() {
           :type="'income'"
           :search-term="debouncedSearchTerm"
           :date-range="selectedDates"
+          :read-only="readOnly"
         />
         <TransactionsTable
           :type="'expenses-need'"
           :search-term="debouncedSearchTerm"
           :date-range="selectedDates"
+          :read-only="readOnly"
         />
         <TransactionsTable
           :type="'expenses-want'"
           :search-term="debouncedSearchTerm"
           :date-range="selectedDates"
+          :read-only="readOnly"
         />
         <TransactionsTable
           :type="'transfers'"
           :search-term="debouncedSearchTerm"
           :date-range="selectedDates"
+          :read-only="readOnly"
         />
         <TransactionReviewDialog
+          v-if="!readOnly"
           v-model="showReviewDialog"
           :transactions="reviewList"
         />

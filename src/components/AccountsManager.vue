@@ -175,12 +175,9 @@ async function refreshAccount(account) {
 </template>
 
 <style scoped>
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
 .form-panel {
   border: 1px solid rgba(var(--v-theme-outline), 0.3);
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   padding: 16px;
 }
 </style>

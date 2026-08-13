@@ -303,7 +303,7 @@ function onDragLeave() {
 
 .drop-zone {
   border: 2px dashed rgba(var(--v-theme-primary), 0.3);
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   padding: 48px 24px;
   text-align: center;
   transition: all 0.3s ease;
@@ -330,7 +330,7 @@ function onDragLeave() {
   justify-content: space-between;
   padding: 12px;
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   gap: 16px;
 }
 
@@ -385,10 +385,6 @@ function onDragLeave() {
   flex: 1 0 auto;
   justify-content: flex-end;
   min-width: 0;
-}
-
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
 }
 
 .rotating {

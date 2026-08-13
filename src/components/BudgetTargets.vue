@@ -3,6 +3,13 @@ import { computed, onMounted, ref } from "vue";
 import { useBudgetTargetStore } from "../stores/budgetTarget";
 import { useTransactionStore } from "../stores/transaction";
 
+defineProps({
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 const targetStore = useBudgetTargetStore();
 const transactionStore = useTransactionStore();
 
@@ -95,7 +102,7 @@ async function removeTarget(row) {
 <template>
   <div class="budget-targets">
     <div
-      v-if="!showForm"
+      v-if="!readOnly && !showForm"
       class="d-flex justify-end mb-2"
     >
       <v-btn
@@ -109,7 +116,7 @@ async function removeTarget(row) {
       </v-btn>
     </div>
     <div
-      v-else
+      v-else-if="showForm"
       class="target-form mb-3"
     >
       <v-combobox
@@ -186,19 +193,21 @@ async function removeTarget(row) {
             rounded
           />
           <span class="target-row__pct">{{ row.pct.toFixed(0) }}%</span>
-          <v-btn
-            icon="mdi-pencil-outline"
-            variant="text"
-            size="x-small"
-            @click="editTarget(row)"
-          />
-          <v-btn
-            icon="mdi-delete-outline"
-            variant="text"
-            size="x-small"
-            :loading="deletingId === row.id"
-            @click="removeTarget(row)"
-          />
+          <template v-if="!readOnly">
+            <v-btn
+              icon="mdi-pencil-outline"
+              variant="text"
+              size="x-small"
+              @click="editTarget(row)"
+            />
+            <v-btn
+              icon="mdi-delete-outline"
+              variant="text"
+              size="x-small"
+              :loading="deletingId === row.id"
+              @click="removeTarget(row)"
+            />
+          </template>
         </div>
       </div>
     </div>
@@ -214,7 +223,7 @@ async function removeTarget(row) {
 <style scoped>
 .target-form {
   border: 1px solid rgba(var(--v-theme-outline), 0.3);
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   padding: 12px;
 }
 .target-list {
@@ -252,8 +261,5 @@ async function removeTarget(row) {
   font-size: 0.8rem;
   min-width: 36px;
   text-align: right;
-}
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
 }
 </style>

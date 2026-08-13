@@ -1,5 +1,13 @@
 /* ---- Global polish ------------------------------------------------- */
 
+/* Headings use the display face from the marketing site; body text stays
+   on Inter Tight */
+h1, h2, h3, h4, h5, h6,
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
 /* Sentence-case, tighter buttons read more product-grade than Vuetify's
    default uppercase */
 .v-btn {
@@ -11,10 +19,11 @@
 /* Quiet, uppercase micro-labels for all table headers */
 .v-table thead th,
 .v-data-table thead th {
-  font-size: 0.72rem !important;
+  font-family: var(--font-mono);
+  font-size: 0.68rem !important;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 700 !important;
+  letter-spacing: 0.1em;
+  font-weight: 500 !important;
   color: rgba(var(--v-theme-on-surface), 0.55) !important;
   white-space: nowrap;
 }
@@ -111,9 +120,17 @@
 
 /* Quiet uppercase eyebrow label — global so components stop redefining it */
 .pill {
-  color: rgba(var(--v-theme-on-surface), 0.55);
-  font-weight: 700;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
+  color: rgb(var(--v-theme-primary));
+  font-weight: 500;
+  font-size: 0.7rem;
+  letter-spacing: 0.19em;
   text-transform: uppercase;
+}
+
+/* Tabular, monospaced figures — matches the marketing site's number
+   treatment. Apply to amount/KPI-style values. */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }

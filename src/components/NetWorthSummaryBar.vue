@@ -48,7 +48,4 @@ const netWorthStore = useNetWorthStore();
 .nw-bar__breakdown {
   font-size: 0.85rem;
 }
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
 </style>

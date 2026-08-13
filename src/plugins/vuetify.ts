@@ -5,43 +5,43 @@ import { aliases, mdi } from "vuetify/iconsets/mdi";
 import "@mdi/font/css/materialdesignicons.css";
 
 
-// Restrained, finance-grade palette: one confident blue, slate neutrals,
-// deep (not neon) semantic colors.
+// Matches the marketing site's palette: one confident blue, slate-navy
+// neutrals, deep (not neon) semantic colors.
 const light: ThemeDefinition = {
   dark: false,
   colors: {
-    background: "#f7f8fa",
+    background: "#f5f7fc",
     surface: "#ffffff",
-    "surface-variant": "#f1f3f5",
-    primary: "#1d4ed8",
-    "primary-darken-1": "#1e40af",
-    secondary: "#475569",
-    success: "#047857",
-    error: "#b91c1c",
-    info: "#0369a1",
-    warning: "#b45309",
-    "on-background": "#0f172a",
-    "on-surface": "#0f172a",
-    outline: "#e2e8f0",
+    "surface-variant": "#eef1f8",
+    primary: "#3860c9",
+    "primary-darken-1": "#2c4da3",
+    secondary: "#5b647a",
+    success: "#1f8f61",
+    error: "#d64545",
+    info: "#3860c9",
+    warning: "#b5791f",
+    "on-background": "#10141d",
+    "on-surface": "#10141d",
+    outline: "#e2e6f0",
   },
 };
 
 const dark: ThemeDefinition = {
   dark: true,
   colors: {
-    background: "#0d1117",
-    surface: "#161b22",
-    "surface-variant": "#1f242d",
-    primary: "#6395ec",
-    "primary-darken-1": "#3b82f6",
-    secondary: "#8b98a9",
-    success: "#3fb27f",
-    error: "#e5575f",
-    info: "#58a6ff",
-    warning: "#d29a43",
-    "on-background": "#e6e9ee",
-    "on-surface": "#e6e9ee",
-    outline: "#2a313c",
+    background: "#0b0e15",
+    surface: "#151a25",
+    "surface-variant": "#1b2130",
+    primary: "#5b8def",
+    "primary-darken-1": "#3f63c4",
+    secondary: "#9aa5ba",
+    success: "#5cc98f",
+    error: "#ef5f5f",
+    info: "#5b8def",
+    warning: "#e8a94b",
+    "on-background": "#eaeef6",
+    "on-surface": "#eaeef6",
+    outline: "#242c3c",
   },
 };
 

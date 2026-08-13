@@ -19,6 +19,10 @@ const props = defineProps({
   selectedDates: {
     type: Array,
   },
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const transactionStore = useTransactionStore();
@@ -205,15 +209,22 @@ const filteredItems = computed(() => {
             <template #item.need="{ item }">
               <div v-if="item.type === 'Expenses'">
                 <v-checkbox
+                  v-if="!readOnly"
                   v-model="item.need"
                   density="compact"
                   hide-details
                   @change="saveTransaction(item)"
                 />
+                <v-icon
+                  v-else
+                  :icon="item.need ? 'mdi-checkbox-marked-outline' : 'mdi-checkbox-blank-outline'"
+                  size="18"
+                />
               </div>
             </template>
             <template #item.category="{ item }">
               <v-combobox
+                v-if="!readOnly"
                 v-model="item.category"
                 density="compact"
                 variant="plain"
@@ -225,9 +236,11 @@ const filteredItems = computed(() => {
                 @focus="rememberEdit(item)"
                 @blur="saveIfChanged(item)"
               />
+              <span v-else>{{ item.category }}</span>
             </template>
             <template #item.sub_category="{ item }">
               <v-combobox
+                v-if="!readOnly"
                 v-model="item.sub_category"
                 density="compact"
                 variant="plain"
@@ -239,12 +252,14 @@ const filteredItems = computed(() => {
                 @focus="rememberEdit(item)"
                 @blur="saveIfChanged(item)"
               />
+              <span v-else>{{ item.sub_category }}</span>
             </template>
             <template #item.account_name="{ item }">
               {{ accountLabel(item.account_id) }} ({{ item.account_id }})
             </template>
             <template #item.actions="{ item }">
               <v-btn
+                v-if="!readOnly"
                 icon="mdi-tag-plus-outline"
                 variant="text"
                 size="small"

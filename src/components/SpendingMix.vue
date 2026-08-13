@@ -163,10 +163,6 @@ const totalSpent = computed(() =>
   white-space: nowrap;
   font-weight: 600;
 }
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-}
-
 @media (max-width: 600px) {
   .spending-mix {
     flex-direction: column;

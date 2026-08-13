@@ -321,7 +321,7 @@ function formatBalance(account) {
 }
 .wizard-card {
   border: 1px solid rgba(var(--v-theme-outline), 0.4);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 14px 16px;
 }
 .card-top {
@@ -345,8 +345,5 @@ function formatBalance(account) {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 12px;
-}
-.muted {
-  color: rgba(var(--v-theme-on-surface), 0.6);
 }
 </style>
