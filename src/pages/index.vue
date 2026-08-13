@@ -166,7 +166,16 @@
               <p class="card-title">
                 This month against the demo household's plan
               </p>
-              <BudgetTargets read-only />
+              <BudgetTargets
+                v-if="householdId"
+                read-only
+              />
+              <p
+                v-else
+                class="an-loading"
+              >
+                Loading the demo household's targets…
+              </p>
             </div>
           </div>
         </div>
@@ -187,7 +196,7 @@
             <p>Every category across the last three months with a running average, grouped into earnings, must-haves, and nice-to-haves — the numbers you need to build a plan you can actually keep.</p>
           </div>
 
-          <div class="feat">
+          <div class="feat feat-stack">
             <div class="feat-copy">
               <p class="feat-tag">
                 Spending by category
@@ -323,7 +332,7 @@
             </div>
           </div>
 
-          <div class="feat feat-flip">
+          <div class="feat feat-flip feat-stack">
             <div class="feat-copy">
               <p class="feat-tag">
                 Keeping it tidy
@@ -1122,6 +1131,18 @@ onUnmounted(() => {
 }
 .feat-flip .feat-copy {
   order: 2;
+}
+/* wide-table demos (Categories, Transactions) need the full wrap width
+   to avoid clipping columns — stack copy above the card instead of
+   splitting the row into two narrow columns */
+.feat-stack {
+  grid-template-columns: 1fr;
+}
+.feat-stack.feat-flip .feat-copy {
+  order: 0;
+}
+.feat-stack .card {
+  max-width: 100%;
 }
 .feat-tag {
   font-family: var(--mono);

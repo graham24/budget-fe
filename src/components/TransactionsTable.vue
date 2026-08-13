@@ -43,6 +43,14 @@ const headers = [
   { key: "actions", title: "", sortable: false },
 ];
 
+const typeLabels = {
+  income: "Income",
+  "expenses-need": "Needs",
+  "expenses-want": "Wants",
+  transfers: "Transfers",
+};
+const typeLabel = computed(() => typeLabels[props.type] ?? props.type);
+
 // Snapshot of the row being edited so blur events without an actual
 // change don't fire a PUT per combobox.
 let editSnapshot = null;
@@ -193,8 +201,8 @@ const filteredItems = computed(() => {
         padding="10px 12px"
       >
         <SectionHeader
-          :label="props.type"
-          :title="props.type"
+          :label="typeLabel"
+          :title="typeLabel"
         />
         <div class="table-wrapper">
           <v-data-table

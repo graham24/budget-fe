@@ -97,23 +97,8 @@ function selectDates() {
 
 <template>
   <div class="container">
-    <div class="position-relative">
+    <div>
       <div>
-        <v-icon
-          class="position-absolute right-0 top-0"
-          style="z-index: 2"
-          @click="showDatePicker = !showDatePicker"
-        >
-          mdi-calendar-blank
-        </v-icon>
-        <v-date-picker
-          v-if="showDatePicker"
-          v-model="selectedDates"
-          multiple="range"
-          class="position-absolute top-0 right-0"
-          style="z-index: 1"
-          @update:model-value="selectDates()"
-        />
         <div class="toolbar mb-3">
           <v-text-field
             v-model="searchTerm"
@@ -125,6 +110,23 @@ function selectDates() {
             density="comfortable"
             class="search-input"
           />
+          <v-menu
+            v-model="showDatePicker"
+            :close-on-content-click="false"
+          >
+            <template #activator="{ props: menuProps }">
+              <v-btn
+                icon="mdi-calendar-blank"
+                variant="tonal"
+                v-bind="menuProps"
+              />
+            </template>
+            <v-date-picker
+              v-model="selectedDates"
+              multiple="range"
+              @update:model-value="selectDates()"
+            />
+          </v-menu>
           <v-btn
             v-if="!readOnly && transactionStore.unknownTransactions.length"
             color="warning"
