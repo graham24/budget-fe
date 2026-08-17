@@ -1,0 +1,12 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="debrief-g" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#5B8DEF"/>
+      <stop offset="100%" stop-color="#3F63C4"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="70" ry="70" fill="url(#debrief-g)"/>
+  <g transform="translate(55.6,45.3) scale(6.89)" fill="none" stroke="#0B0E15" stroke-width="2.6" stroke-linecap="round">
+    <path d="M4 18h4M4 12h9M4 6h13"/>
+  </g>
+</svg>

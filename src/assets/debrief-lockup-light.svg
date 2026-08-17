@@ -1,0 +1,17 @@
+<svg width="440" height="100" viewBox="0 0 440 100" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&amp;display=swap');
+    .debrief-word{font-family:'Bricolage Grotesque',system-ui,Arial,sans-serif;font-weight:700;font-size:50px;letter-spacing:-0.02em;}
+  </style>
+  <defs>
+    <linearGradient id="debrief-g" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#5B8DEF"/>
+      <stop offset="100%" stop-color="#3F63C4"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="14" width="72" height="72" rx="20" ry="20" fill="url(#debrief-g)"/>
+  <g transform="translate(15,29) scale(1.8)" fill="none" stroke="#0B0E15" stroke-width="2.6" stroke-linecap="round">
+    <path d="M4 18h4M4 12h9M4 6h13"/>
+  </g>
+  <text x="92" y="67" class="debrief-word" fill="#0B0E15">Debrief</text>
+</svg>

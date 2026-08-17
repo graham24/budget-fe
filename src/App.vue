@@ -8,11 +8,15 @@
       <header class="top-bar">
         <div class="top-bar__brand">
           <div class="brand-mark">
-            <v-icon
-              icon="mdi-wallet-outline"
-              size="18"
-              color="primary"
-            />
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="rgb(var(--v-theme-primary))"
+              stroke-width="2.6"
+              stroke-linecap="round"
+            ><path d="M4 18h4M4 12h9M4 6h13" /></svg>
           </div>
           <span class="top-bar__name">Debrief</span>
         </div>
