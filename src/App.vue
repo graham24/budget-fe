@@ -79,6 +79,11 @@
                 title="Billing"
                 @click="billingDialog = true"
               />
+              <v-list-item
+                prepend-icon="mdi-email-outline"
+                title="Contact / feedback"
+                to="/contact"
+              />
             </v-list>
           </v-menu>
           <span class="top-bar__user muted">{{ displayName }}</span>

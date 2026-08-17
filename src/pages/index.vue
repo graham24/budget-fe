@@ -574,6 +574,7 @@
           <a href="#insights">Insights</a>
           <a href="#networth">Net worth</a>
           <a href="#transactions">Transactions</a>
+          <a href="/contact">Contact</a>
         </nav>
       </div>
     </footer>
