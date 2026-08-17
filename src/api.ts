@@ -79,23 +79,8 @@ export const updateHousehold = async (
 };
 
 type HouseholdSecretsFlags = {
-  anthropic_api_key_set: boolean;
-  anthropic_api_key_suffix: string;
   simplefin_access_url_set: boolean;
   simplefin_access_url_suffix: string;
-};
-
-// Only supplied fields are updated; raw values are never returned, only
-// whether each is now set (plus a last-4-char suffix for identification)
-export const updateHouseholdSecrets = async (
-  id: number,
-  updates: { anthropic_api_key?: string; simplefin_access_url?: string }
-): Promise<HouseholdSecretsFlags> => {
-  const response = await api.put<HouseholdSecretsFlags>(
-    `/household/${id}/secrets`,
-    updates
-  );
-  return response.data;
 };
 
 // Exchanges a one-time SimpleFin setup token for a permanent access URL
@@ -209,6 +194,31 @@ export const getHousehold = async (
   const response = await api.post<{ household: Household }>("/household/", {
     user_id,
   });
+  return response.data;
+};
+
+// Creates a Stripe Checkout session for the household's $4.99/mo
+// subscription; redirect the browser to the returned url
+export const createCheckoutSession = async (
+  household_id: number
+): Promise<{ url: string }> => {
+  const response = await api.post<{ url: string }>(
+    "/billing/checkout-session/",
+    { household_id }
+  );
+  return response.data;
+};
+
+// Creates a Stripe Billing Portal session (manage payment method, cancel,
+// view invoices); redirect the browser to the returned url. Only works
+// once the household has a Stripe customer (subscribed at least once).
+export const createPortalSession = async (
+  household_id: number
+): Promise<{ url: string }> => {
+  const response = await api.post<{ url: string }>(
+    "/billing/portal-session/",
+    { household_id }
+  );
   return response.data;
 };
 

@@ -581,10 +581,11 @@
     <v-dialog
       v-model="loginDialog"
       max-width="420"
+      attach=".landing-root"
     >
       <div class="card login-card">
         <p class="eyebrow">
-          Welcome back
+          Welcome
         </p>
         <h3>Sign in to Debrief</h3>
         <p class="login-sub">

@@ -70,6 +70,11 @@
                 title="Accounts"
                 @click="accountsDialog = true"
               />
+              <v-list-item
+                prepend-icon="mdi-credit-card-outline"
+                title="Billing"
+                @click="billingDialog = true"
+              />
             </v-list>
           </v-menu>
           <span class="top-bar__user muted">{{ displayName }}</span>
@@ -129,6 +134,13 @@
       >
         <ImportErrorsManager />
       </Dialog>
+      <Dialog
+        v-model="billingDialog"
+        title="Billing"
+        max-width="420"
+      >
+        <BillingSettings />
+      </Dialog>
     </div>
   </v-app>
 </template>
@@ -150,6 +162,7 @@ import HouseholdForm from "./components/HouseholdForm.vue";
 import AccountsManager from "./components/AccountsManager.vue";
 import SimplefinWizard from "./components/SimplefinWizard.vue";
 import ImportErrorsManager from "./components/ImportErrorsManager.vue";
+import BillingSettings from "./components/BillingSettings.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -166,6 +179,7 @@ const householdDialog = ref(false);
 const accountsDialog = ref(false);
 const simplefinWizardDialog = ref(false);
 const importErrorsDialog = ref(false);
+const billingDialog = ref(false);
 const namePrompt = ref(false);
 
 function openSimplefinWizard() {

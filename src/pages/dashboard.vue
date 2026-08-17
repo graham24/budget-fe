@@ -23,6 +23,7 @@ import NetWorthSummaryBar from "../components/NetWorthSummaryBar.vue";
 import SurfaceCard from "../components/common/SurfaceCard.vue";
 import SectionHeader from "../components/common/SectionHeader.vue";
 import OnboardingWizard from "../components/OnboardingWizard.vue";
+import SubscribeGate from "../components/SubscribeGate.vue";
 import { useHouseholdStore } from "../stores/household";
 import { useAccountStore } from "../stores/account";
 import { useTransactionStore } from "../stores/transaction";
@@ -30,6 +31,7 @@ import { useUserStore } from "../stores/user";
 import { useAuthStore } from "../stores/auth";
 import { useNetWorthStore } from "../stores/netWorth";
 import { useDisplay } from "vuetify";
+import { useRoute, useRouter } from "vue-router";
 
 const { smAndDown } = useDisplay();
 
@@ -39,6 +41,8 @@ const transactionsStore = useTransactionStore();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 const netWorthStore = useNetWorthStore();
+const route = useRoute();
+const router = useRouter();
 const loading = ref(true);
 const activeTab = ref("overview");
 const showDialog = ref(false);
@@ -46,6 +50,25 @@ const showAnalysisDialog = ref(false);
 const showRulesDialog = ref(false);
 const showOnboarding = ref(false);
 const analysisRefreshTrigger = ref(0);
+const checkoutSnackbar = ref(false);
+const checkoutMessage = ref("");
+
+// Mirrors auth_utils.DEMO_USER_ID on the backend — the seeded demo
+// household is always exempt from the subscription gate.
+const DEMO_HOUSEHOLD_ID = -1;
+
+const activeSubscriptionStatuses = ["active", "trialing"];
+const needsSubscription = computed(() => {
+  const household = householdStore.household?.household;
+  if (!household || household.id === DEMO_HOUSEHOLD_ID) return false;
+  return !activeSubscriptionStatuses.includes(household.subscription_status);
+});
+// Distinguishes "never subscribed" (generic pitch) from "subscribed once,
+// now lapsed" (payment failed / canceled) copy in SubscribeGate.
+const subscriptionLapsed = computed(() => {
+  const household = householdStore.household?.household;
+  return !!household?.subscription_status && needsSubscription.value;
+});
 const monthFormatter = new Intl.DateTimeFormat(undefined, {
   month: "long",
   year: "numeric",
@@ -57,9 +80,26 @@ const handleAnalysisGenerated = () => {
 };
 
 onMounted(async () => {
+  // Returning from Stripe Checkout — surface the result, then drop the
+  // query param so a refresh doesn't re-show it.
+  if (route.query.checkout === "success") {
+    checkoutMessage.value = "Subscription active — welcome aboard!";
+    checkoutSnackbar.value = true;
+    router.replace({ query: {} });
+  } else if (route.query.checkout === "cancelled") {
+    checkoutMessage.value = "Checkout cancelled — no charge was made.";
+    checkoutSnackbar.value = true;
+    router.replace({ query: {} });
+  }
+
   try {
     // Household first — users and transactions derive their IDs from it
     await householdStore.fetchHousehold();
+    if (needsSubscription.value) {
+      // Gated: nothing else is reachable until they subscribe (the backend
+      // 402s every one of these calls anyway) — skip straight to the gate.
+      return;
+    }
     await Promise.all([
       accountsStore.fetchAccounts(),
       transactionsStore.fetchTransactions(),
@@ -124,8 +164,11 @@ const focusMonthLabel = computed(() => {
     id="home"
     class="page-shell"
   >
+    <v-container v-if="!loading && needsSubscription">
+      <SubscribeGate :lapsed="subscriptionLapsed" />
+    </v-container>
     <v-container
-      v-if="!loading"
+      v-else-if="!loading"
       fluid
     >
       <header class="page-header">
@@ -479,6 +522,12 @@ const focusMonthLabel = computed(() => {
         </p>
       </SurfaceCard>
     </v-container>
+    <v-snackbar
+      v-model="checkoutSnackbar"
+      timeout="5000"
+    >
+      {{ checkoutMessage }}
+    </v-snackbar>
   </div>
 </template>
 

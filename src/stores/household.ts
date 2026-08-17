@@ -1,10 +1,5 @@
 import { defineStore } from "pinia";
-import {
-  claimSimplefinToken,
-  getHousehold,
-  updateHousehold,
-  updateHouseholdSecrets,
-} from "../api";
+import { claimSimplefinToken, getHousehold, updateHousehold } from "../api";
 import { useAuthStore } from "./auth";
 import type { Household } from "../types";
 
@@ -29,17 +24,6 @@ export const useHouseholdStore = defineStore("household", {
       if (!householdId) return;
       const updated = await updateHousehold(householdId, name);
       this.household = { household: updated };
-    },
-    async updateSecrets(updates: {
-      anthropic_api_key?: string;
-      simplefin_access_url?: string;
-    }) {
-      const householdId = this.household?.household?.id;
-      if (!householdId || !this.household) return;
-      const flags = await updateHouseholdSecrets(householdId, updates);
-      this.household = {
-        household: { ...this.household.household, ...flags },
-      };
     },
     async claimSimplefin(setupToken: string) {
       const householdId = this.household?.household?.id;

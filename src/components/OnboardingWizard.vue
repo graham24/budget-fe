@@ -4,7 +4,6 @@ import { useHouseholdStore } from "../stores/household";
 import { useUserStore } from "../stores/user";
 import { useAccountStore } from "../stores/account";
 import AccountForm from "./AccountForm.vue";
-import AnthropicKeyPanel from "./AnthropicKeyPanel.vue";
 import SimplefinPanel from "./SimplefinPanel.vue";
 import SimplefinWizard from "./SimplefinWizard.vue";
 
@@ -14,7 +13,7 @@ const householdStore = useHouseholdStore();
 const userStore = useUserStore();
 const accountStore = useAccountStore();
 
-const STEPS = ["Household", "Members", "SimpleFin", "AI categorization", "Accounts"];
+const STEPS = ["Household", "Members", "SimpleFin", "Accounts"];
 const step = ref(0);
 const mappingAccounts = ref(false);
 
@@ -68,7 +67,7 @@ function openMapping() {
   mappingAccounts.value = true;
 }
 
-// Once accounts are mapped, move straight on to the AI-key step rather
+// Once accounts are mapped, move straight on to the accounts step rather
 // than dropping back onto the SimpleFin redeem screen.
 function finishMapping() {
   mappingAccounts.value = false;
@@ -244,33 +243,6 @@ function finish() {
           class="muted mb-3"
           style="font-size: 0.9rem"
         >
-          Add an Anthropic API key to auto-categorize imported transactions
-          and generate budget analysis. Optional — you can add it later from
-          Settings.
-        </p>
-        <AnthropicKeyPanel />
-        <div class="d-flex justify-space-between mt-4">
-          <v-btn
-            variant="text"
-            @click="step = 2"
-          >
-            Back
-          </v-btn>
-          <v-btn
-            color="primary"
-            variant="flat"
-            @click="step = 4"
-          >
-            Continue
-          </v-btn>
-        </div>
-      </div>
-
-      <div v-else-if="step === 4">
-        <p
-          class="muted mb-3"
-          style="font-size: 0.9rem"
-        >
           Add at least one account to track — imported transactions and
           manual entries both need to belong to one.
         </p>
@@ -296,7 +268,7 @@ function finish() {
         <div class="d-flex justify-space-between mt-4">
           <v-btn
             variant="text"
-            @click="step = 3"
+            @click="step = 2"
           >
             Back
           </v-btn>

@@ -1,5 +1,4 @@
 <script setup>
-import AnthropicKeyPanel from "./AnthropicKeyPanel.vue";
 import SimplefinPanel from "./SimplefinPanel.vue";
 
 const emit = defineEmits(["open-simplefin-wizard"]);
@@ -7,9 +6,6 @@ const emit = defineEmits(["open-simplefin-wizard"]);
 
 <template>
   <div class="integrations-panel">
-    <AnthropicKeyPanel />
-    <div class="mt-6">
-      <SimplefinPanel @open-simplefin-wizard="emit('open-simplefin-wizard')" />
-    </div>
+    <SimplefinPanel @open-simplefin-wizard="emit('open-simplefin-wizard')" />
   </div>
 </template>
