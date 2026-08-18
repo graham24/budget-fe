@@ -7,7 +7,6 @@ import ImportForm from "../components/ImportForm.vue";
 import BudgetAnalysisDialog from "../components/BudgetAnalysisDialog.vue";
 import BudgetAnalysisCard from "../components/BudgetAnalysisCard.vue";
 import CategoryRulesManager from "../components/CategoryRulesManager.vue";
-import TransactionCountTable from "../components/TransactionCountTable.vue";
 import Dialog from "../components/common/Dialog.vue";
 import CashFlow from "../components/CashFlow.vue";
 import Categories from "../components/Categories.vue";
@@ -489,14 +488,6 @@ const focusMonthLabel = computed(() => {
 
         <v-window-item value="transactions">
           <div class="stack gap-md">
-            <SurfaceCard padding="14px 16px">
-              <SectionHeader
-                label="Import status"
-                title="Transactions by Account"
-                subtitle="Red = no transactions imported yet."
-              />
-              <TransactionCountTable />
-            </SurfaceCard>
             <SurfaceCard
               class="panel-card"
               padding="14px 16px"

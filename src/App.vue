@@ -121,7 +121,7 @@
       <Dialog
         v-model="accountsDialog"
         title="Accounts"
-        max-width="760"
+        max-width="1100"
       >
         <AccountsManager />
       </Dialog>
