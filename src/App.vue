@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <router-view v-if="!authStore.user || authStore.previewing" />
+    <router-view v-if="!authStore.user || authStore.previewing || route.path === '/'" />
     <div
       v-else
       class="app-frame"
@@ -156,7 +156,7 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useHouseholdStore } from "@/stores/household";
 import { useAccountStore } from "@/stores/account";
@@ -174,6 +174,7 @@ import ImportErrorsManager from "./components/ImportErrorsManager.vue";
 import BillingSettings from "./components/BillingSettings.vue";
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const householdStore = useHouseholdStore();
 const accountStore = useAccountStore();
