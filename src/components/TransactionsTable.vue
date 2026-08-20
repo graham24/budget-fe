@@ -473,11 +473,11 @@ function exportCsv() {
               </div>
             </td>
             <td>
-              <span
-                v-if="isReview(item) && !readOnly"
-                class="review-label"
-              >Needs a category</span>
-              <template v-else-if="!readOnly">
+              <template v-if="!readOnly">
+                <span
+                  v-if="isReview(item)"
+                  class="review-label"
+                >Needs a category</span>
                 <v-combobox
                   v-model="item.category"
                   density="compact"
