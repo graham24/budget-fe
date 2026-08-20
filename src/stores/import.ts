@@ -24,7 +24,7 @@ export const useImportStore = defineStore("import", {
         const result = await uploadTransactions(this.accountId, this.importFile);
         this.importFile = null;
         this.importedTransactions = result ?? null;
-        await transactionStore.fetchTransactions();
+        await transactionStore.fetchTransactions(null, true);
         return this.importedTransactions;
       } catch (error) {
         console.error("Error importing transactions:", error);

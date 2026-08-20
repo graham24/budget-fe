@@ -22,28 +22,31 @@ const current = computed(() => props.items[index.value] ?? null);
 const remaining = computed(() => props.items.length - index.value);
 const ghostLayers = computed(() => Math.min(remaining.value - 1, 2));
 
-// Suggestions from the household's existing data
-const categoryOptions = computed(() => {
-  const names = new Set();
+// Suggestions from the household's existing data, grouped in a single pass so
+// paging through the review stack doesn't rescan the full transaction history
+// per card.
+const categoryToSubCategories = computed(() => {
+  const map = new Map();
   for (const t of transactionStore.transactions) {
-    if (t.category && t.category !== "Unknown") names.add(t.category);
+    if (!t.category || t.category === "Unknown") continue;
+    let subs = map.get(t.category);
+    if (!subs) {
+      subs = new Set();
+      map.set(t.category, subs);
+    }
+    if (t.sub_category && t.sub_category !== "Unknown") subs.add(t.sub_category);
   }
-  return [...names].sort();
+  return map;
 });
+
+const categoryOptions = computed(() =>
+  [...categoryToSubCategories.value.keys()].sort()
+);
 
 const subCategoryOptions = computed(() => {
   if (!current.value) return [];
-  const names = new Set();
-  for (const t of transactionStore.transactions) {
-    if (
-      t.category === current.value.transaction.category &&
-      t.sub_category &&
-      t.sub_category !== "Unknown"
-    ) {
-      names.add(t.sub_category);
-    }
-  }
-  return [...names].sort();
+  const subs = categoryToSubCategories.value.get(current.value.transaction.category);
+  return subs ? [...subs].sort() : [];
 });
 
 function advance() {

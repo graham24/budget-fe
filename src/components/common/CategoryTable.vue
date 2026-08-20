@@ -68,17 +68,14 @@ const categoryRows = computed(() => {
   const m1 = month1.value;
   const m2 = month2.value;
   const m3 = month3.value;
-  const rows = [];
+  const rowsByKey = new Map();
 
   transactions.value.forEach((transaction) => {
-    let row = rows.find(
-      (cat) =>
-        cat.category === transaction.category &&
-        cat.subCategory === transaction.sub_category
-    );
+    const key = `${transaction.category}|${transaction.sub_category}`;
+    let row = rowsByKey.get(key);
     if (!row) {
       row = {
-        key: `${transaction.category}|${transaction.sub_category}`,
+        key,
         category: transaction.category,
         subCategory: transaction.sub_category,
         month1: 0,
@@ -87,7 +84,7 @@ const categoryRows = computed(() => {
         total: 0,
         transactions: [],
       };
-      rows.push(row);
+      rowsByKey.set(key, row);
     }
 
     const txDate = new Date(transaction.date);
@@ -102,19 +99,24 @@ const categoryRows = computed(() => {
 
   // Drop rows with no activity in any of the 3 displayed months — these come
   // from transactions that exist in the store but fall outside the window
-  const activeRows = rows.filter(
+  const activeRows = [...rowsByKey.values()].filter(
     (row) =>
       Math.abs(row.month1) + Math.abs(row.month2) + Math.abs(row.month3) >
       0.005
   );
 
-  // total = focus month sum per category group
-  activeRows.forEach((row) => {
-    row.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-    row.total = activeRows
-      .filter((r) => r.category === row.category)
-      .reduce((sum, r) => sum + r.month1, 0);
-  });
+  // total = focus month sum per category group, accumulated in one pass
+  const categoryTotals = new Map();
+  for (const row of activeRows) {
+    categoryTotals.set(
+      row.category,
+      (categoryTotals.get(row.category) ?? 0) + row.month1
+    );
+  }
+  for (const row of activeRows) {
+    row.transactions.sort((a, b) => b.date.localeCompare(a.date));
+    row.total = categoryTotals.get(row.category);
+  }
 
   return activeRows;
 });

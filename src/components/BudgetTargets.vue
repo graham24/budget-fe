@@ -25,15 +25,7 @@ onMounted(() => {
 });
 
 // Suggest categories seen in the loaded expense transactions
-const categoryOptions = computed(() => {
-  const names = new Set();
-  for (const t of transactionStore.transactions) {
-    if (t.amount < 0 && t.category && t.category !== "Transfer") {
-      names.add(t.category);
-    }
-  }
-  return [...names].sort();
-});
+const categoryOptions = computed(() => transactionStore.knownExpenseCategories);
 
 // Focus-month spend (absolute) per category
 const spentByCategory = computed(() => {

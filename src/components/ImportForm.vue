@@ -105,7 +105,7 @@ async function importAllTransactions() {
   }
 
   // Refresh transactions after all uploads
-  await transactionStore.fetchTransactions();
+  await transactionStore.fetchTransactions(null, true);
 
   uploading.value = false;
 
@@ -126,7 +126,7 @@ async function finishReview() {
   reviewItems.value = [];
   files.value = [];
   // pick up any force-imported transactions
-  await transactionStore.fetchTransactions();
+  await transactionStore.fetchTransactions(null, true);
   emit("update:isOpen", false);
 }
 

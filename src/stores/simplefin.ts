@@ -57,7 +57,7 @@ export const useSimplefinStore = defineStore("simplefin", {
         const result = await importSimplefinTransactions(householdId);
         this.lastImportResult = result;
         const transactionStore = useTransactionStore();
-        await transactionStore.fetchTransactions();
+        await transactionStore.fetchTransactions(null, true);
         return result;
       } finally {
         this.importing = false;
@@ -72,7 +72,7 @@ export const useSimplefinStore = defineStore("simplefin", {
         const index = this.accounts.findIndex((a) => a.id === id);
         if (index !== -1) this.accounts[index] = result;
         const transactionStore = useTransactionStore();
-        await transactionStore.fetchTransactions();
+        await transactionStore.fetchTransactions(null, true);
         return result;
       } finally {
         this.refreshingAccountId = null;

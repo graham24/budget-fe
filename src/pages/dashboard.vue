@@ -135,15 +135,13 @@ const windowLabel = computed(() => {
   return `${monthFormatter.format(start)} - ${monthFormatter.format(end)}`;
 });
 
+// Only the transaction-dependent panels react to this (via
+// transactionsStore.isRefreshing) — the rest of the dashboard stays mounted
+// so paging the month pager doesn't rebuild every KPI/chart/table.
 watch(
   () => transactionsStore.monthsAgo,
-  async () => {
-    loading.value = true;
-    try {
-      await transactionsStore.fetchTransactions();
-    } finally {
-      loading.value = false;
-    }
+  () => {
+    transactionsStore.fetchTransactions();
   }
 );
 
@@ -306,7 +304,10 @@ const focusMonthLabel = computed(() => {
         :touch="false"
       >
         <v-window-item value="overview">
-          <v-row dense>
+          <v-row
+            dense
+            :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
+          >
             <v-col cols="12">
               <KpiStrip />
             </v-col>
@@ -400,7 +401,10 @@ const focusMonthLabel = computed(() => {
         </v-window-item>
 
         <v-window-item value="insights">
-          <v-row dense>
+          <v-row
+            dense
+            :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
+          >
             <v-col
               cols="12"
               md="8"
@@ -487,7 +491,10 @@ const focusMonthLabel = computed(() => {
         </v-window-item>
 
         <v-window-item value="transactions">
-          <div class="stack gap-md">
+          <div
+            class="stack gap-md"
+            :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
+          >
             <SurfaceCard
               class="panel-card"
               padding="14px 16px"
@@ -600,6 +607,14 @@ const focusMonthLabel = computed(() => {
 #home .v-window {
   padding: 2px;
   margin: -2px;
+}
+
+/* Transaction-dependent panels fade in place while the month pager triggers
+   a refetch, instead of the whole dashboard unmounting. */
+.is-refreshing {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
 }
 
 @media (max-width: 600px) {

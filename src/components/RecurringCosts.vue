@@ -4,14 +4,23 @@ import { useTransactionStore } from "../stores/transaction";
 
 const transactionStore = useTransactionStore();
 
-// Mirrors the backend's normalize_description: drop tokens containing digits
-function normalizeDescription(desc) {
-  return desc
-    .split(/\s+/)
-    .filter((token) => !/\d/.test(token))
-    .join(" ")
-    .toLowerCase()
-    .trim();
+// Mirrors the backend's normalize_description: drop tokens containing digits.
+// Memoized by transaction id — descriptions are never edited in place, so
+// this avoids re-tokenizing all 12 months of history whenever an unrelated
+// transaction mutation (e.g. a category edit) invalidates this computed.
+const normalizedCache = new Map();
+function normalizeDescription(t) {
+  let cached = normalizedCache.get(t.id);
+  if (cached === undefined) {
+    cached = t.description
+      .split(/\s+/)
+      .filter((token) => !/\d/.test(token))
+      .join(" ")
+      .toLowerCase()
+      .trim();
+    normalizedCache.set(t.id, cached);
+  }
+  return cached;
 }
 
 function monthKey(dateStr) {
@@ -23,7 +32,7 @@ const recurring = computed(() => {
   const groups = new Map();
   for (const t of transactionStore.transactions) {
     if (t.amount >= 0 || t.category === "Transfer") continue;
-    const key = normalizeDescription(t.description);
+    const key = normalizeDescription(t);
     if (!key) continue;
     let group = groups.get(key);
     if (!group) {

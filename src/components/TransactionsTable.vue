@@ -3,6 +3,7 @@ import { ref, reactive, computed, watch } from "vue";
 import { useDisplay } from "vuetify";
 import { useTransactionStore } from "../stores/transaction";
 import { useAccountStore } from "../stores/account";
+import { sliceByDateRange } from "../utils/dateWindow";
 import Dialog from "./common/Dialog.vue";
 import CategoryRuleForm from "./CategoryRuleForm.vue";
 import TransactionReviewDialog from "./TransactionReviewDialog.vue";
@@ -49,11 +50,29 @@ const windowEnd = computed(() => {
   return d;
 });
 const windowedTransactions = computed(() =>
-  transactionStore.transactions.filter((t) => {
-    const d = new Date(t.date);
-    return d >= windowStart.value && d < windowEnd.value;
-  })
+  sliceByDateRange(transactionStore.transactions, windowStart.value, windowEnd.value)
 );
+
+// Per-transaction date decoration, computed once per windowed transaction
+// instead of re-parsing `new Date(t.date)` in the sort comparator and again
+// in dayKey/dayLabel. Keyed by id (not spread onto the transaction object)
+// so the store's transaction objects keep their identity for v-model edits.
+const dateDecorations = computed(() => {
+  const map = new Map();
+  for (const t of windowedTransactions.value) {
+    const d = new Date(t.date);
+    map.set(t.id, {
+      ms: d.getTime(),
+      dayKey: d.toDateString(),
+      dayLabel: d.toLocaleDateString(undefined, {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      }),
+    });
+  }
+  return map;
+});
 
 function matchesTab(t, tab) {
   if (tab === "all") return true;
@@ -91,9 +110,15 @@ const accountSelectItems = computed(() => [
   { id: null, label: "All accounts" },
   ...accountOptions.value,
 ]);
+const accountLabels = computed(() => {
+  const labels = new Map();
+  for (const account of accountStore.accounts?.accounts ?? []) {
+    labels.set(account.id, account.description);
+  }
+  return labels;
+});
 function accountLabel(accountId) {
-  const account = (accountStore.accounts?.accounts ?? []).find((a) => a.id === accountId);
-  return account?.description ?? "Unknown";
+  return accountLabels.value.get(accountId) ?? "Unknown";
 }
 
 // ---- search index (built once per data change, not per keystroke) ----
@@ -118,38 +143,60 @@ const filteredItems = computed(() => {
     const query = debouncedSearchTerm.value.toLowerCase();
     items = items.filter((t) => searchIndex.value.get(t.id)?.includes(query));
   }
+  const decorations = dateDecorations.value;
   return [...items].sort((a, b) => {
-    const diff = new Date(b.date).getTime() - new Date(a.date).getTime();
+    const diff = decorations.get(b.id).ms - decorations.get(a.id).ms;
     return sortOrder.value === "asc" ? -diff : diff;
   });
 });
 
 // ---- group rows by calendar day ----
-function dayKey(dateStr) {
-  return new Date(dateStr).toDateString();
-}
-function dayLabel(dateStr) {
-  return new Date(dateStr).toLocaleDateString(undefined, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-}
 const groupedByDay = computed(() => {
+  const decorations = dateDecorations.value;
   const groups = [];
   const byKey = new Map();
   for (const t of filteredItems.value) {
-    const key = dayKey(t.date);
-    let group = byKey.get(key);
+    const { dayKey, dayLabel } = decorations.get(t.id);
+    let group = byKey.get(dayKey);
     if (!group) {
-      group = { key, label: dayLabel(t.date), total: 0, items: [] };
-      byKey.set(key, group);
+      group = { key: dayKey, label: dayLabel, total: 0, items: [] };
+      byKey.set(dayKey, group);
       groups.push(group);
     }
     group.total += t.amount;
     group.items.push(t);
   }
   return groups;
+});
+
+// Flattened, uniform list for v-virtual-scroll (day headers interleaved with
+// their rows) — the grouped table/list markup above renders every row with
+// no windowing, which gets heavy once a 3-month window runs into the
+// hundreds/thousands of rows.
+const virtualRows = computed(() => {
+  const rows = [];
+  for (const group of groupedByDay.value) {
+    rows.push({ type: "header", key: `h-${group.key}`, group });
+    for (const item of group.items) {
+      rows.push({ type: "row", key: item.id, item });
+    }
+  }
+  return rows;
+});
+
+// v-virtual-scroll's own scroll container isn't a <table>, so the desktop
+// row grid uses CSS grid instead — this template mirrors the old <th>/<td>
+// column widths so header and rows stay aligned.
+const gridTemplateColumns = computed(() => {
+  const cols = [];
+  if (!props.readOnly) cols.push("36px");
+  cols.push("minmax(160px, 1.4fr)"); // description
+  cols.push("minmax(220px, 1.6fr)"); // category
+  cols.push("minmax(120px, 1fr)"); // account
+  cols.push("minmax(90px, 0.8fr)"); // amount
+  cols.push("minmax(90px, 0.9fr)"); // type
+  if (!props.readOnly) cols.push("40px"); // actions
+  return cols.join(" ");
 });
 
 // ---- row selection ----
@@ -414,181 +461,192 @@ function exportCsv() {
       v-if="!smAndDown"
       class="table-wrapper"
     >
-      <table class="tx-table">
-        <thead>
-          <tr>
-            <th
-              v-if="!readOnly"
-              class="col-check"
-            >
-              <v-checkbox
-                :model-value="allSelected"
-                density="compact"
-                hide-details
-                @update:model-value="toggleSelectAll"
-              />
-            </th>
-            <th>Description</th>
-            <th>Category</th>
-            <th>Account</th>
-            <th class="col-amount">
-              Amount
-            </th>
-            <th>Type</th>
-            <th
-              v-if="!readOnly"
-              class="col-actions"
-            />
-          </tr>
-        </thead>
-        <tbody
-          v-for="group in groupedByDay"
-          :key="group.key"
+      <div class="tx-grid">
+        <div
+          class="tx-grid__header"
+          :style="{ gridTemplateColumns }"
         >
-          <tr class="day-row">
-            <td :colspan="readOnly ? 5 : 7">
-              <span class="day-label">{{ group.label }}</span>
-              <span class="day-total mono">{{ formatCurrency(group.total) }}</span>
-            </td>
-          </tr>
-          <tr
-            v-for="item in group.items"
-            :key="item.id"
-            class="tx-row"
-            :class="{ 'tx-row--review': isReview(item), 'tx-row--selected': !!selected[item.id] }"
+          <div
+            v-if="!readOnly"
+            class="col-check"
           >
-            <td
-              v-if="!readOnly"
-              class="col-check"
+            <v-checkbox
+              :model-value="allSelected"
+              density="compact"
+              hide-details
+              @update:model-value="toggleSelectAll"
+            />
+          </div>
+          <div>Description</div>
+          <div>Category</div>
+          <div>Account</div>
+          <div class="col-amount">
+            Amount
+          </div>
+          <div>Type</div>
+          <div
+            v-if="!readOnly"
+            class="col-actions"
+          />
+        </div>
+
+        <v-virtual-scroll
+          :items="virtualRows"
+          item-key="key"
+          item-height="44"
+          height="640"
+          class="tx-grid__body"
+        >
+          <template #default="{ item: row }">
+            <div
+              v-if="row.type === 'header'"
+              class="day-row"
             >
-              <v-checkbox
-                v-model="selected[item.id]"
-                density="compact"
-                hide-details
-              />
-            </td>
-            <td>
-              <div class="tx-description">
-                {{ item.description }}
+              <span class="day-label">{{ row.group.label }}</span>
+              <span class="day-total mono">{{ formatCurrency(row.group.total) }}</span>
+            </div>
+            <div
+              v-else
+              class="tx-row"
+              :style="{ gridTemplateColumns }"
+              :class="{
+                'tx-row--review': isReview(row.item),
+                'tx-row--selected': !!selected[row.item.id],
+              }"
+            >
+              <div
+                v-if="!readOnly"
+                class="col-check"
+              >
+                <v-checkbox
+                  v-model="selected[row.item.id]"
+                  density="compact"
+                  hide-details
+                />
               </div>
-            </td>
-            <td>
-              <template v-if="!readOnly">
-                <span
-                  v-if="isReview(item)"
-                  class="review-label"
-                >Needs a category</span>
-                <v-combobox
-                  v-model="item.category"
-                  density="compact"
-                  variant="plain"
-                  hide-details
-                  class="category-combo"
-                  :items="categoryItems(item)"
-                  @focus="rememberEdit(item)"
-                  @blur="saveIfChanged(item)"
-                />
-                <v-combobox
-                  v-model="item.sub_category"
-                  density="compact"
-                  variant="plain"
-                  hide-details
-                  class="sub-category-combo"
-                  :items="subCategoryItems(item)"
-                  @focus="rememberEdit(item)"
-                  @blur="saveIfChanged(item)"
-                />
-              </template>
-              <template v-else>
-                <div class="tx-category">
-                  {{ item.category }}
+              <div>
+                <div class="tx-description">
+                  {{ row.item.description }}
                 </div>
-                <div class="tx-subcategory muted">
-                  {{ item.sub_category }}
-                </div>
-              </template>
-            </td>
-            <td>
-              <span class="account-pill">{{ accountLabel(item.account_id) }}</span>
-            </td>
-            <td class="col-amount">
-              <span
-                class="amount mono"
-                :class="{
-                  'amount-positive': item.amount >= 0,
-                  'amount-transfer': item.category === 'Transfer',
-                }"
-              >{{ formatCurrency(item.amount) }}</span>
-            </td>
-            <td>
-              <v-chip
-                v-if="item.category === 'Transfer'"
-                size="small"
-                variant="outlined"
-              >
-                Transfer
-              </v-chip>
-              <v-chip
-                v-else-if="item.amount >= 0"
-                size="small"
-                color="success"
-                variant="tonal"
-              >
-                Income
-              </v-chip>
-              <v-menu v-else-if="!readOnly">
-                <template #activator="{ props: menuProps }">
-                  <v-chip
-                    v-bind="menuProps"
-                    size="small"
-                    :color="item.need ? 'primary' : undefined"
-                    variant="tonal"
-                    append-icon="mdi-chevron-down"
-                  >
-                    {{ item.need ? "Need" : "Want" }}
-                  </v-chip>
-                </template>
-                <v-list density="compact">
-                  <v-list-item @click="setNeed(item, true)">
-                    <v-list-item-title>Need</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item @click="setNeed(item, false)">
-                    <v-list-item-title>Want</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-              <v-chip
-                v-else
-                size="small"
-                :color="item.need ? 'primary' : undefined"
-                variant="tonal"
-              >
-                {{ item.need ? "Need" : "Want" }}
-              </v-chip>
-            </td>
-            <td
-              v-if="!readOnly"
-              class="col-actions"
-            >
-              <v-menu>
-                <template #activator="{ props: menuProps }">
-                  <v-btn
-                    v-bind="menuProps"
-                    icon="mdi-dots-vertical"
-                    variant="text"
-                    size="small"
+              </div>
+              <div>
+                <template v-if="!readOnly">
+                  <span
+                    v-if="isReview(row.item)"
+                    class="review-label"
+                  >Needs a category</span>
+                  <v-combobox
+                    v-model="row.item.category"
+                    density="compact"
+                    variant="plain"
+                    hide-details
+                    class="category-combo"
+                    :items="categoryItems(row.item)"
+                    @focus="rememberEdit(row.item)"
+                    @blur="saveIfChanged(row.item)"
+                  />
+                  <v-combobox
+                    v-model="row.item.sub_category"
+                    density="compact"
+                    variant="plain"
+                    hide-details
+                    class="sub-category-combo"
+                    :items="subCategoryItems(row.item)"
+                    @focus="rememberEdit(row.item)"
+                    @blur="saveIfChanged(row.item)"
                   />
                 </template>
-                <v-list density="compact">
-                  <v-list-item @click="ruleSource = item">
-                    <v-list-item-title>Create rule</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                <template v-else>
+                  <div class="tx-category">
+                    {{ row.item.category }}
+                  </div>
+                  <div class="tx-subcategory muted">
+                    {{ row.item.sub_category }}
+                  </div>
+                </template>
+              </div>
+              <div>
+                <span class="account-pill">{{ accountLabel(row.item.account_id) }}</span>
+              </div>
+              <div class="col-amount">
+                <span
+                  class="amount mono"
+                  :class="{
+                    'amount-positive': row.item.amount >= 0,
+                    'amount-transfer': row.item.category === 'Transfer',
+                  }"
+                >{{ formatCurrency(row.item.amount) }}</span>
+              </div>
+              <div>
+                <v-chip
+                  v-if="row.item.category === 'Transfer'"
+                  size="small"
+                  variant="outlined"
+                >
+                  Transfer
+                </v-chip>
+                <v-chip
+                  v-else-if="row.item.amount >= 0"
+                  size="small"
+                  color="success"
+                  variant="tonal"
+                >
+                  Income
+                </v-chip>
+                <v-menu v-else-if="!readOnly">
+                  <template #activator="{ props: menuProps }">
+                    <v-chip
+                      v-bind="menuProps"
+                      size="small"
+                      :color="row.item.need ? 'primary' : undefined"
+                      variant="tonal"
+                      append-icon="mdi-chevron-down"
+                    >
+                      {{ row.item.need ? "Need" : "Want" }}
+                    </v-chip>
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item @click="setNeed(row.item, true)">
+                      <v-list-item-title>Need</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item @click="setNeed(row.item, false)">
+                      <v-list-item-title>Want</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+                <v-chip
+                  v-else
+                  size="small"
+                  :color="row.item.need ? 'primary' : undefined"
+                  variant="tonal"
+                >
+                  {{ row.item.need ? "Need" : "Want" }}
+                </v-chip>
+              </div>
+              <div
+                v-if="!readOnly"
+                class="col-actions"
+              >
+                <v-menu>
+                  <template #activator="{ props: menuProps }">
+                    <v-btn
+                      v-bind="menuProps"
+                      icon="mdi-dots-vertical"
+                      variant="text"
+                      size="small"
+                    />
+                  </template>
+                  <v-list density="compact">
+                    <v-list-item @click="ruleSource = row.item">
+                      <v-list-item-title>Create rule</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </div>
+            </div>
+          </template>
+        </v-virtual-scroll>
+      </div>
       <div
         v-if="!filteredItems.length"
         class="empty-state muted"
@@ -598,42 +656,45 @@ function exportCsv() {
     </div>
 
     <!-- Mobile card list -->
-    <div
+    <v-virtual-scroll
       v-else
+      :items="virtualRows"
+      item-key="key"
+      item-height="64"
+      height="640"
       class="mobile-list"
     >
-      <template
-        v-for="group in groupedByDay"
-        :key="group.key"
-      >
-        <div class="day-row day-row--mobile">
-          <span class="day-label">{{ group.label }}</span>
-          <span class="day-total mono">{{ formatCurrency(group.total) }}</span>
+      <template #default="{ item: row }">
+        <div
+          v-if="row.type === 'header'"
+          class="day-row day-row--mobile"
+        >
+          <span class="day-label">{{ row.group.label }}</span>
+          <span class="day-total mono">{{ formatCurrency(row.group.total) }}</span>
         </div>
         <div
-          v-for="item in group.items"
-          :key="item.id"
+          v-else
           class="tx-card"
-          :class="{ 'tx-card--review': isReview(item) }"
-          @click="openDetail(item)"
+          :class="{ 'tx-card--review': isReview(row.item) }"
+          @click="openDetail(row.item)"
         >
           <div class="tx-card__row">
             <div class="tx-description">
-              {{ item.description }}
+              {{ row.item.description }}
             </div>
             <div
               class="amount mono"
               :class="{
-                'amount-positive': item.amount >= 0,
-                'amount-transfer': item.category === 'Transfer',
+                'amount-positive': row.item.amount >= 0,
+                'amount-transfer': row.item.category === 'Transfer',
               }"
             >
-              {{ formatCurrency(item.amount) }}
+              {{ formatCurrency(row.item.amount) }}
             </div>
           </div>
           <div class="tx-card__meta">
             <v-chip
-              v-if="isReview(item)"
+              v-if="isReview(row.item)"
               size="x-small"
               color="warning"
               variant="tonal"
@@ -641,14 +702,14 @@ function exportCsv() {
               Set type
             </v-chip>
             <v-chip
-              v-else-if="item.category === 'Transfer'"
+              v-else-if="row.item.category === 'Transfer'"
               size="x-small"
               variant="outlined"
             >
               Transfer
             </v-chip>
             <v-chip
-              v-else-if="item.amount >= 0"
+              v-else-if="row.item.amount >= 0"
               size="x-small"
               color="success"
               variant="tonal"
@@ -658,21 +719,21 @@ function exportCsv() {
             <v-chip
               v-else
               size="x-small"
-              :color="item.need ? 'primary' : undefined"
+              :color="row.item.need ? 'primary' : undefined"
               variant="tonal"
             >
-              {{ item.need ? "Need" : "Want" }}
+              {{ row.item.need ? "Need" : "Want" }}
             </v-chip>
-            <span class="muted">{{ item.category }} · {{ accountLabel(item.account_id) }}</span>
+            <span class="muted">{{ row.item.category }} · {{ accountLabel(row.item.account_id) }}</span>
           </div>
         </div>
       </template>
-      <div
-        v-if="!filteredItems.length"
-        class="empty-state muted"
-      >
-        No transactions match these filters.
-      </div>
+    </v-virtual-scroll>
+    <div
+      v-if="smAndDown && !filteredItems.length"
+      class="empty-state muted"
+    >
+      No transactions match these filters.
     </div>
 
     <!-- Bulk action bar -->
@@ -899,12 +960,16 @@ function exportCsv() {
   width: 100%;
   overflow-x: auto;
 }
-.tx-table {
+.tx-grid {
   width: 100%;
-  border-collapse: collapse;
   min-width: 760px;
 }
-.tx-table thead th {
+.tx-grid__header {
+  display: grid;
+  align-items: center;
+  gap: 0;
+}
+.tx-grid__header > div {
   text-align: left;
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -916,11 +981,6 @@ function exportCsv() {
   border-bottom: 1px solid rgba(var(--v-theme-outline), 0.4);
   white-space: nowrap;
 }
-.tx-table td {
-  padding: 8px 10px;
-  vertical-align: middle;
-  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.25);
-}
 .col-check {
   width: 36px;
 }
@@ -931,12 +991,11 @@ function exportCsv() {
   width: 40px;
 }
 
-.day-row td {
+.day-row {
   background: rgba(var(--v-theme-on-surface), 0.03);
   font-size: 0.78rem;
   color: rgba(var(--v-theme-on-surface), 0.55);
   padding: 6px 10px;
-  border-bottom: none;
   display: flex;
   justify-content: space-between;
 }
@@ -944,6 +1003,14 @@ function exportCsv() {
   font-weight: 600;
 }
 
+.tx-row {
+  display: grid;
+  align-items: center;
+  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.25);
+}
+.tx-row > div {
+  padding: 8px 10px;
+}
 .tx-row:hover {
   background: rgba(var(--v-theme-on-surface), 0.02);
 }

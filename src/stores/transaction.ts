@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { getTransactions, saveTransaction } from "../api";
 import { useAuthStore } from "./auth";
 import { useHouseholdStore } from "./household";
+import { sliceByDateRange } from "../utils/dateWindow";
 import type { Transaction, Category, Sub_Category } from "../types";
 
 export const useTransactionStore = defineStore("transaction", {
@@ -18,6 +19,13 @@ export const useTransactionStore = defineStore("transaction", {
       transfers: [] as Sub_Category[],
     },
     monthsAgo: -1 as number,
+    // Earliest `from_date` (YYYY-MM-DD) currently covered by `transactions`,
+    // so a re-navigation within an already-loaded range can skip the fetch.
+    earliestLoadedDate: null as string | null,
+    // True while a fetchTransactions() call triggered by month-pager
+    // navigation is in flight — lets individual panels show an in-place
+    // refresh treatment instead of the whole dashboard unmounting.
+    isRefreshing: false,
   }),
   getters: {
     incomeTransactions: (state) =>
@@ -43,6 +51,18 @@ export const useTransactionStore = defineStore("transaction", {
       state.transactions.filter(
         (transaction) => transaction.category === "Transfer"
       ),
+    // Distinct expense category names seen across loaded transactions — a
+    // single cached pass, shared by any component that just needs category
+    // suggestions rather than rescanning the whole array itself.
+    knownExpenseCategories: (state): string[] => {
+      const names = new Set<string>();
+      for (const t of state.transactions) {
+        if (t.amount < 0 && t.category && t.category !== "Transfer") {
+          names.add(t.category);
+        }
+      }
+      return [...names].sort();
+    },
     // Transactions the AI couldn't categorize — the review queue
     unknownTransactions: (state) =>
       state.transactions.filter(
@@ -58,10 +78,7 @@ export const useTransactionStore = defineStore("transaction", {
       start.setMonth(start.getMonth() - (state.monthsAgo + 1));
       const end = new Date(start);
       end.setMonth(end.getMonth() + 1);
-      return state.transactions.filter((transaction) => {
-        const d = new Date(transaction.date);
-        return d >= start && d < end;
-      });
+      return sliceByDateRange(state.transactions, start, end);
     },
     // net_incomes[n] = aggregated data for the month that is n months ago from today.
     // e.g. net_incomes[0] = current (partial) month, net_incomes[1] = last month, etc.
@@ -95,7 +112,10 @@ export const useTransactionStore = defineStore("transaction", {
     },
   },
   actions: {
-    async fetchTransactions(type: string | null = null) {
+    async fetchTransactions(
+      type: string | null = null,
+      forceRefresh: boolean = false
+    ) {
       const authStore = useAuthStore();
       const householdStore = useHouseholdStore();
       const userId = authStore.user?.id;
@@ -109,18 +129,35 @@ export const useTransactionStore = defineStore("transaction", {
         from.setMonth(from.getMonth() - Math.max(this.monthsAgo + 12, 12));
         const from_date = from.toISOString().split("T")[0];
 
+        // The array only grows backward as monthsAgo increases, so if the
+        // range we already have covers the newly requested one, there's
+        // nothing new to fetch — unless the caller knows data changed
+        // server-side (e.g. an import) and needs a forced refresh.
+        if (
+          !forceRefresh &&
+          this.earliestLoadedDate &&
+          from_date >= this.earliestLoadedDate
+        ) {
+          return;
+        }
+
+        this.isRefreshing = true;
         const all_transactions = await getTransactions(
           userId,
           householdId,
           type,
           from_date
         );
-        const sortedTransactions = [...all_transactions].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
+        const sortedTransactions = all_transactions
+          .map((t) => ({ t, ms: new Date(t.date).getTime() }))
+          .sort((a, b) => b.ms - a.ms)
+          .map(({ t }) => t);
         this.transactions = sortedTransactions;
+        this.earliestLoadedDate = from_date;
       } catch (error) {
         console.error("Error fetching transactions:", error);
+      } finally {
+        this.isRefreshing = false;
       }
     },
 
