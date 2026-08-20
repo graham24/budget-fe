@@ -24,6 +24,19 @@ router.beforeEach((to) => {
   if (to.path === '/' && isAuthed) return '/dashboard'
 })
 
+// gtag's initial `config` call only fires a pageview for the first load;
+// since this is an SPA, later navigations don't reload the page, so GA
+// never sees them unless we send page_view events manually.
+router.afterEach((to) => {
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', 'page_view', {
+      page_path: to.fullPath,
+      page_title: document.title,
+      page_location: window.location.href,
+    })
+  }
+})
+
 // Workaround for https://github.com/vitejs/vite/issues/11804
 router.onError((err, to) => {
   if (err?.message?.includes?.('Failed to fetch dynamically imported module')) {

@@ -26,7 +26,9 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
 
-      gtag('config', 'G-X2S7SRY2FC');
+      // send_page_view disabled — src/router/index.ts sends page_view
+      // on every route change instead, since navigation here is client-side
+      gtag('config', 'G-X2S7SRY2FC', { send_page_view: false });
     </script>
   </head>
   <body>
