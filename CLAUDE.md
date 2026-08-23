@@ -108,31 +108,37 @@ VITE_API_BASE_URL=http://localhost:5000/api   # in .env or .env.local
 
 ## Auth
 
-Email-only login (no password). `App.vue` shows a login card until `authStore.user` is set; the rest of the app only mounts after login, so stores can assume a user exists.
+**Google Sign-In only** — no passwords, no email/password forms. The backend verifies the Google ID token and returns its own session JWT, which is what every subsequent request carries.
 
-- `authStore.login(email)` → `POST /auth/login/` → user persisted to localStorage; restored on reload via `verifyUser`
-- Unknown email (login 404) flips the card into signup mode (first/last name fields appear); `authStore.signup(...)` → `POST /auth/signup/` creates the user + their household and logs them in
-- Users invited to a household before ever logging in are placeholders with empty `first_name`; `App.vue` watches `authStore.user` and auto-opens the Profile dialog (with a welcome hint) so they can fill in their name
-- IDs are resolved dynamically: `household`/`account`/`transaction` stores read `user.id` from the auth store; `user`/`transaction`/`categoryRule` stores read `household.id` from the household store. `index.vue` fetches the household first, then the rest in parallel.
-- Logout clears the auth store and `$reset()`s the per-user data stores
-- This is identification, not security — the backend has no sessions or tokens
+- `authStore.loginWithGoogle(credential)` → `POST /auth/google/` → `{user, token}`; both persisted to localStorage. `authStore.restore()` reloads them, called from `main.ts` *before* the router's first navigation so the guard sees the right state.
+- `api.ts` attaches `Authorization: Bearer <token>` from **the auth store, not localStorage** — a preview session (below) deliberately never touches localStorage but still needs authenticated calls. A 401 clears the session and reloads, except while previewing.
+- **Routing, not conditional rendering, gates the app**: `router/index.ts`'s `beforeEach` bounces logged-out visitors to the landing page (`/`) and logged-in users off it to `/dashboard`. Pages behind the guard can assume a user exists.
+- **Demo account**: `authStore.loginAsDemo()` → `POST /auth/demo/` mints a token for the seeded read-only demo household — a real, persisted session.
+- **Preview session**: `authStore.startPreview()` authenticates as that same demo account *without* persisting, so the landing page can feed real dashboard components live data while staying on `/`. `previewing` keeps the app shell hidden. `authGeneration` guards against a slow preview fetch clobbering a real login that happened while it was in flight — don't remove it.
+- Users invited to a household before ever logging in are placeholders with empty `first_name`; `App.vue` watches `authStore.user` and auto-opens the Profile dialog so they can fill it in.
+- IDs resolve dynamically: `household`/`account`/`transaction` stores read `user.id` from the auth store; `user`/`transaction`/`categoryRule` stores read `household.id` from the household store. `dashboard.vue` fetches the household first, then the rest in parallel.
+- Logout clears the auth store and `$reset()`s the per-user data stores.
+- JWTs are stateless with a 30-day expiry and no revocation list — clearing the client copy on logout doesn't invalidate a leaked token.
 
 ## Billing
 
 Stripe-hosted; the frontend never touches card details, it only redirects to a URL the backend returns.
 
 - `SubscribeGate.vue` is the paywall `dashboard.vue` shows when `subscription_status` isn't `active`/`trialing`. Its `lapsed` prop splits the copy: unset = never subscribed (trial pitch), set = subscribed before and now canceled/past_due (resubscribe pitch, no trial).
-- `BillingSettings.vue` is the settings-dialog panel — "Manage billing" (portal) once a Stripe customer exists, "Start free trial"/"Subscribe" otherwise.
+- `BillingSettings.vue` is the settings-dialog panel — "Manage billing" (portal) once the household actually has a subscription, "Start free trial"/"Subscribe" otherwise. Key that off `subscription_status`, **not** `stripe_customer_id_set`: the backend creates the Stripe Customer when a Checkout session is *created*, not completed, so an abandoned checkout leaves a customer with nothing to manage.
+- **Returning from Checkout**: Stripe redirects back to `/dashboard?checkout=success` immediately, but `subscription_status` is only written when the webhook lands, which can be a second or two later. `dashboard.vue` re-polls the household a few times (`CHECKOUT_POLL_*`) before falling through to the gate, so a just-paid user isn't shown the paywall. The redirect itself is never treated as proof of payment — only the webhook is.
 - **Trial copy lives in `src/utils/billing.ts`** (`TRIAL_DAYS`, `isTrialEligible`). `TRIAL_DAYS` is copy only — the trial actually granted comes from `STRIPE_TRIAL_DAYS` in the backend's `routes/billing.py`, so change both together or the marketing will lie. `isTrialEligible` mirrors the backend's `is_first_subscription` check: the trial is granted once per household, so never advertise it to one that has subscribed before.
 - The landing page (`pages/index.vue`) and `public/llms.txt` also quote the trial and price — grep for `TRIAL_DAYS` and `4.99` when either changes.
 
 ## Settings Dialogs
 
-A `mdi-cog-outline` menu in the `App.vue` top bar opens three `common/Dialog.vue`-hosted dialogs:
+A `mdi-cog-outline` menu in the `App.vue` top bar opens `common/Dialog.vue`-hosted dialogs:
 
 - **Profile** (`ProfileForm.vue`): edit own name/email via `authStore.updateProfile` (refreshes the member list after save)
 - **Household** (`HouseholdForm.vue`): rename via `householdStore.updateName`; member list (blank-name placeholders show an "Invited" pill) and add-member-by-email via `userStore.addMember`
-- **Accounts** (`AccountsManager.vue` + `AccountForm.vue`): list/add/edit accounts via the account store; bank is a fixed select of the four importer keys, owner defaults to the logged-in user
+- **Accounts** (`AccountsManager.vue` + `AccountForm.vue`): list/add/edit accounts via the account store; bank is a fixed select of the importer keys, owner defaults to the logged-in user. SimpleFin-linked rows also get a per-account "Refresh Transactions" button.
+- **Billing** (`BillingSettings.vue`): plan, status chip, and either the Stripe portal or a subscribe/trial button — see [Billing](#billing) above
+- **SimpleFin wizard** (`SimplefinWizard.vue`) and **Import errors** (`ImportErrorsManager.vue`) are hosted the same way, opened from the household/integrations flow rather than the cog menu
 
 ## Known Constraints
 

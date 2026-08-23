@@ -13,6 +13,13 @@ const isActive = computed(() =>
   ["active", "trialing"].includes(household.value?.subscription_status)
 );
 const showsTrial = computed(() => isTrialEligible(household.value));
+// Whether there's actually a subscription to manage. Deliberately keyed off
+// subscription_status rather than stripe_customer_id_set: the backend mints
+// the Stripe Customer when a Checkout session is *created*, not completed,
+// so a household that opened checkout and abandoned it has a customer but
+// nothing to manage — sending it to the portal would strand it with no way
+// to subscribe from this panel.
+const hasSubscription = computed(() => !!household.value?.subscription_status);
 const statusLabel = computed(() => {
   const status = household.value?.subscription_status;
   if (!status) return "Not subscribed";
@@ -76,7 +83,7 @@ async function subscribe() {
     </div>
 
     <v-btn
-      v-if="isActive || household?.stripe_customer_id_set"
+      v-if="hasSubscription"
       color="primary"
       variant="flat"
       block

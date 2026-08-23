@@ -78,10 +78,21 @@ const handleAnalysisGenerated = () => {
   analysisRefreshTrigger.value++;
 };
 
+// Stripe bounces the browser back the instant payment succeeds, but
+// subscription_status is only written when the webhook lands — a separate
+// request that can arrive a second or two later. Without a wait, a
+// just-paid user gets dropped on the paywall. `loading` stays true for the
+// duration, so they see the normal loading state rather than the gate.
+const CHECKOUT_POLL_ATTEMPTS = 5;
+const CHECKOUT_POLL_DELAY_MS = 1500;
+
 onMounted(async () => {
+  // Captured before the query param is cleared below.
+  const returningFromCheckout = route.query.checkout === "success";
+
   // Returning from Stripe Checkout — surface the result, then drop the
   // query param so a refresh doesn't re-show it.
-  if (route.query.checkout === "success") {
+  if (returningFromCheckout) {
     checkoutMessage.value = "Subscription active — welcome aboard!";
     checkoutSnackbar.value = true;
     router.replace({ query: {} });
@@ -94,6 +105,24 @@ onMounted(async () => {
   try {
     // Household first — users and transactions derive their IDs from it
     await householdStore.fetchHousehold();
+    if (returningFromCheckout) {
+      for (
+        let attempt = 0;
+        attempt < CHECKOUT_POLL_ATTEMPTS && needsSubscription.value;
+        attempt++
+      ) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, CHECKOUT_POLL_DELAY_MS)
+        );
+        await householdStore.fetchHousehold();
+      }
+      if (needsSubscription.value) {
+        // Webhook still hasn't landed. The payment did go through, so don't
+        // imply otherwise — but don't promise access we can't show either.
+        checkoutMessage.value =
+          "Payment received — still finishing setup. Refresh in a moment.";
+      }
+    }
     if (needsSubscription.value) {
       // Gated: nothing else is reachable until they subscribe (the backend
       // 402s every one of these calls anyway) — skip straight to the gate.
