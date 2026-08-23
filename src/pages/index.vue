@@ -55,7 +55,8 @@
               >View the demo</a>
             </div>
             <p class="hero-note">
-              Sign in with Google — no passwords to manage.
+              Free for {{ TRIAL_DAYS }} days, then $4.99/mo. Sign in with
+              Google — no passwords to manage.
             </p>
           </div>
 
@@ -553,14 +554,14 @@
             Start now
           </p>
           <h2>Get your first debrief this week</h2>
-          <p>Connect one account and you'll have three months of sorted spending, your real monthly baseline, and a plan worth following — before you've finished your coffee.</p>
+          <p>Connect one account and you'll have three months of sorted spending, your real monthly baseline, and a plan worth following — before you've finished your coffee. Your first {{ TRIAL_DAYS }} days are free.</p>
           <a
             class="btn btn-key btn-lg"
             href="#signin"
             @click.prevent="loginDialog = true"
-          >Get started</a>
+          >Start {{ TRIAL_DAYS }} days free</a>
           <p class="fine">
-            Sign in with Google — no passwords to manage.
+            Then $4.99/mo. Sign in with Google — no passwords to manage.
           </p>
         </div>
       </section>
@@ -626,6 +627,7 @@ import { useAccountStore } from "@/stores/account";
 import { useTransactionStore } from "@/stores/transaction";
 import { useUserStore } from "@/stores/user";
 import { useNetWorthStore } from "@/stores/netWorth";
+import { TRIAL_DAYS } from "@/utils/billing";
 import BudgetAnalysisCard from "@/components/BudgetAnalysisCard.vue";
 import KpiStrip from "@/components/KpiStrip.vue";
 import FiftyThirtyTwenty from "@/components/FiftyThirtyTwenty.vue";

@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { createCheckoutSession } from "../api";
 import { useHouseholdStore } from "../stores/household";
+import { TRIAL_DAYS } from "../utils/billing";
 import SurfaceCard from "./common/SurfaceCard.vue";
 
 const props = defineProps({
@@ -38,16 +39,16 @@ async function subscribe() {
   <div class="subscribe-gate">
     <SurfaceCard class="subscribe-card text-center">
       <p class="pill mb-2">
-        {{ props.lapsed ? "Subscription inactive" : "Subscribe to continue" }}
+        {{ props.lapsed ? "Subscription inactive" : `Free for ${TRIAL_DAYS} days` }}
       </p>
       <h1 class="text-h5 mb-2">
-        {{ props.lapsed ? "Your subscription needs attention" : "Start your subscription" }}
+        {{ props.lapsed ? "Your subscription needs attention" : `Start your ${TRIAL_DAYS}-day free trial` }}
       </h1>
       <p class="muted mb-6">
         {{
           props.lapsed
             ? "Your last payment didn't go through, or the subscription was canceled. Resubscribe to get back into your dashboard."
-            : "Debrief is $4.99/mo per household. Subscribe to unlock your dashboard, imports, and AI budget analysis."
+            : `Unlock your dashboard, imports, and AI budget analysis free for ${TRIAL_DAYS} days, then $4.99/mo per household.`
         }}
       </p>
       <v-btn
@@ -57,8 +58,18 @@ async function subscribe() {
         :loading="loading"
         @click="subscribe"
       >
-        {{ props.lapsed ? "Resubscribe" : "Subscribe — $4.99/mo" }}
+        {{ props.lapsed ? "Resubscribe" : "Start free trial" }}
       </v-btn>
+      <!-- Checkout collects a card up front, so say so rather than letting
+           it be a surprise on the Stripe page. -->
+      <p
+        v-if="!props.lapsed"
+        class="muted mt-4"
+        style="font-size: 0.8rem"
+      >
+        We'll ask for a card now — you won't be charged until the trial ends,
+        and you can cancel any time before then.
+      </p>
       <p
         v-if="error"
         class="text-error mt-4"

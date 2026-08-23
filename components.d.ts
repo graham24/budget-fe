@@ -9,7 +9,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     AccountForm: typeof import('./src/components/AccountForm.vue')['default']
     AccountsManager: typeof import('./src/components/AccountsManager.vue')['default']
-    AnthropicKeyPanel: typeof import('./src/components/AnthropicKeyPanel.vue')['default']
     BalanceHistoryDialog: typeof import('./src/components/BalanceHistoryDialog.vue')['default']
     BillingSettings: typeof import('./src/components/BillingSettings.vue')['default']
     BudgetAnalysisCard: typeof import('./src/components/BudgetAnalysisCard.vue')['default']

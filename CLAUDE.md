@@ -117,6 +117,15 @@ Email-only login (no password). `App.vue` shows a login card until `authStore.us
 - Logout clears the auth store and `$reset()`s the per-user data stores
 - This is identification, not security — the backend has no sessions or tokens
 
+## Billing
+
+Stripe-hosted; the frontend never touches card details, it only redirects to a URL the backend returns.
+
+- `SubscribeGate.vue` is the paywall `dashboard.vue` shows when `subscription_status` isn't `active`/`trialing`. Its `lapsed` prop splits the copy: unset = never subscribed (trial pitch), set = subscribed before and now canceled/past_due (resubscribe pitch, no trial).
+- `BillingSettings.vue` is the settings-dialog panel — "Manage billing" (portal) once a Stripe customer exists, "Start free trial"/"Subscribe" otherwise.
+- **Trial copy lives in `src/utils/billing.ts`** (`TRIAL_DAYS`, `isTrialEligible`). `TRIAL_DAYS` is copy only — the trial actually granted comes from `STRIPE_TRIAL_DAYS` in the backend's `routes/billing.py`, so change both together or the marketing will lie. `isTrialEligible` mirrors the backend's `is_first_subscription` check: the trial is granted once per household, so never advertise it to one that has subscribed before.
+- The landing page (`pages/index.vue`) and `public/llms.txt` also quote the trial and price — grep for `TRIAL_DAYS` and `4.99` when either changes.
+
 ## Settings Dialogs
 
 A `mdi-cog-outline` menu in the `App.vue` top bar opens three `common/Dialog.vue`-hosted dialogs:

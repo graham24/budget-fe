@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { createCheckoutSession, createPortalSession } from "../api";
 import { useHouseholdStore } from "../stores/household";
+import { TRIAL_DAYS, isTrialEligible } from "../utils/billing";
 
 const householdStore = useHouseholdStore();
 const loading = ref(false);
@@ -11,6 +12,7 @@ const household = computed(() => householdStore.household?.household);
 const isActive = computed(() =>
   ["active", "trialing"].includes(household.value?.subscription_status)
 );
+const showsTrial = computed(() => isTrialEligible(household.value));
 const statusLabel = computed(() => {
   const status = household.value?.subscription_status;
   if (!status) return "Not subscribed";
@@ -56,6 +58,13 @@ async function subscribe() {
         <p class="text-body-1 font-weight-medium">
           $4.99/mo
         </p>
+        <p
+          v-if="showsTrial"
+          class="muted"
+          style="font-size: 0.8rem"
+        >
+          Starts with a {{ TRIAL_DAYS }}-day free trial
+        </p>
       </div>
       <v-chip
         :color="isActive ? 'success' : 'default'"
@@ -84,7 +93,7 @@ async function subscribe() {
       :loading="loading"
       @click="subscribe"
     >
-      Subscribe — $4.99/mo
+      {{ showsTrial ? "Start free trial" : "Subscribe — $4.99/mo" }}
     </v-btn>
 
     <p
