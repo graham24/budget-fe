@@ -11,24 +11,52 @@ const api = axios.create({
   },
 });
 
+declare module "axios" {
+  interface InternalAxiosRequestConfig {
+    // authStore.authGeneration at the moment this request was sent — see
+    // the response interceptor below.
+    __authGeneration?: number;
+  }
+}
+
 // Attach the session token to every request. Read from the auth store
 // (not localStorage directly) so a landing-page preview session — which
 // deliberately never touches localStorage, see authStore.startPreview —
 // can still make authenticated calls.
 api.interceptors.request.use((config) => {
-  const token = useAuthStore().token;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const authStore = useAuthStore();
+  if (authStore.token) {
+    config.headers.Authorization = `Bearer ${authStore.token}`;
   }
+  config.__authGeneration = authStore.authGeneration;
   return config;
 });
 
-// Expired/invalid token — bounce back to the login screen. Only applies to
-// a real session: a preview session hitting a 401 (e.g. demo data isn't
-// seeded) shouldn't force a reload out from under a marketing-page visitor.
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // A response belongs to the session that asked for it. The landing page
+    // previews the dashboard as the read-only demo account (startPreview)
+    // using the same Pinia stores the real dashboard reads, so a demo fetch
+    // still in flight when someone signs in would otherwise land *after*
+    // login and write demo data over their real data. Every login/logout
+    // bumps authGeneration, so a mismatch here means this response outlived
+    // its session — drop it rather than let a caller store it.
+    const authStore = useAuthStore();
+    if (
+      response.config.__authGeneration !== undefined &&
+      response.config.__authGeneration !== authStore.authGeneration
+    ) {
+      return Promise.reject(
+        new axios.Cancel("Response discarded: session changed while in flight")
+      );
+    }
+    return response;
+  },
   (error) => {
+    // Expired/invalid token — bounce back to the login screen. Only applies
+    // to a real session: a preview session hitting a 401 (e.g. demo data
+    // isn't seeded) shouldn't force a reload out from under a
+    // marketing-page visitor.
     if (error.response?.status === 401 && !useAuthStore().previewing) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
