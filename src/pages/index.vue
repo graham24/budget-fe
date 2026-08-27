@@ -628,7 +628,6 @@ import { useTransactionStore } from "@/stores/transaction";
 import { useUserStore } from "@/stores/user";
 import { useNetWorthStore } from "@/stores/netWorth";
 import { TRIAL_DAYS } from "@/utils/billing";
-import { resetHouseholdStores } from "@/utils/session";
 import BudgetAnalysisCard from "@/components/BudgetAnalysisCard.vue";
 import KpiStrip from "@/components/KpiStrip.vue";
 import FiftyThirtyTwenty from "@/components/FiftyThirtyTwenty.vue";
@@ -658,9 +657,6 @@ async function handleGoogleLogin(response) {
   loginError.value = null;
   try {
     await authStore.loginWithGoogle(response.credential);
-    // The preview above filled these stores with the demo household's data;
-    // clear it so the dashboard starts empty and refetches as this user.
-    resetHouseholdStores();
     loginDialog.value = false;
     router.push("/dashboard");
   } catch (error) {
@@ -672,7 +668,6 @@ async function handleDemoLogin() {
   loginError.value = null;
   try {
     await authStore.loginAsDemo();
-    resetHouseholdStores();
     loginDialog.value = false;
     router.push("/dashboard");
   } catch (error) {
