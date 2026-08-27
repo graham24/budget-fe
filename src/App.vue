@@ -159,11 +159,8 @@ import { ref, onMounted, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useHouseholdStore } from "@/stores/household";
-import { useAccountStore } from "@/stores/account";
-import { useUserStore } from "@/stores/user";
-import { useTransactionStore } from "@/stores/transaction";
-import { useSimplefinStore } from "@/stores/simplefin";
 import { useImportErrorStore } from "@/stores/importError";
+import { resetHouseholdStores } from "@/utils/session";
 import { useTheme } from "vuetify";
 import Dialog from "./components/common/Dialog.vue";
 import ProfileForm from "./components/ProfileForm.vue";
@@ -177,10 +174,6 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const householdStore = useHouseholdStore();
-const accountStore = useAccountStore();
-const userStore = useUserStore();
-const transactionStore = useTransactionStore();
-const simplefinStore = useSimplefinStore();
 const importErrorStore = useImportErrorStore();
 const theme = useTheme();
 const themeName = ref(theme.global.name.value);
@@ -237,12 +230,7 @@ watch(
 function logout() {
   authStore.logout();
   // Clear per-user data so a different login doesn't see stale state
-  householdStore.$reset();
-  accountStore.$reset();
-  userStore.$reset();
-  transactionStore.$reset();
-  simplefinStore.$reset();
-  importErrorStore.$reset();
+  resetHouseholdStores();
   router.push("/");
 }
 
