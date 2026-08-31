@@ -57,22 +57,42 @@ const windowedTransactions = computed(() =>
 // instead of re-parsing `new Date(t.date)` in the sort comparator and again
 // in dayKey/dayLabel. Keyed by id (not spread onto the transaction object)
 // so the store's transaction objects keep their identity for v-model edits.
+function dayParts(date) {
+  return {
+    ms: date.getTime(),
+    dayKey: date.toDateString(),
+    dayLabel: date.toLocaleDateString(undefined, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }),
+  };
+}
+
 const dateDecorations = computed(() => {
   const map = new Map();
   for (const t of windowedTransactions.value) {
     const d = new Date(t.date);
+    // `created` is when the import wrote the row. Rows imported before the
+    // column existed (or any payload without it) fall back to the
+    // transaction date, so sorting never lands on NaN.
+    const fetched = t.created ? new Date(t.created) : d;
     map.set(t.id, {
-      ms: d.getTime(),
-      dayKey: d.toDateString(),
-      dayLabel: d.toLocaleDateString(undefined, {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-      }),
+      ...dayParts(d),
+      fetched: dayParts(Number.isNaN(fetched.getTime()) ? d : fetched),
     });
   }
   return map;
 });
+
+// Which timestamp the table is ordered and grouped by
+const sortByFetched = computed(() => sortOrder.value.startsWith("fetched"));
+const sortAscending = computed(() => sortOrder.value.endsWith("asc"));
+
+function decorationFor(id) {
+  const decoration = dateDecorations.value.get(id);
+  return sortByFetched.value ? decoration.fetched : decoration;
+}
 
 function matchesTab(t, tab) {
   if (tab === "all") return true;
@@ -143,23 +163,25 @@ const filteredItems = computed(() => {
     const query = debouncedSearchTerm.value.toLowerCase();
     items = items.filter((t) => searchIndex.value.get(t.id)?.includes(query));
   }
-  const decorations = dateDecorations.value;
   return [...items].sort((a, b) => {
-    const diff = decorations.get(b.id).ms - decorations.get(a.id).ms;
-    return sortOrder.value === "asc" ? -diff : diff;
+    const diff = decorationFor(b.id).ms - decorationFor(a.id).ms;
+    return sortAscending.value ? -diff : diff;
   });
 });
 
 // ---- group rows by calendar day ----
 const groupedByDay = computed(() => {
-  const decorations = dateDecorations.value;
   const groups = [];
   const byKey = new Map();
   for (const t of filteredItems.value) {
-    const { dayKey, dayLabel } = decorations.get(t.id);
+    // group by the same date the list is ordered by, or the headers run out
+    // of sequence with the rows under them
+    const { dayKey, dayLabel } = decorationFor(t.id);
     let group = byKey.get(dayKey);
     if (!group) {
-      group = { key: dayKey, label: dayLabel, total: 0, items: [] };
+      // say so explicitly, or "Friday, July 17" reads as the transaction date
+      const label = sortByFetched.value ? `Fetched ${dayLabel}` : dayLabel;
+      group = { key: dayKey, label, total: 0, items: [] };
       byKey.set(dayKey, group);
       groups.push(group);
     }
@@ -432,6 +454,8 @@ function exportCsv() {
         :items="[
           { value: 'desc', title: 'Date ↓' },
           { value: 'asc', title: 'Date ↑' },
+          { value: 'fetched-desc', title: 'Fetched ↓' },
+          { value: 'fetched-asc', title: 'Fetched ↑' },
         ]"
         variant="outlined"
         density="comfortable"

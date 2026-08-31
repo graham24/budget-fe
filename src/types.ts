@@ -29,6 +29,10 @@ export interface Transaction {
   need: boolean;
   date: string;
   account_id: number;
+  // When the row was written to our DB — i.e. when the import fetched it,
+  // not when the transaction happened. The API has always sent this
+  // (models/transaction.py sets it at insert); it just wasn't typed.
+  created?: string;
 }
 
 export interface DuplicateTransaction {
