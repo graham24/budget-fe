@@ -139,12 +139,34 @@ function closeForm() {
   editingAccount.value = null;
 }
 
+// Label each progress line with the internal account's description, which
+// is what the table shows, rather than the raw SimpleFin name.
+function labelForSimplefinAccount(sfAccount) {
+  const linked = accountStore.accounts?.accounts?.find(
+    (a) => a.id === sfAccount.bank_account_id
+  );
+  return linked?.description ?? sfAccount.name ?? `Account ${sfAccount.id}`;
+}
+
+const linkedAccountCount = computed(
+  () => simplefinStore.accounts.filter((a) => a.bank_account_id).length
+);
+
+async function refreshAllAccounts() {
+  const householdId = householdStore.household?.household?.id;
+  if (!householdId) return;
+  refreshSummary.value = null;
+  refreshError.value = null;
+  await simplefinStore.refreshAllAccounts(householdId, labelForSimplefinAccount);
+}
+
 async function refreshAccount(account) {
   const sfAccount = simplefinByAccountId.value[account.id];
   const householdId = householdStore.household?.household?.id;
   if (!sfAccount || !householdId) return;
   refreshSummary.value = null;
   refreshError.value = null;
+  simplefinStore.clearRefreshAllProgress();
   try {
     const result = await simplefinStore.refreshAccountTransactions(sfAccount.id, householdId);
     refreshSummary.value = `${account.description}: imported ${result.imported} new transaction${result.imported === 1 ? "" : "s"} (${result.duplicates} duplicate${result.duplicates === 1 ? "" : "s"} skipped)`;
@@ -163,8 +185,18 @@ async function refreshAccount(account) {
 
     <div
       v-if="!showForm"
-      class="d-flex justify-end mb-3"
+      class="d-flex justify-end ga-2 mb-3"
     >
+      <v-btn
+        v-if="linkedAccountCount"
+        variant="outlined"
+        size="small"
+        prepend-icon="mdi-refresh"
+        :loading="simplefinStore.refreshAllRunning"
+        @click="refreshAllAccounts"
+      >
+        Refresh all ({{ linkedAccountCount }})
+      </v-btn>
       <v-btn
         color="primary"
         variant="flat"
@@ -174,6 +206,66 @@ async function refreshAccount(account) {
       >
         Add Account
       </v-btn>
+    </div>
+
+    <!-- One line per account, filled in as the run walks through them -->
+    <div
+      v-if="simplefinStore.refreshAllProgress.length"
+      class="refresh-run mb-4"
+    >
+      <div class="refresh-run__head">
+        <span class="col-head">Refresh run</span>
+        <v-btn
+          v-if="!simplefinStore.refreshAllRunning"
+          variant="text"
+          size="x-small"
+          @click="simplefinStore.clearRefreshAllProgress()"
+        >
+          Dismiss
+        </v-btn>
+      </div>
+      <div
+        v-for="line in simplefinStore.refreshAllProgress"
+        :key="line.simplefinAccountId"
+        class="refresh-run__row"
+      >
+        <v-progress-circular
+          v-if="line.status === 'running'"
+          indeterminate
+          size="14"
+          width="2"
+          color="primary"
+        />
+        <v-icon
+          v-else
+          :icon="{
+            pending: 'mdi-circle-small',
+            done: 'mdi-check-circle-outline',
+            error: 'mdi-alert-circle-outline',
+          }[line.status]"
+          :color="{ done: 'success', error: 'error' }[line.status]"
+          size="16"
+        />
+        <span class="refresh-run__name">{{ line.label }}</span>
+        <span
+          v-if="line.status === 'done'"
+          class="refresh-run__result mono"
+        >
+          +{{ line.imported }} new · {{ line.duplicates }} dupe{{ line.duplicates === 1 ? "" : "s" }}
+        </span>
+        <span
+          v-else-if="line.status === 'error'"
+          class="refresh-run__result text-error"
+        >{{ line.error }}</span>
+        <span
+          v-else-if="line.status === 'running'"
+          class="refresh-run__result muted"
+        >Refreshing…</span>
+        <span
+          v-else
+          class="refresh-run__result muted"
+        >Waiting</span>
+      </div>
     </div>
     <div
       v-else
@@ -340,6 +432,41 @@ async function refreshAccount(account) {
 </template>
 
 <style scoped>
+.refresh-run {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--row-tint);
+  padding: 10px 12px;
+}
+.refresh-run__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.refresh-run__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.refresh-run__row + .refresh-run__row {
+  border-top: 1px solid var(--hairline-soft);
+}
+.refresh-run__name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.refresh-run__result {
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
 .form-panel {
   border: 1px solid rgba(var(--v-theme-outline), 0.3);
   border-radius: var(--radius-xs);
