@@ -51,55 +51,65 @@ function deltaClass(tile) {
 </script>
 
 <template>
-  <div class="kpi-strip">
-    <SurfaceCard
-      v-for="tile in tiles"
-      :key="tile.label"
-      class="kpi"
-      padding="14px 16px"
-    >
-      <div class="pill">
-        {{ tile.label }}
-      </div>
-      <div class="kpi__value">
-        {{ formatCurrency(tile.value) }}
-      </div>
-      <div
-        v-if="tile.delta !== null"
-        class="kpi__delta"
-        :class="deltaClass(tile)"
+  <!-- Same reflow-on-own-width treatment as KpiStrip: this is embedded both
+       full width and inside the landing page's narrow preview card. -->
+  <div class="kpi-strip-wrap">
+    <div class="kpi-strip">
+      <SurfaceCard
+        v-for="tile in tiles"
+        :key="tile.label"
+        class="kpi"
+        padding="16px 18px"
       >
-        <v-icon
-          :icon="tile.delta >= 0 ? 'mdi-arrow-up-thin' : 'mdi-arrow-down-thin'"
-          size="16"
-        />
-        {{ formatCurrency(Math.abs(tile.delta)) }} vs {{ priorLabel }}
-      </div>
-      <div
-        v-else
-        class="kpi__delta muted"
-      >
-        No history yet
-      </div>
-    </SurfaceCard>
+        <div class="pill">
+          {{ tile.label }}
+        </div>
+        <div class="kpi__value">
+          {{ formatCurrency(tile.value) }}
+        </div>
+        <div
+          v-if="tile.delta !== null"
+          class="kpi__delta"
+          :class="deltaClass(tile)"
+        >
+          <v-icon
+            :icon="tile.delta >= 0 ? 'mdi-arrow-up-thin' : 'mdi-arrow-down-thin'"
+            size="16"
+          />
+          {{ formatCurrency(Math.abs(tile.delta)) }} vs {{ priorLabel }}
+        </div>
+        <div
+          v-else
+          class="kpi__delta muted"
+        >
+          No history yet
+        </div>
+      </SurfaceCard>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.kpi-strip-wrap {
+  container-type: inline-size;
+}
 .kpi-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: var(--gap);
+}
+.kpi {
+  min-width: 0;
 }
 .kpi__value {
-  font-size: 1.7rem;
+  font-size: 28px;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   line-height: 1.25;
-  margin: 2px 0;
+  margin: 4px 0;
 }
 .kpi__delta {
-  font-size: 0.8rem;
+  font-size: 12.5px;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -107,12 +117,26 @@ function deltaClass(tile) {
   white-space: nowrap;
 }
 
-@media (max-width: 960px) {
+@container (max-width: 700px) {
   .kpi-strip {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   .kpi__value {
-    font-size: 1.4rem;
+    font-size: 23px;
+  }
+}
+
+/* browsers without container queries keep the old viewport behaviour */
+@supports not (container-type: inline-size) {
+  @media (max-width: 960px) {
+    .kpi-strip {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .kpi__value {
+      font-size: 23px;
+    }
   }
 }
 </style>

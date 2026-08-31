@@ -2,7 +2,7 @@
 const props = defineProps({
   padding: {
     type: String,
-    default: "16px",
+    default: "20px 22px",
   },
   border: {
     type: Boolean,
@@ -35,7 +35,7 @@ const props = defineProps({
   background: rgb(var(--v-theme-surface));
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(var(--v-theme-outline), 0.9);
+  border: 1px solid var(--hairline);
 }
 .surface-card--borderless {
   border-color: transparent;

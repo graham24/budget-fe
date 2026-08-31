@@ -56,8 +56,12 @@ Axios instance pointed at `VITE_API_BASE_URL` (default `http://localhost:5000/ap
 
 ### Component Data Flow
 
-1. **`src/pages/index.vue`**: Orchestrates the dashboard. Fetches the household first (other fetches derive IDs from it), then the rest in parallel. Watches `monthsAgo` to re-fetch transactions. Contains navigation buttons that mutate `monthsAgo`. Content is split into three `v-tabs`/`v-window` tabs — **Overview** (AI budget analysis half-width on top with `CashFlow.vue` + spending mix stacked beside it, then 50/30/20 and targets below; the analysis markdown is rendered via `src/markdown.ts`. `CashFlow.vue` merges the old NetIncome/NetTrend cards: focus-month net with deltas vs. prior month and 3-month average, plus the mode-toggle sparkline. `SavingsRate.vue`, `NetIncome.vue`, and `NetTrend.vue` still exist but are no longer placed.), **Insights** (AI analysis, recurring charges, category tables), and **Transactions** (import status + transaction tables; the tab shows a warning badge with the uncategorized count). The window has `:touch="false"` so horizontal table scrolling doesn't switch tabs.
-2. **`CategoryTable.vue`**: Derives `month1/month2/month3` as `computed` refs from `monthsAgo` (year-aware comparison). Headers and row data both react to navigation.
+1. **`src/pages/dashboard.vue`**: Orchestrates the dashboard. Fetches the household first (other fetches derive IDs from it), then the rest in parallel. Watches `monthsAgo` to re-fetch transactions. Contains navigation buttons that mutate `monthsAgo`. Content is split into `v-tabs`/`v-window` tabs — **Overview**, **Insights**, **Net Worth**, and **Transactions** (the tab shows a warning badge with the uncategorized count). The window has `:touch="false"` so horizontal table scrolling doesn't switch tabs.
+
+   Every tab body is a `.board` (a vertical flex stack on a 16px rhythm) holding full-width cards and `.band` two-column grids. **Overview** reads top to bottom: `KpiStrip` → `NetWorthSummaryBar` → full-width `CashFlow` → a band of `SpendingMix` + `FiftyThirtyTwenty` → the full-width **Budget Analysis** card (AI prose via `src/markdown.ts`, running the card's full width) → a band of `BudgetTargets` + `RecurringCosts`. **Insights** is a single full-width card holding the `Categories` drill-down. `CashFlow.vue` merges the old NetIncome/NetTrend cards: focus-month net with deltas vs. prior month and 3-month average, plus the mode-toggle sparkline. `SavingsRate.vue`, `NetIncome.vue`, and `NetTrend.vue` still exist but are no longer placed.
+
+   Targets appear once on Overview, as `BudgetTargets` (the editable bars card). A read-only `TargetsTable` variant existed briefly and was removed as a duplicate — `BudgetAnalysisCard`'s `hide-targets-section` still suppresses the AI's prose version of the same section so it isn't stated twice.
+2. **`CategoryTable.vue`**: A hand-rolled three-level drill-down grid — category → sub-category → transaction — where all three levels share one `26px | 1fr | minmax(72,104)px ×3 | share` grid so nothing shifts as rows open. Columns are the two prior months plus the focus month (highlighted via `.col-head--focus`) and a Share percentage (relative to the grand total at level 1, to the parent category at level 2). The number columns give ground before the name column does, so the table survives a narrow container. **Level 3 lists every transaction in the 3-month window**, each one's amount rendered in its own month's column (the other two cells stay blank), newest first — so a sub-category's three monthly totals decompose diagonally down the columns. Sorting is on the parsed date, not the string: the API's date strings are not lexicographically ordered. One category and one sub-category are open at a time; opening a category clears the open sub-category, and paging `monthsAgo` closes both. Transaction rows carry the category/sub-category editors and the need toggle on a second line under the merchant, since the month cells now hold data. Derives `month1/month2/month3` as `computed` refs from `monthsAgo` (year-aware comparison); headers and row data both react to navigation. Below 700px the whole table restacks (name + meta left, amount right — `.drill__narrow-only` swaps in the transaction's own figure since the month columns are gone) rather than scrolling horizontally.
 3. **`TransactionsTable.vue`**: `filteredItems` is a `computed` that filters to the active 3-month window using `windowStart`/`windowEnd` derived from `monthsAgo`.
 4. **`CashFlow.vue`**: Reads `net_incomes[monthsAgo + 1]` for the focus-month headline/deltas and `net_incomes[monthsAgo + 1..12]` for the sparkline (up to 12 points ending at the focus month).
 
@@ -75,11 +79,11 @@ Axios instance pointed at `VITE_API_BASE_URL` (default `http://localhost:5000/ap
 
 All focus-month cards read `transactionStore.focusMonthTransactions` (a getter for the month `monthsAgo + 1` back) so they react to window navigation:
 
-- **`BudgetTargets.vue`**: per-category monthly limits vs. focus-month actuals with progress bars; upserts via the `budgetTarget` store
+- **`BudgetTargets.vue`**: per-category monthly limits vs. focus-month actuals with progress bars; upserts via the `budgetTarget` store. The single home for targets on Overview
 - **`SpendingMix.vue`**: hand-rolled SVG donut of focus-month expense categories (top 6 + Other)
 - **`FiftyThirtyTwenty.vue`**: needs/wants/savings share of income vs. the 50/30/20 rule, from `net_incomes`
-- **`RecurringCosts.vue`**: client-side recurring-charge detection (same description normalization as the backend: digit tokens stripped; 3+ months, amounts within ±30%), with price-increase flags
-- **`CategoryTable.vue`**: focus-month cells flag overspend (25%+ and ≥$25 above the prior two months' average)
+- **`RecurringCosts.vue`**: client-side recurring-charge detection (same description normalization as the backend: digit tokens stripped; 3+ months, amounts within ±30%), with price-increase flags. Sits on **Overview** beside `BudgetTargets`, below the AI summary
+- **`CategoryTable.vue`**: focus-month cells flag overspend (25%+ and ≥$25 above the prior two months' average). `Categories.vue` stacks three of them (Must-Haves / Nice-to-Haves / Income) inside a single full-width card on the Insights tab — no card-per-group nesting
 - **`Transactions.vue`**: debounced search, CSV export of the active window, and a "Review (N)" queue that opens `TransactionReviewDialog` with a snapshot of `unknownTransactions`
 - **`ImportReviewStack.vue`**: post-upload card stack shown by `ImportForm` — imported transactions first (editable category/sub-category/need; Enter or "Save & Next" persists and advances), duplicates at the back with warning styling and Force Import / Skip actions. A force-imported duplicate flips in place into an editable card.
 
@@ -96,9 +100,13 @@ User-defined categorization rules ("description contains X → category/sub-cate
 
 Configured in `src/plugins/vuetify.ts` with MDI icons, light/dark themes, and SCSS settings at `src/styles/settings.scss`. Components are auto-imported via `vite.config.mts`.
 
-The visual language is deliberately restrained ("professional finance dashboard"): Inter with global `tabular-nums`, solid surfaces with 1px outline borders and hairline shadows (`--shadow-sm`), 12px radii, sentence-case buttons, neutral (not primary-tinted) table stripes/group rows, and uppercase muted "eyebrow" labels via the global `.pill` class (defined in `global.css` alongside `.muted`). No gradients, glassmorphism, or backdrop blur — keep new components consistent with this. Tokens live in `src/styles/tokens.css`; global overrides in `src/styles/global.css`.
+The visual language is deliberately restrained ("professional finance dashboard"): Inter Tight with global `tabular-nums`, Bricolage Grotesque for headings, IBM Plex Mono for numerals and column labels. Solid surfaces with 1px hairline borders (`--hairline`, `--hairline-soft`) and one shadow (`--shadow-sm`), 14px card radii, sentence-case buttons, and uppercase muted "eyebrow" labels via the global `.pill` class (defined in `global.css` alongside `.muted`). Table headers are mono 10px at `.16em` tracking and 50% opacity (`.col-head`, or the global `.v-table thead th` rule); header/total/nested rows use canvas tints (`--row-tint`, `--row-tint-strong`) and an open/hover row uses `--row-open`. No gradients, glassmorphism, or backdrop blur — keep new components consistent with this. Tokens live in `src/styles/tokens.css`; global overrides in `src/styles/global.css`. The category chart palette (`--cat-1`…`--cat-7`) is Material 400s.
 
-App shell: `App.vue` renders a slim sticky top bar (brand + theme toggle + logout) with the page below it. `index.vue` opens with a page header — large household title, segmented month pager (`‹ Month ›`), and Import / Generate analysis / Rules actions — followed by underline-style nav tabs (`.nav-tabs`, no box). The Overview tab leads with `KpiStrip.vue`: four stat tiles (Income, Spending, Net, Savings rate) for the focus month with dollar deltas vs. the prior month.
+The desktop shell is capped at `--page-max` (1312px) with `24px 32px 44px` padding.
+
+App shell: `App.vue` renders a 64px sticky top bar — logo tile, "Debrief", a hairline divider, the household name, then notifications / theme / settings / a 32px initials avatar / logout — with the page below it. `dashboard.vue` opens with `.board-head`: the segmented month pager (`‹ 📅 Month ›`) left, Import / Generate analysis / Rules right, followed by the nav tabs in **Overview → Net Worth → Insights → Transactions** order.
+
+The tabs are one `<v-tabs>` in two guises: underline-style below the header on desktop (`.nav-tabs`), and a fixed bottom bar on phones (`.nav-tabs--bottom`, `smAndDown`) with `stacked` icons over labels, `hide-slider`, a hairline on top and `env(safe-area-inset-bottom)` folded into its padding. Two gotchas if you touch it: the `mb-5` margin must be swapped off in the bottom guise (a bottom-margin on a `position: fixed` element pushes it up off the viewport edge), and `#home .v-container`'s bottom padding is what stops the last card hiding under the bar. The Overview tab leads with `KpiStrip.vue`: four stat tiles (Income, Spending, Net, Savings rate) for the focus month with dollar deltas vs. the prior month.
 
 ## Configuration
 
@@ -146,3 +154,12 @@ A `mdi-cog-outline` menu in the `App.vue` top bar opens `common/Dialog.vue`-host
 
 - Pre-existing TypeScript errors in `main.ts` and `tsconfig.json` (node22 lib incompatibility) — do not attempt to fix unless specifically asked
 - No frontend test suite
+
+## Landing page (`src/pages/index.vue`)
+
+The marketing page embeds the **real** dashboard components as live previews (`KpiStrip`, `FiftyThirtyTwenty`, `BudgetTargets`, `Categories`, `RecurringCosts`, `NetWorthKpis`, `Transactions`, `BudgetAnalysisCard`), fed by the read-only demo account via `authStore.startPreview()`. **Any change to those components lands here too — check `/` after touching one.** It has its own CSS system (`--card`, `--rule`, `--display`, `.card`/`.eyebrow`/`.feat`) that does not share `tokens.css`.
+
+Two things it depends on:
+
+- `BudgetAnalysisCard`'s `max-height` prop. The hero card is height-matched against the headline with `align-items: center`, so an unclamped analysis pushes the entire headline below the fold. The landing page passes `420px`; the Overview card runs unclamped.
+- The KPI strips reflow on their **own** width (`container-type: inline-size` on a wrapper), not the viewport's — the landing preview card is ~500px wide inside a full-width viewport, which no media query can catch.

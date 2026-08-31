@@ -47,20 +47,26 @@ defineProps({
 .section-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
 }
 .section-header__text {
   display: grid;
-  gap: 4px;
+  gap: 1px;
 }
 .title {
+  font-family: var(--font-display);
+  font-size: 19px;
   font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 .subtitle {
-  font-size: 0.95rem;
+  font-size: 13px;
+  line-height: 1.45;
+  margin-top: 2px;
 }
 .section-header__actions {
   display: flex;
@@ -71,9 +77,10 @@ defineProps({
 }
 /* quiet uppercase eyebrow instead of a colored pill */
 .pill {
+  font-family: var(--font-sans);
   color: rgba(var(--v-theme-on-surface), 0.55);
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }

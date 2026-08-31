@@ -3,20 +3,41 @@
 :root {
   --radius: 14px;
   --radius-sm: 10px;
-  --radius-xs: 8px;
+  --radius-xs: 9px;
 
-  --pad: 18px;
+  --pad: 20px 22px;
   --gap: 16px;
+
+  /* page measure — the design's desktop shell */
+  --page-max: 1312px;
 
   /* layered hairline shadows — depth without drama */
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 12px rgba(16, 24, 40, 0.06);
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+
+  /* one hairline weight for card borders, a lighter one for row separators */
+  --hairline: rgba(var(--v-theme-outline), 0.9);
+  --hairline-soft: rgba(var(--v-theme-outline), 0.7);
+
+  /* canvas-tinted rows: table headers, total rows, nested drill-down levels */
+  --row-tint: rgba(var(--v-theme-background), 0.75);
+  --row-tint-strong: rgba(var(--v-theme-background), 0.9);
+  --row-open: rgba(var(--v-theme-primary), 0.05);
 
   /* matches the marketing site: Bricolage Grotesque for headings, Inter
      Tight for body copy, IBM Plex Mono for numbers/labels */
   --font-sans: "Inter Tight", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
   --font-display: "Bricolage Grotesque", var(--font-sans);
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* category palette (Material 400s) — donut slices, drill-down dots */
+  --cat-1: #42a5f5;
+  --cat-2: #66bb6a;
+  --cat-3: #ffa726;
+  --cat-4: #ab47bc;
+  --cat-5: #ef5350;
+  --cat-6: #26c6da;
+  --cat-7: #8d6e63;
 }
 
 html,

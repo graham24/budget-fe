@@ -56,6 +56,8 @@
 
       <div
         class="analysis-text"
+        :class="{ 'analysis-text--clamped': maxHeight }"
+        :style="maxHeight ? { maxHeight } : undefined"
         v-html="formattedAnalysis"
       />
     </div>
@@ -65,7 +67,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { getLatestBudgetAnalysis } from "../api";
-import { analysisToHtml } from "../markdown";
+import { analysisToHtml, dropSection } from "../markdown";
 
 const props = defineProps({
   householdId: {
@@ -76,14 +78,34 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  // Overview already renders targets as a live card ("Budget vs. actual"),
+  // so it hides the AI's prose version of that section rather than saying
+  // the same thing twice with different numbers — the prose reads the whole
+  // analysis window, the card reads the focus month. The dialog leaves it in.
+  hideTargetsSection: {
+    type: Boolean,
+    default: false,
+  },
+  // Callers that can't absorb an arbitrarily long analysis (the landing
+  // page's hero card, which is height-matched against the headline beside
+  // it) cap it and let the prose scroll. The Overview card runs full height.
+  maxHeight: {
+    type: String,
+    default: "",
+  },
 });
 
 const loading = ref(false);
 const latestAnalysis = ref(null);
 
+const TARGETS_HEADING = /^spending\s+vs\.?\s+targets$/i;
+
 const formattedAnalysis = computed(() => {
   if (!latestAnalysis.value) return "";
-  return analysisToHtml(latestAnalysis.value.analysis);
+  const body = props.hideTargetsSection
+    ? dropSection(latestAnalysis.value.analysis, TARGETS_HEADING)
+    : latestAnalysis.value.analysis;
+  return analysisToHtml(body);
 });
 
 // from/to are date-only boundaries — render in UTC so they don't shift a day
@@ -138,10 +160,13 @@ onMounted(() => {
 }
 
 .analysis-text {
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.75;
   color: rgba(var(--v-theme-on-surface), 0.87);
-  font-size: 0.9rem;
-  max-height: 420px;
+  text-wrap: pretty;
+}
+
+.analysis-text--clamped {
   overflow-y: auto;
   padding-right: 6px;
 }
@@ -153,7 +178,9 @@ onMounted(() => {
 .analysis-text :deep(h4),
 .analysis-text :deep(h5),
 .analysis-text :deep(h6) {
-  margin: 0.9em 0 0.4em;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  margin: 1.2em 0 0.45em;
   line-height: 1.3;
   color: rgba(var(--v-theme-on-surface), 1);
 }
@@ -163,30 +190,32 @@ onMounted(() => {
 }
 
 .analysis-text :deep(h4) {
-  font-size: 1.05rem;
+  font-size: 18px;
 }
 
 .analysis-text :deep(h5) {
-  font-size: 0.95rem;
+  font-size: 16px;
 }
 
 .analysis-text :deep(h6) {
-  font-size: 0.9rem;
+  font-size: 15px;
 }
 
 .analysis-text :deep(ul) {
-  margin: 0 0 1em;
-  padding-left: 1.3em;
+  margin: 0 0 1.4em;
+  padding-left: 20px;
+  display: grid;
+  gap: 12px;
 }
 
 .analysis-text :deep(li) {
-  margin-bottom: 0.3em;
+  margin-bottom: 0;
 }
 
 .analysis-text :deep(hr) {
   border: none;
-  border-top: 1px solid rgba(var(--v-theme-outline), 0.3);
-  margin: 1em 0;
+  border-top: 1px solid var(--hairline);
+  margin: 1.4em 0;
 }
 
 .analysis-text :deep(p:last-child) {

@@ -73,60 +73,71 @@ function deltaClass(tile) {
 </script>
 
 <template>
-  <div class="kpi-strip">
-    <SurfaceCard
-      v-for="tile in tiles"
-      :key="tile.label"
-      class="kpi"
-      padding="14px 16px"
-    >
-      <div class="pill">
-        {{ tile.label }}
-      </div>
-      <div class="kpi__value">
-        <template v-if="tile.percent">
-          {{ tile.value === null ? "—" : `${tile.value.toFixed(0)}%` }}
-        </template>
-        <template v-else>
-          {{ formatCurrency(tile.value) }}
-        </template>
-      </div>
-      <div
-        v-if="tile.delta !== null"
-        class="kpi__delta"
-        :class="deltaClass(tile)"
+  <!-- The strip is embedded at very different widths (full dashboard column,
+       narrow landing-page card), so it reflows on its own width rather than
+       the viewport's. -->
+  <div class="kpi-strip-wrap">
+    <div class="kpi-strip">
+      <SurfaceCard
+        v-for="tile in tiles"
+        :key="tile.label"
+        class="kpi"
+        padding="16px 18px"
       >
-        <v-icon
-          :icon="tile.delta >= 0 ? 'mdi-arrow-up-thin' : 'mdi-arrow-down-thin'"
-          size="16"
-        />
-        {{ formatCurrency(Math.abs(tile.delta)) }} vs {{ priorLabel }}
-      </div>
-      <div
-        v-else
-        class="kpi__delta muted"
-      >
-        {{ tile.caption }}
-      </div>
-    </SurfaceCard>
+        <div class="pill">
+          {{ tile.label }}
+        </div>
+        <div class="kpi__value">
+          <template v-if="tile.percent">
+            {{ tile.value === null ? "—" : `${tile.value.toFixed(0)}%` }}
+          </template>
+          <template v-else>
+            {{ formatCurrency(tile.value) }}
+          </template>
+        </div>
+        <div
+          v-if="tile.delta !== null"
+          class="kpi__delta"
+          :class="deltaClass(tile)"
+        >
+          <v-icon
+            :icon="tile.delta >= 0 ? 'mdi-arrow-up-thin' : 'mdi-arrow-down-thin'"
+            size="16"
+          />
+          {{ formatCurrency(Math.abs(tile.delta)) }} vs {{ priorLabel }}
+        </div>
+        <div
+          v-else
+          class="kpi__delta muted"
+        >
+          {{ tile.caption }}
+        </div>
+      </SurfaceCard>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.kpi-strip-wrap {
+  container-type: inline-size;
+}
 .kpi-strip {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: var(--gap);
+}
+.kpi {
+  min-width: 0;
 }
 .kpi__value {
-  font-size: 1.7rem;
+  font-size: 28px;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   line-height: 1.25;
-  margin: 2px 0;
+  margin: 4px 0;
 }
 .kpi__delta {
-  font-size: 0.8rem;
+  font-size: 12.5px;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -134,12 +145,32 @@ function deltaClass(tile) {
   white-space: nowrap;
 }
 
-@media (max-width: 960px) {
+/* two-up once four tiles would crowd, one-up on a phone */
+@container (max-width: 820px) {
   .kpi-strip {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
   .kpi__value {
-    font-size: 1.4rem;
+    font-size: 23px;
+  }
+}
+@container (max-width: 340px) {
+  .kpi-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* browsers without container queries keep the old viewport behaviour */
+@supports not (container-type: inline-size) {
+  @media (max-width: 960px) {
+    .kpi-strip {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .kpi__value {
+      font-size: 23px;
+    }
   }
 }
 </style>

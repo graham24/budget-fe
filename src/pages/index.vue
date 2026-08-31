@@ -75,6 +75,7 @@
               <BudgetAnalysisCard
                 v-if="householdId"
                 :household-id="householdId"
+                max-height="420px"
               />
               <p
                 v-else
@@ -971,6 +972,13 @@ onUnmounted(() => {
   color: var(--text-3);
   margin-bottom: 6px;
 }
+/* the embedded dashboard components bring their own eyebrow + title, so the
+   card's own label needs room rather than butting straight into theirs */
+.card-label + .kpi-strip-wrap,
+.card-label + .section-header,
+.card-label + .rec {
+  margin-top: 16px;
+}
 .card-title {
   font-family: var(--display);
   font-weight: 700;
@@ -1340,6 +1348,7 @@ onUnmounted(() => {
 }
 .tbl-cap:first-of-type {
   margin-top: 0;
+  margin-bottom: 18px;
 }
 
 /* ---------- recurring visual ---------- */

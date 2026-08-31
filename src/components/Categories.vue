@@ -1,49 +1,36 @@
 <script setup>
 import CategoryTable from "./common/CategoryTable.vue";
-import { useTransactionStore } from "../stores/transaction";
-import SurfaceCard from "./common/SurfaceCard.vue";
 import SectionHeader from "./common/SectionHeader.vue";
 
-const transactionStore = useTransactionStore();
+// One card, three stacked tables — the design keeps the drill-down flat
+// rather than nesting a card per group inside the section card.
+const groups = [
+  { label: "Must-Haves", title: "Rent, utilities, groceries", type: "expenses", need: true },
+  { label: "Nice-to-Haves", title: "Dining out, travel, fun", type: "expenses", need: false },
+  { label: "Income", title: "Primary earnings", type: "income", need: false },
+];
 </script>
+
 <template>
   <div class="category-stack">
-    <SurfaceCard
-      class="category-card"
-      padding="14px 14px 10px"
+    <section
+      v-for="group in groups"
+      :key="group.label"
+      class="category-group"
     >
       <SectionHeader
-        label="Income"
-        title="Primary earnings"
-      />
-      <CategoryTable :type="'income'" />
-    </SurfaceCard>
-    <SurfaceCard
-      class="category-card"
-      padding="14px 14px 10px"
-    >
-      <SectionHeader
-        label="Must-Haves"
-        title="Rent, utilities, groceries"
+        :label="group.label"
+        :title="group.title"
       />
       <CategoryTable
-        :type="'expenses'"
-        :need="true"
+        :type="group.type"
+        :need="group.need"
       />
-    </SurfaceCard>
-    <SurfaceCard
-      class="category-card"
-      padding="14px 14px 10px"
-    >
-      <SectionHeader
-        label="Nice-to-Haves"
-        title="Dining out, travel, fun"
-      />
-      <CategoryTable
-        :type="'expenses'"
-        :need="false"
-      />
-    </SurfaceCard>
+    </section>
+    <p class="category-caption muted">
+      Click a category for its subcategories, then a subcategory for its
+      transactions.
+    </p>
   </div>
 </template>
 
@@ -51,17 +38,15 @@ const transactionStore = useTransactionStore();
 .category-stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 26px;
 }
-.categories {
-  display: flex;
-  column-gap: 10px;
-  text-align: left;
+.category-caption {
+  margin: 0 4px;
+  font-size: 11.5px;
+  line-height: 1.5;
 }
-.category-rows {
-  display: grid;
-  grid-template-columns: 3fr 2fr 3fr;
-  column-gap: 10px;
-  text-align: left;
+.category-group + .category-group {
+  border-top: 1px solid var(--hairline);
+  padding-top: 22px;
 }
 </style>

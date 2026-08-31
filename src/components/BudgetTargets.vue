@@ -174,14 +174,15 @@ async function removeTarget(row) {
             class="target-row__numbers"
             :class="row.pct > 100 ? 'over' : ''"
           >
-            {{ formatCurrency(row.spent) }} / {{ formatCurrency(row.monthly_limit) }}
+            {{ formatCurrency(row.spent) }}
+            <span class="target-row__limit">/ {{ formatCurrency(row.monthly_limit) }}</span>
           </span>
         </div>
         <div class="target-row__bar">
           <v-progress-linear
             :model-value="Math.min(row.pct, 100)"
             :color="row.color"
-            height="8"
+            height="9"
             rounded
           />
           <span class="target-row__pct">{{ row.pct.toFixed(0) }}%</span>
@@ -220,22 +221,28 @@ async function removeTarget(row) {
 }
 .target-list {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 .target-row__top {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 10px;
+  margin-bottom: 6px;
   flex-wrap: wrap;
 }
 .target-row__category {
   font-weight: 600;
+  font-size: 14.5px;
 }
 .target-row__numbers {
-  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
   white-space: nowrap;
+}
+.target-row__limit {
+  color: rgba(var(--v-theme-on-surface), 0.55);
 }
 .target-row__numbers.over {
   color: rgb(var(--v-theme-error));
@@ -244,14 +251,14 @@ async function removeTarget(row) {
 .target-row__bar {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
 }
 .target-row__bar .v-progress-linear {
   flex: 1;
 }
 .target-row__pct {
-  font-size: 0.8rem;
-  min-width: 36px;
+  font-size: 12.5px;
+  min-width: 34px;
   text-align: right;
 }
 </style>

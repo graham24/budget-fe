@@ -120,11 +120,12 @@ const totalSpent = computed(() =>
 .spending-mix {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 24px;
 }
 .donut {
-  width: 150px;
-  min-width: 130px;
+  width: 168px;
+  min-width: 140px;
+  flex: none;
 }
 .donut__total {
   font-size: 4.5px;
@@ -137,15 +138,14 @@ const totalSpent = computed(() =>
 }
 .legend {
   display: grid;
-  gap: 6px;
+  gap: 9px;
   flex: 1;
   min-width: 0;
 }
 .legend-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.88rem;
+  gap: 10px;
 }
 .legend-dot {
   width: 10px;
@@ -155,13 +155,23 @@ const totalSpent = computed(() =>
 }
 .legend-label {
   flex: 1;
+  font-size: 14px;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .legend-amount {
   white-space: nowrap;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13.5px;
   font-weight: 600;
+}
+.legend-amount .muted {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 400;
 }
 @media (max-width: 600px) {
   .spending-mix {

@@ -197,17 +197,12 @@ const focusMonthLabel = computed(() => {
       v-else-if="!loading"
       fluid
     >
-      <header class="page-header">
-        <div class="page-header__text">
-          <p class="pill mb-1">
-            {{ windowLabel }}
-          </p>
-          <h1 class="page-title">
-            {{ householdStore.household?.household?.name ?? "Household" }}
-          </h1>
-        </div>
-        <div class="page-header__actions">
-          <div class="month-pager">
+      <header class="board-head">
+        <div class="board-head__pager">
+          <div
+            class="month-pager"
+            :title="windowLabel"
+          >
             <v-btn
               icon="mdi-chevron-left"
               variant="text"
@@ -216,7 +211,14 @@ const focusMonthLabel = computed(() => {
               :disabled="transactionsStore.monthsAgo >= 2"
               @click="transactionsStore.monthsAgo += 1"
             />
-            <span class="month-pager__label">{{ focusMonthLabel }}</span>
+            <span class="month-pager__label">
+              <v-icon
+                icon="mdi-calendar-month-outline"
+                size="16"
+                color="primary"
+              />
+              {{ focusMonthLabel }}
+            </span>
             <v-btn
               icon="mdi-chevron-right"
               variant="text"
@@ -226,21 +228,22 @@ const focusMonthLabel = computed(() => {
               @click="transactionsStore.monthsAgo -= 1"
             />
           </div>
+        </div>
+        <div class="board-head__actions">
           <v-btn
             color="primary"
             variant="flat"
-            prepend-icon="mdi-upload"
+            prepend-icon="mdi-tray-arrow-down"
             @click="showDialog = true"
           >
             Import
           </v-btn>
           <v-btn
             variant="outlined"
-            prepend-icon="mdi-chart-line"
+            prepend-icon="mdi-flash-outline"
             @click="showAnalysisDialog = true"
           >
-            {{ smAndDown ?
-              "Analysis" : "Generate analysis" }}
+            {{ smAndDown ? "Analysis" : "Generate analysis" }}
           </v-btn>
           <v-btn
             variant="text"
@@ -288,12 +291,17 @@ const focusMonthLabel = computed(() => {
         />
       </Dialog>
 
+      <!-- underline tabs on desktop; a fixed bottom bar on phones, where
+           thumbs live at the bottom of the screen -->
       <v-tabs
         v-model="activeTab"
         color="primary"
-        class="nav-tabs mb-5"
+        class="nav-tabs"
+        :class="smAndDown ? 'nav-tabs--bottom' : 'mb-5'"
         :grow="smAndDown"
-        density="comfortable"
+        :stacked="smAndDown"
+        :hide-slider="smAndDown"
+        :density="smAndDown ? 'default' : 'comfortable'"
       >
         <v-tab
           value="overview"
@@ -302,16 +310,16 @@ const focusMonthLabel = computed(() => {
           Overview
         </v-tab>
         <v-tab
-          value="insights"
-          prepend-icon="mdi-lightbulb-on-outline"
-        >
-          Insights
-        </v-tab>
-        <v-tab
           value="net-worth"
           prepend-icon="mdi-scale-balance"
         >
           Net Worth
+        </v-tab>
+        <v-tab
+          value="insights"
+          prepend-icon="mdi-lightbulb-on-outline"
+        >
+          Insights
         </v-tab>
         <v-tab
           value="transactions"
@@ -333,91 +341,63 @@ const focusMonthLabel = computed(() => {
         :touch="false"
       >
         <v-window-item value="overview">
-          <v-row
-            dense
+          <div
+            class="board"
             :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
           >
-            <v-col cols="12">
-              <KpiStrip />
-            </v-col>
-            <v-col
+            <KpiStrip />
+            <NetWorthSummaryBar
               v-if="netWorthStore.items.length"
-              cols="12"
-            >
-              <NetWorthSummaryBar @details="activeTab = 'net-worth'" />
-            </v-col>
-            <v-col
-              cols="12"
-              md="6"
-            >
-              <SurfaceCard
-                class="panel-card fill-height"
-                padding="14px 16px"
-              >
+              @details="activeTab = 'net-worth'"
+            />
+
+            <!-- full width: the sparkline is the one chart that wants room -->
+            <SurfaceCard class="panel-card">
+              <SectionHeader
+                label="Cash flow"
+                title="Net income & trend"
+              />
+              <CashFlow />
+            </SurfaceCard>
+
+            <div class="band">
+              <SurfaceCard class="panel-card">
                 <SectionHeader
-                  label="AI Insights"
-                  title="Budget Analysis"
-                  subtitle="AI-powered analysis of your spending patterns and recommendations."
+                  label="Mix"
+                  title="Where the money went"
                 />
-                <BudgetAnalysisCard
-                  v-if="householdStore.household"
-                  :household-id="householdStore.household.household.id"
-                  :refresh-trigger="analysisRefreshTrigger"
-                />
+                <SpendingMix />
               </SurfaceCard>
-            </v-col>
-            <v-col
-              cols="12"
-              md="6"
-            >
-              <div class="stack gap-md stack-fill fill-height">
-                <SurfaceCard
-                  class="panel-card"
-                  padding="14px 16px"
-                >
-                  <SectionHeader
-                    label="Cash flow"
-                    title="Net income & trend"
-                  />
-                  <CashFlow />
-                </SurfaceCard>
-                <SurfaceCard
-                  class="panel-card"
-                  padding="14px 16px"
-                >
-                  <SectionHeader
-                    label="Mix"
-                    title="Where the money went"
-                  />
-                  <SpendingMix />
-                </SurfaceCard>
-              </div>
-            </v-col>
-            <v-col
-              cols="12"
-              sm="6"
-              md="6"
-            >
-              <SurfaceCard
-                class="fill-height"
-                padding="14px 16px"
-              >
+              <SurfaceCard>
                 <SectionHeader
                   label="50/30/20"
                   title="Budget rule check"
                 />
                 <FiftyThirtyTwenty />
               </SurfaceCard>
-            </v-col>
-            <v-col
-              cols="12"
-              sm="6"
-              md="6"
+            </div>
+
+            <!-- the written debrief, then the two reference panels under it -->
+            <SurfaceCard
+              class="analysis-card"
+              padding="26px 30px"
             >
-              <SurfaceCard
-                class="panel-card fill-height"
-                padding="14px 16px"
-              >
+              <SectionHeader
+                label="AI Insights"
+                title="Budget Analysis"
+                subtitle="AI-powered analysis of your spending patterns and recommendations."
+              />
+              <div class="analysis-card__rule" />
+              <BudgetAnalysisCard
+                v-if="householdStore.household"
+                :household-id="householdStore.household.household.id"
+                :refresh-trigger="analysisRefreshTrigger"
+                hide-targets-section
+              />
+            </SurfaceCard>
+
+            <div class="band">
+              <SurfaceCard class="panel-card">
                 <SectionHeader
                   label="Targets"
                   title="Budget vs. actual"
@@ -425,38 +405,7 @@ const focusMonthLabel = computed(() => {
                 />
                 <BudgetTargets />
               </SurfaceCard>
-            </v-col>
-          </v-row>
-        </v-window-item>
-
-        <v-window-item value="insights">
-          <v-row
-            dense
-            :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
-          >
-            <v-col
-              cols="12"
-              md="8"
-            >
-              <SurfaceCard
-                class="panel-card fill-height"
-                padding="14px 16px"
-              >
-                <SectionHeader
-                  label="Categories"
-                  title="Spending by category"
-                />
-                <Categories />
-              </SurfaceCard>
-            </v-col>
-            <v-col
-              cols="12"
-              md="4"
-            >
-              <SurfaceCard
-                class="fill-height"
-                padding="12px 14px"
-              >
+              <SurfaceCard class="panel-card">
                 <SectionHeader
                   label="Fixed costs"
                   title="Recurring charges"
@@ -464,70 +413,62 @@ const focusMonthLabel = computed(() => {
                 />
                 <RecurringCosts />
               </SurfaceCard>
-            </v-col>
-          </v-row>
+            </div>
+          </div>
         </v-window-item>
 
         <v-window-item value="net-worth">
-          <v-row dense>
-            <v-col cols="12">
-              <NetWorthKpis />
-            </v-col>
-            <v-col cols="12">
-              <SurfaceCard
-                class="panel-card"
-                padding="14px 16px"
-              >
-                <SectionHeader
-                  label="Trend"
-                  title="Net worth over time"
-                  subtitle="Monthly snapshots; balances carry forward between updates."
-                />
-                <NetWorthTrend />
-              </SurfaceCard>
-            </v-col>
-            <v-col
-              cols="12"
-              md="6"
-            >
-              <SurfaceCard
-                class="panel-card fill-height"
-                padding="14px 16px"
-              >
+          <div class="board">
+            <NetWorthKpis />
+            <SurfaceCard class="panel-card">
+              <SectionHeader
+                label="Trend"
+                title="Net worth over time"
+                subtitle="Monthly snapshots; balances carry forward between updates."
+              />
+              <NetWorthTrend />
+            </SurfaceCard>
+            <div class="band">
+              <SurfaceCard class="panel-card">
                 <SectionHeader
                   label="Assets"
                   title="What you own"
                 />
                 <NetWorthItems kind="asset" />
               </SurfaceCard>
-            </v-col>
-            <v-col
-              cols="12"
-              md="6"
-            >
-              <SurfaceCard
-                class="panel-card fill-height"
-                padding="14px 16px"
-              >
+              <SurfaceCard class="panel-card">
                 <SectionHeader
                   label="Debts"
                   title="What you owe"
                 />
                 <NetWorthItems kind="debt" />
               </SurfaceCard>
-            </v-col>
-          </v-row>
+            </div>
+          </div>
+        </v-window-item>
+
+        <v-window-item value="insights">
+          <div
+            class="board"
+            :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
+          >
+            <SurfaceCard class="panel-card">
+              <SectionHeader
+                label="Categories"
+                title="Where the money went"
+                subtitle="Three months side by side. Drill into a category for its subcategories, then into a subcategory for the transactions behind all three months."
+              />
+              <Categories />
+            </SurfaceCard>
+          </div>
         </v-window-item>
 
         <v-window-item value="transactions">
           <div
-            class="stack gap-md"
+            class="board"
             :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
           >
-            <SurfaceCard
-              class="panel-card"
-              padding="14px 16px"
-            >
+            <SurfaceCard class="panel-card">
               <SectionHeader
                 label="All activity"
                 title="Transactions"
@@ -567,6 +508,13 @@ const focusMonthLabel = computed(() => {
   position: relative;
 }
 
+/* The desktop shell from the design: one centred measure, generous
+   bottom padding, everything on a 16px rhythm. */
+#home .v-container {
+  max-width: var(--page-max);
+  padding: 24px 32px 44px;
+}
+
 .muted {
   color: rgba(var(--v-theme-on-background), 0.65);
 }
@@ -581,55 +529,99 @@ const focusMonthLabel = computed(() => {
 }
 
 /* children share the column height evenly */
-.stack-fill>* {
+.stack-fill > * {
   flex: 1 1 0;
 }
 
-/* Page header: big title left, pager + actions right */
-.page-header {
+/* Tab content: a vertical stack of full-width cards and two-column bands */
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.band {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  align-items: stretch;
+}
+
+/* Control row above the tabs: month pager left, page actions right */
+.board-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  margin: 12px 4px 18px;
+  margin-bottom: 14px;
 }
 
-.page-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: -0.015em;
-  line-height: 1.2;
-}
-
-.page-header__actions {
+.board-head__actions {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-/* Segmented month pager: ‹ June 2026 › */
+/* Segmented month pager: ‹ 📅 June 2026 › */
 .month-pager {
   display: flex;
   align-items: center;
   gap: 2px;
   background: rgb(var(--v-theme-surface));
-  border: 1px solid rgba(var(--v-theme-outline), 0.9);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   padding: 2px 4px;
 }
 
 .month-pager__label {
-  font-weight: 700;
-  font-size: 0.875rem;
-  min-width: 110px;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13.5px;
+  min-width: 132px;
+  justify-content: center;
 }
 
 /* Underline nav instead of a boxed tab card */
 .nav-tabs {
-  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.9);
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* Phone: the same tabs become a fixed bottom bar. Icons over labels, a
+   hairline on top instead of the bottom, and the home-indicator inset added
+   to the padding so the labels clear it. */
+.nav-tabs--bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: rgb(var(--v-theme-surface));
+  border-bottom: none;
+  border-top: 1px solid var(--hairline);
+  box-shadow: 0 -1px 2px rgba(16, 24, 40, 0.05);
+  padding: 8px 4px 4px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+}
+.nav-tabs--bottom .v-tab {
+  min-width: 0;
+  min-height: 52px;
+  padding: 0 4px;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.nav-tabs--bottom .v-tab .v-icon {
+  margin-bottom: 2px;
+}
+
+/* Full-width analysis card: prose at a fixed measure, table on the right */
+.analysis-card__rule {
+  border-top: 1px solid rgba(var(--v-theme-outline), 0.8);
+  margin: 6px 0 22px;
 }
 
 /* let card shadows breathe inside the window */
@@ -646,29 +638,42 @@ const focusMonthLabel = computed(() => {
   transition: opacity 0.15s ease;
 }
 
+@media (max-width: 960px) {
+  .band {
+    grid-template-columns: 1fr;
+  }
+  /* bottom padding clears the fixed tab bar */
+  #home .v-container {
+    padding: 18px 20px calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 @media (max-width: 600px) {
   #home .v-container {
-    padding: 6px 4px;
+    padding: 12px 12px calc(92px + env(safe-area-inset-bottom, 0px));
   }
 
-  .page-header {
+  .board,
+  .band {
+    gap: 12px;
+  }
+
+  .board-head {
     align-items: stretch;
     flex-direction: column;
-    margin: 8px 4px 14px;
   }
 
   .month-pager {
     justify-content: space-between;
-    flex: 1 1 100%;
   }
 
   .month-pager__label {
     flex: 1;
   }
 
-  .nav-tabs .v-tab {
-    min-width: 0;
-    padding: 0 8px;
+  .board-head__actions .v-btn {
+    flex: 1;
   }
+
 }
 </style>

@@ -9,8 +9,8 @@
         <div class="top-bar__brand">
           <div class="brand-mark">
             <svg
-              width="18"
-              height="18"
+              width="17"
+              height="17"
               viewBox="0 0 24 24"
               fill="none"
               stroke="rgb(var(--v-theme-primary))"
@@ -19,6 +19,14 @@
             ><path d="M4 18h4M4 12h9M4 6h13" /></svg>
           </div>
           <span class="top-bar__name">Debrief</span>
+          <span
+            v-if="householdName"
+            class="top-bar__divider"
+          />
+          <span
+            v-if="householdName"
+            class="top-bar__household"
+          >{{ householdName }}</span>
         </div>
         <div class="top-bar__actions">
           <v-btn
@@ -86,7 +94,10 @@
               />
             </v-list>
           </v-menu>
-          <span class="top-bar__user muted">{{ displayName }}</span>
+          <span
+            class="avatar"
+            :title="displayName"
+          >{{ initials }}</span>
           <v-btn
             variant="outlined"
             density="comfortable"
@@ -192,6 +203,15 @@ function openSimplefinWizard() {
 const displayName = computed(
   () => authStore.user?.first_name ?? "there"
 );
+const householdName = computed(
+  () => householdStore.household?.household?.name ?? ""
+);
+// 32px avatar tile in the top bar — initials stand in for a photo
+const initials = computed(() => {
+  const user = authStore.user;
+  const letters = `${user?.first_name?.[0] ?? ""}${user?.last_name?.[0] ?? ""}`;
+  return letters.toUpperCase() || "?";
+});
 
 onMounted(() => {
   const storedTheme = localStorage.getItem("preferred-theme");
@@ -257,54 +277,88 @@ watch(themeName, (val) => {
   position: sticky;
   top: 0;
   z-index: 10;
-  height: 56px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 0 20px;
+  gap: 14px;
+  padding: 0 32px;
   background: rgb(var(--v-theme-surface));
-  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.9);
+  border-bottom: 1px solid var(--hairline);
 }
 .top-bar__brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
+  min-width: 0;
 }
 .top-bar__name {
+  font-family: var(--font-display);
   font-weight: 800;
-  letter-spacing: -0.01em;
-  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+  font-size: 18px;
+}
+.top-bar__divider {
+  width: 1px;
+  height: 22px;
+  background: var(--hairline);
+  flex: none;
+}
+.top-bar__household {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(var(--v-theme-on-surface), 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .top-bar__actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-.top-bar__user {
-  font-size: 0.875rem;
-  font-weight: 600;
+  gap: 8px;
 }
 
 .brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-xs);
   display: grid;
   place-items: center;
   background: rgba(var(--v-theme-primary), 0.12);
   border: 1px solid rgba(var(--v-theme-primary), 0.2);
+  flex: none;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(var(--v-theme-primary), 0.14);
+  color: rgb(var(--v-theme-primary));
+  font-size: 12.5px;
+  font-weight: 700;
+  flex: none;
 }
 
 .app-main {
-  padding: 4px 8px 16px;
+  padding: 0 0 16px;
+}
+
+@media (max-width: 1280px) {
+  .top-bar {
+    padding: 0 20px;
+  }
 }
 
 @media (max-width: 600px) {
   .top-bar {
     padding: 0 12px;
+    gap: 8px;
   }
-  .top-bar__user {
+  .top-bar__divider,
+  .top-bar__household {
     display: none;
   }
   .app-main {

@@ -66,7 +66,7 @@ const rows = computed(() => {
         <v-progress-linear
           :model-value="Math.min(Math.max(row.pct, 0), 100)"
           :color="row.color"
-          height="8"
+          height="9"
           rounded
         />
         <div
@@ -75,7 +75,7 @@ const rows = computed(() => {
         />
       </div>
     </div>
-    <p class="muted text-caption mt-1 mb-0">
+    <p class="muted rule-note mb-0">
       50/30/20 rule: needs / wants / savings as a share of income.
       Tick marks show the targets.
     </p>
@@ -91,23 +91,29 @@ const rows = computed(() => {
 <style scoped>
 .fifty-rule {
   display: grid;
-  gap: 10px;
+  gap: 16px;
 }
 .rule-row__labels {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 3px;
+  margin-bottom: 6px;
 }
 .rule-row__name {
   font-weight: 600;
+  font-size: 14.5px;
 }
 .rule-row__pct {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 13.5px;
 }
 .rule-row__track {
   position: relative;
+}
+.rule-note {
+  font-size: 12.5px;
+  line-height: 1.55;
+  margin-top: 6px;
 }
 .rule-row__marker {
   position: absolute;

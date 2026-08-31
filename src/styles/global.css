@@ -18,14 +18,20 @@ h1, h2, h3, h4, h5, h6,
 
 /* Quiet, uppercase micro-labels for all table headers */
 .v-table thead th,
-.v-data-table thead th {
+.v-data-table thead th,
+.col-head {
   font-family: var(--font-mono);
-  font-size: 0.68rem !important;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.16em;
   font-weight: 500 !important;
-  color: rgba(var(--v-theme-on-surface), 0.55) !important;
+  color: rgba(var(--v-theme-on-surface), 0.5) !important;
   white-space: nowrap;
+}
+
+/* The focus month's column reads as the subject of every table */
+.col-head--focus {
+  color: rgb(var(--v-theme-primary)) !important;
 }
 
 /* Thin, unobtrusive scrollbars for scrolling cards/tables */
@@ -51,7 +57,7 @@ h1, h2, h3, h4, h5, h6,
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   padding: var(--pad);
-  border: 1px solid rgba(var(--v-theme-outline), 0.9);
+  border: 1px solid var(--hairline);
 }
 
 .card--sm {
@@ -71,19 +77,16 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .table thead th {
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: rgb(var(--v-theme-secondary));
-  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.5);
-  background: rgba(var(--v-theme-primary), 0.06);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--row-tint);
 }
 
 .table tbody tr {
-  border-bottom: 1px solid rgba(var(--v-theme-outline), 0.3);
+  border-bottom: 1px solid var(--hairline-soft);
 }
 
 .table tbody tr:hover {
-  background: rgba(var(--v-theme-primary), 0.05);
+  background: var(--row-open);
 }
 
 /* Utility spacing */
@@ -133,4 +136,26 @@ h1, h2, h3, h4, h5, h6,
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* Card headings use the display face at the card scale from the design */
+.card-title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+/* Prose set to a fixed reading measure — AI analysis, narrative cards */
+.prose {
+  font-size: 15px;
+  line-height: 1.75;
+  color: rgba(var(--v-theme-on-surface), 0.87);
+  text-wrap: pretty;
+}
+
+/* Row separators shared by the hand-rolled grid tables */
+.hairline-row {
+  border-bottom: 1px solid var(--hairline-soft);
 }

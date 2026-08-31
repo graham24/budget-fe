@@ -61,3 +61,32 @@ export function analysisToHtml(markdown: string): string {
   closeList();
   return html.join("\n");
 }
+
+// Drops one `#`-headed section (the heading and everything under it, up to
+// the next heading at the same or a higher level) from an analysis body.
+// Overview renders targets as their own card, so the AI's prose version of
+// that section would otherwise repeat it on the same tab with different
+// numbers — the prose reads the whole analysis window, the card reads the
+// focus month.
+export function dropSection(markdown: string, headingPattern: RegExp): string {
+  const lines = markdown.split("\n");
+  const out: string[] = [];
+  let skippingAtLevel: number | null = null;
+
+  for (const line of lines) {
+    const heading = line.trim().match(/^(#{1,6})\s+(.*)$/);
+    if (heading) {
+      const level = heading[1].length;
+      if (skippingAtLevel !== null && level <= skippingAtLevel) {
+        skippingAtLevel = null;
+      }
+      if (skippingAtLevel === null && headingPattern.test(heading[2].trim())) {
+        skippingAtLevel = level;
+        continue;
+      }
+    }
+    if (skippingAtLevel === null) out.push(line);
+  }
+
+  return out.join("\n").trim();
+}
