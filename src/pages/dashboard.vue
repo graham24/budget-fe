@@ -1,7 +1,7 @@
 <script setup>
 import { defineComponent } from "vue";
 import { ref, computed, watch } from "vue";
-import { onMounted } from "vue";
+import { onMounted, onBeforeUnmount } from "vue";
 import Transactions from "../components/Transactions.vue";
 import ImportForm from "../components/ImportForm.vue";
 import BudgetAnalysisDialog from "../components/BudgetAnalysisDialog.vue";
@@ -21,6 +21,7 @@ import NetWorthItems from "../components/NetWorthItems.vue";
 import NetWorthSummaryBar from "../components/NetWorthSummaryBar.vue";
 import SurfaceCard from "../components/common/SurfaceCard.vue";
 import SectionHeader from "../components/common/SectionHeader.vue";
+import PullToRefresh from "../components/common/PullToRefresh.vue";
 import OnboardingWizard from "../components/OnboardingWizard.vue";
 import SubscribeGate from "../components/SubscribeGate.vue";
 import { useHouseholdStore } from "../stores/household";
@@ -128,12 +129,7 @@ onMounted(async () => {
       // 402s every one of these calls anyway) — skip straight to the gate.
       return;
     }
-    await Promise.all([
-      accountsStore.fetchAccounts(),
-      transactionsStore.fetchTransactions(),
-      userStore.fetchUsers(),
-      netWorthStore.fetchAll(),
-    ]);
+    await fetchHouseholdData();
     if (!accountsStore.accounts.accounts.length) {
       showOnboarding.value = true;
     }
@@ -143,6 +139,54 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+// Everything that hangs off the household, fetched in parallel. Shared by
+// the initial load and every refresh.
+async function fetchHouseholdData() {
+  await Promise.all([
+    accountsStore.fetchAccounts(),
+    transactionsStore.fetchTransactions(),
+    userStore.fetchUsers(),
+    netWorthStore.fetchAll(),
+  ]);
+  lastLoadedAt.value = Date.now();
+}
+
+// Installed as a PWA there is no browser reload button, so the dashboard
+// needs its own ways back to fresh data: pull down at the top of the page,
+// and an automatic refetch when the app is brought back to the foreground
+// after sitting in the background.
+const lastLoadedAt = ref(Date.now());
+const STALE_AFTER_MS = 5 * 60 * 1000;
+
+async function refreshAll() {
+  try {
+    await householdStore.fetchHousehold();
+    if (needsSubscription.value) return;
+    await fetchHouseholdData();
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+// `done` resolves the promise PullToRefresh is awaiting, so the spinner
+// stays up for exactly as long as the fetches do.
+async function handlePullRefresh(done) {
+  await refreshAll();
+  done();
+}
+
+async function onVisibilityChange() {
+  if (document.visibilityState !== "visible") return;
+  if (loading.value || needsSubscription.value) return;
+  if (Date.now() - lastLoadedAt.value < STALE_AFTER_MS) return;
+  await refreshAll();
+}
+
+onMounted(() => document.addEventListener("visibilitychange", onVisibilityChange));
+onBeforeUnmount(() =>
+  document.removeEventListener("visibilitychange", onVisibilityChange)
+);
 defineOptions({
   components: {
     Transactions,
@@ -193,293 +237,296 @@ const focusMonthLabel = computed(() => {
     <v-container v-if="!loading && needsSubscription">
       <SubscribeGate :lapsed="subscriptionLapsed" />
     </v-container>
-    <v-container
+    <PullToRefresh
       v-else-if="!loading"
-      fluid
+      :disabled="!smAndDown"
+      @refresh="handlePullRefresh"
     >
-      <header class="board-head">
-        <div class="board-head__pager">
-          <div
-            class="month-pager"
-            :title="windowLabel"
-          >
-            <v-btn
-              icon="mdi-chevron-left"
-              variant="text"
-              density="comfortable"
-              aria-label="Previous month"
-              :disabled="transactionsStore.monthsAgo >= 2"
-              @click="transactionsStore.monthsAgo += 1"
-            />
-            <span class="month-pager__label">
-              <v-icon
-                icon="mdi-calendar-month-outline"
-                size="16"
-                color="primary"
-              />
-              {{ focusMonthLabel }}
-            </span>
-            <v-btn
-              icon="mdi-chevron-right"
-              variant="text"
-              density="comfortable"
-              aria-label="Next month"
-              :disabled="transactionsStore.monthsAgo <= -1"
-              @click="transactionsStore.monthsAgo -= 1"
-            />
-          </div>
-        </div>
-        <div class="board-head__actions">
-          <v-btn
-            color="primary"
-            variant="flat"
-            prepend-icon="mdi-tray-arrow-down"
-            @click="showDialog = true"
-          >
-            Import
-          </v-btn>
-          <v-btn
-            variant="outlined"
-            prepend-icon="mdi-flash-outline"
-            @click="showAnalysisDialog = true"
-          >
-            {{ smAndDown ? "Analysis" : "Generate analysis" }}
-          </v-btn>
-          <v-btn
-            variant="text"
-            prepend-icon="mdi-tag-multiple"
-            @click="showRulesDialog = true"
-          >
-            Rules
-          </v-btn>
-        </div>
-      </header>
-
-      <Dialog
-        v-model="showDialog"
-        title="Import Transactions"
-        max-width="900"
-      >
-        <ImportForm @update:is-open="showDialog = $event" />
-      </Dialog>
-      <Dialog
-        v-model="showRulesDialog"
-        title="Category Rules"
-      >
-        <CategoryRulesManager v-if="showRulesDialog" />
-      </Dialog>
-      <Dialog
-        v-model="showAnalysisDialog"
-        title="Budget Analysis"
-        max-width="800"
-      >
-        <BudgetAnalysisDialog
-          v-if="showAnalysisDialog && authStore.user && householdStore.household"
-          :user-id="authStore.user.id"
-          :household-id="householdStore.household.household.id"
-          @success="handleAnalysisGenerated"
-        />
-      </Dialog>
-      <Dialog
-        v-model="showOnboarding"
-        title="Set up your household"
-        max-width="640"
-      >
-        <OnboardingWizard
-          v-if="showOnboarding"
-          @done="showOnboarding = false"
-        />
-      </Dialog>
-
-      <!-- underline tabs on desktop; a fixed bottom bar on phones, where
-           thumbs live at the bottom of the screen -->
-      <v-tabs
-        v-model="activeTab"
-        color="primary"
-        class="nav-tabs"
-        :class="smAndDown ? 'nav-tabs--bottom' : 'mb-5'"
-        :grow="smAndDown"
-        :stacked="smAndDown"
-        :hide-slider="smAndDown"
-        :density="smAndDown ? 'default' : 'comfortable'"
-      >
-        <v-tab
-          value="overview"
-          prepend-icon="mdi-view-dashboard-outline"
-        >
-          Overview
-        </v-tab>
-        <v-tab
-          value="net-worth"
-          prepend-icon="mdi-scale-balance"
-        >
-          Net Worth
-        </v-tab>
-        <v-tab
-          value="insights"
-          prepend-icon="mdi-lightbulb-on-outline"
-        >
-          Insights
-        </v-tab>
-        <v-tab
-          value="transactions"
-          prepend-icon="mdi-format-list-bulleted"
-        >
-          Transactions
-          <v-badge
-            v-if="transactionsStore.unknownTransactions.length"
-            color="warning"
-            :content="transactionsStore.unknownTransactions.length"
-            inline
-          />
-        </v-tab>
-      </v-tabs>
-
-      <!-- touch disabled so swiping inside scrollable tables doesn't switch tabs -->
-      <v-window
-        v-model="activeTab"
-        :touch="false"
-      >
-        <v-window-item value="overview">
-          <div
-            class="board"
-            :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
-          >
-            <KpiStrip />
-            <NetWorthSummaryBar
-              v-if="netWorthStore.items.length"
-              @details="activeTab = 'net-worth'"
-            />
-
-            <!-- full width: the sparkline is the one chart that wants room -->
-            <SurfaceCard class="panel-card">
-              <SectionHeader
-                label="Cash flow"
-                title="Net income & trend"
-              />
-              <CashFlow />
-            </SurfaceCard>
-
-            <div class="band">
-              <SurfaceCard class="panel-card">
-                <SectionHeader
-                  label="Mix"
-                  title="Where the money went"
-                />
-                <SpendingMix />
-              </SurfaceCard>
-              <SurfaceCard>
-                <SectionHeader
-                  label="50/30/20"
-                  title="Budget rule check"
-                />
-                <FiftyThirtyTwenty />
-              </SurfaceCard>
-            </div>
-
-            <!-- the written debrief, then the two reference panels under it -->
-            <SurfaceCard
-              class="analysis-card"
-              padding="26px 30px"
+      <v-container fluid>
+        <header class="board-head">
+          <div class="board-head__pager">
+            <div
+              class="month-pager"
+              :title="windowLabel"
             >
-              <SectionHeader
-                label="AI Insights"
-                title="Budget Analysis"
-                subtitle="AI-powered analysis of your spending patterns and recommendations."
+              <v-btn
+                icon="mdi-chevron-left"
+                variant="text"
+                density="comfortable"
+                aria-label="Previous month"
+                :disabled="transactionsStore.monthsAgo >= 2"
+                @click="transactionsStore.monthsAgo += 1"
               />
-              <div class="analysis-card__rule" />
-              <BudgetAnalysisCard
-                v-if="householdStore.household"
-                :household-id="householdStore.household.household.id"
-                :refresh-trigger="analysisRefreshTrigger"
-                hide-targets-section
+              <span class="month-pager__label">
+                <v-icon
+                  icon="mdi-calendar-month-outline"
+                  size="16"
+                  color="primary"
+                />
+                {{ focusMonthLabel }}
+              </span>
+              <v-btn
+                icon="mdi-chevron-right"
+                variant="text"
+                density="comfortable"
+                aria-label="Next month"
+                :disabled="transactionsStore.monthsAgo <= -1"
+                @click="transactionsStore.monthsAgo -= 1"
               />
-            </SurfaceCard>
-
-            <div class="band">
-              <SurfaceCard class="panel-card">
-                <SectionHeader
-                  label="Targets"
-                  title="Budget vs. actual"
-                  subtitle="Focus-month spending against your monthly limits."
-                />
-                <BudgetTargets />
-              </SurfaceCard>
-              <SurfaceCard class="panel-card">
-                <SectionHeader
-                  label="Fixed costs"
-                  title="Recurring charges"
-                  subtitle="Charges seen 3+ months in a row at a similar amount."
-                />
-                <RecurringCosts />
-              </SurfaceCard>
             </div>
           </div>
-        </v-window-item>
+          <div class="board-head__actions">
+            <v-btn
+              color="primary"
+              variant="flat"
+              prepend-icon="mdi-tray-arrow-down"
+              @click="showDialog = true"
+            >
+              Import
+            </v-btn>
+            <v-btn
+              variant="outlined"
+              prepend-icon="mdi-flash-outline"
+              @click="showAnalysisDialog = true"
+            >
+              {{ smAndDown ? "Analysis" : "Generate analysis" }}
+            </v-btn>
+            <v-btn
+              variant="text"
+              prepend-icon="mdi-tag-multiple"
+              @click="showRulesDialog = true"
+            >
+              Rules
+            </v-btn>
+          </div>
+        </header>
 
-        <v-window-item value="net-worth">
-          <div class="board">
-            <NetWorthKpis />
-            <SurfaceCard class="panel-card">
-              <SectionHeader
-                label="Trend"
-                title="Net worth over time"
-                subtitle="Monthly snapshots; balances carry forward between updates."
+        <Dialog
+          v-model="showDialog"
+          title="Import Transactions"
+          max-width="900"
+        >
+          <ImportForm @update:is-open="showDialog = $event" />
+        </Dialog>
+        <Dialog
+          v-model="showRulesDialog"
+          title="Category Rules"
+        >
+          <CategoryRulesManager v-if="showRulesDialog" />
+        </Dialog>
+        <Dialog
+          v-model="showAnalysisDialog"
+          title="Budget Analysis"
+          max-width="800"
+        >
+          <BudgetAnalysisDialog
+            v-if="showAnalysisDialog && authStore.user && householdStore.household"
+            :user-id="authStore.user.id"
+            :household-id="householdStore.household.household.id"
+            @success="handleAnalysisGenerated"
+          />
+        </Dialog>
+        <Dialog
+          v-model="showOnboarding"
+          title="Set up your household"
+          max-width="640"
+        >
+          <OnboardingWizard
+            v-if="showOnboarding"
+            @done="showOnboarding = false"
+          />
+        </Dialog>
+
+        <!-- underline tabs on desktop; a fixed bottom bar on phones, where
+           thumbs live at the bottom of the screen -->
+        <v-tabs
+          v-model="activeTab"
+          color="primary"
+          class="nav-tabs"
+          :class="smAndDown ? 'nav-tabs--bottom' : 'mb-5'"
+          :grow="smAndDown"
+          :stacked="smAndDown"
+          :hide-slider="smAndDown"
+          :density="smAndDown ? 'default' : 'comfortable'"
+        >
+          <v-tab
+            value="overview"
+            prepend-icon="mdi-view-dashboard-outline"
+          >
+            Overview
+          </v-tab>
+          <v-tab
+            value="net-worth"
+            prepend-icon="mdi-scale-balance"
+          >
+            Net Worth
+          </v-tab>
+          <v-tab
+            value="insights"
+            prepend-icon="mdi-lightbulb-on-outline"
+          >
+            Insights
+          </v-tab>
+          <v-tab
+            value="transactions"
+            prepend-icon="mdi-format-list-bulleted"
+          >
+            Transactions
+            <v-badge
+              v-if="transactionsStore.unknownTransactions.length"
+              color="warning"
+              :content="transactionsStore.unknownTransactions.length"
+              inline
+            />
+          </v-tab>
+        </v-tabs>
+
+        <!-- touch disabled so swiping inside scrollable tables doesn't switch tabs -->
+        <v-window
+          v-model="activeTab"
+          :touch="false"
+        >
+          <v-window-item value="overview">
+            <div
+              class="board"
+              :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
+            >
+              <KpiStrip />
+              <NetWorthSummaryBar
+                v-if="netWorthStore.items.length"
+                @details="activeTab = 'net-worth'"
               />
-              <NetWorthTrend />
-            </SurfaceCard>
-            <div class="band">
+
+              <!-- full width: the sparkline is the one chart that wants room -->
               <SurfaceCard class="panel-card">
                 <SectionHeader
-                  label="Assets"
-                  title="What you own"
+                  label="Cash flow"
+                  title="Net income & trend"
                 />
-                <NetWorthItems kind="asset" />
+                <CashFlow />
               </SurfaceCard>
+
+              <div class="band">
+                <SurfaceCard class="panel-card">
+                  <SectionHeader
+                    label="Mix"
+                    title="Where the money went"
+                  />
+                  <SpendingMix />
+                </SurfaceCard>
+                <SurfaceCard>
+                  <SectionHeader
+                    label="50/30/20"
+                    title="Budget rule check"
+                  />
+                  <FiftyThirtyTwenty />
+                </SurfaceCard>
+              </div>
+
+              <!-- the written debrief, then the two reference panels under it -->
+              <SurfaceCard
+                class="analysis-card"
+                padding="26px 30px"
+              >
+                <SectionHeader
+                  label="AI Insights"
+                  title="Budget Analysis"
+                  subtitle="AI-powered analysis of your spending patterns and recommendations."
+                />
+                <div class="analysis-card__rule" />
+                <BudgetAnalysisCard
+                  v-if="householdStore.household"
+                  :household-id="householdStore.household.household.id"
+                  :refresh-trigger="analysisRefreshTrigger"
+                  hide-targets-section
+                />
+              </SurfaceCard>
+
+              <div class="band">
+                <SurfaceCard class="panel-card">
+                  <SectionHeader
+                    label="Targets"
+                    title="Budget vs. actual"
+                    subtitle="Focus-month spending against your monthly limits."
+                  />
+                  <BudgetTargets />
+                </SurfaceCard>
+                <SurfaceCard class="panel-card">
+                  <SectionHeader
+                    label="Fixed costs"
+                    title="Recurring charges"
+                    subtitle="Charges seen 3+ months in a row at a similar amount."
+                  />
+                  <RecurringCosts />
+                </SurfaceCard>
+              </div>
+            </div>
+          </v-window-item>
+
+          <v-window-item value="net-worth">
+            <div class="board">
+              <NetWorthKpis />
               <SurfaceCard class="panel-card">
                 <SectionHeader
-                  label="Debts"
-                  title="What you owe"
+                  label="Trend"
+                  title="Net worth over time"
+                  subtitle="Monthly snapshots; balances carry forward between updates."
                 />
-                <NetWorthItems kind="debt" />
+                <NetWorthTrend />
+              </SurfaceCard>
+              <div class="band">
+                <SurfaceCard class="panel-card">
+                  <SectionHeader
+                    label="Assets"
+                    title="What you own"
+                  />
+                  <NetWorthItems kind="asset" />
+                </SurfaceCard>
+                <SurfaceCard class="panel-card">
+                  <SectionHeader
+                    label="Debts"
+                    title="What you owe"
+                  />
+                  <NetWorthItems kind="debt" />
+                </SurfaceCard>
+              </div>
+            </div>
+          </v-window-item>
+
+          <v-window-item value="insights">
+            <div
+              class="board"
+              :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
+            >
+              <SurfaceCard class="panel-card">
+                <SectionHeader
+                  label="Categories"
+                  title="Where the money went"
+                  subtitle="Three months side by side. Drill into a category for its subcategories, then into a subcategory for the transactions behind all three months."
+                />
+                <Categories />
               </SurfaceCard>
             </div>
-          </div>
-        </v-window-item>
+          </v-window-item>
 
-        <v-window-item value="insights">
-          <div
-            class="board"
-            :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
-          >
-            <SurfaceCard class="panel-card">
-              <SectionHeader
-                label="Categories"
-                title="Where the money went"
-                subtitle="Three months side by side. Drill into a category for its subcategories, then into a subcategory for the transactions behind all three months."
-              />
-              <Categories />
-            </SurfaceCard>
-          </div>
-        </v-window-item>
-
-        <v-window-item value="transactions">
-          <div
-            class="board"
-            :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
-          >
-            <SurfaceCard class="panel-card">
-              <SectionHeader
-                label="All activity"
-                title="Transactions"
-                subtitle="Search and update categories without leaving the table."
-              />
-              <Transactions />
-            </SurfaceCard>
-          </div>
-        </v-window-item>
-      </v-window>
-    </v-container>
+          <v-window-item value="transactions">
+            <div
+              class="board"
+              :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
+            >
+              <SurfaceCard class="panel-card">
+                <SectionHeader
+                  label="All activity"
+                  title="Transactions"
+                  subtitle="Search and update categories without leaving the table."
+                />
+                <Transactions />
+              </SurfaceCard>
+            </div>
+          </v-window-item>
+        </v-window>
+      </v-container>
+    </PullToRefresh>
     <v-container v-else>
       <SurfaceCard class="text-center">
         <h1 class="text-h5 mb-2">

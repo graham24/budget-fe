@@ -108,6 +108,15 @@ App shell: `App.vue` renders a 64px sticky top bar — logo tile, "Debrief", a h
 
 The tabs are one `<v-tabs>` in two guises: underline-style below the header on desktop (`.nav-tabs`), and a fixed bottom bar on phones (`.nav-tabs--bottom`, `smAndDown`) with `stacked` icons over labels, `hide-slider`, a hairline on top and `env(safe-area-inset-bottom)` folded into its padding. Two gotchas if you touch it: the `mb-5` margin must be swapped off in the bottom guise (a bottom-margin on a `position: fixed` element pushes it up off the viewport edge), and `#home .v-container`'s bottom padding is what stops the last card hiding under the bar. The Overview tab leads with `KpiStrip.vue`: four stat tiles (Income, Spending, Net, Savings rate) for the focus month with dollar deltas vs. the prior month.
 
+## Staying fresh (PWA)
+
+`manifest.json` is `display: standalone` and there is **no service worker**, so nothing caches assets — but there is also no browser reload button once it's installed, and the SPA otherwise fetches once on mount and never again. Two things cover that, both in `dashboard.vue`:
+
+- **Pull to refresh** (`common/PullToRefresh.vue`), enabled only under `smAndDown`. It claims the gesture only when `window.scrollY <= 0` and the drag is downward, applies a 0.45 rubber-band with a cap, and arms at 70px. Its `touchmove` listener must stay **non-passive** or `preventDefault()` can't suppress the native overscroll. `@refresh` hands over a `done` callback — the spinner stays up until the parent resolves it.
+- **Refetch on foreground**: a `visibilitychange` handler refetches when the app becomes visible again and `lastLoadedAt` is older than `STALE_AFTER_MS` (5 min). This is the one that actually fixes "I came back to it tomorrow and the numbers were yesterday's".
+
+Both route through `refreshAll()` → `fetchHouseholdData()`, which is the same parallel fetch the initial load uses. A refresh re-fetches data; it never reloads the page.
+
 ## Configuration
 
 ```
@@ -157,7 +166,15 @@ A `mdi-cog-outline` menu in the `App.vue` top bar opens `common/Dialog.vue`-host
 
 ## Landing page (`src/pages/index.vue`)
 
-The marketing page embeds the **real** dashboard components as live previews (`KpiStrip`, `FiftyThirtyTwenty`, `BudgetTargets`, `Categories`, `RecurringCosts`, `NetWorthKpis`, `Transactions`, `BudgetAnalysisCard`), fed by the read-only demo account via `authStore.startPreview()`. **Any change to those components lands here too — check `/` after touching one.** It has its own CSS system (`--card`, `--rule`, `--display`, `.card`/`.eyebrow`/`.feat`) that does not share `tokens.css`.
+The marketing page embeds the **real** dashboard components as live previews (`KpiStrip`, `FiftyThirtyTwenty`, `BudgetTargets`, `Categories`, `RecurringCosts`, `NetWorthKpis`, `Transactions`, `BudgetAnalysisCard`), fed by the read-only demo account via `authStore.startPreview()`. **Any change to those components lands here too — check `/` after touching one.**
+
+`index.vue` and `contact.vue` share a `.landing-root` block whose local names (`--card`, `--rule`, `--display`, …) are **thin aliases onto `tokens.css` and the Vuetify theme**, not a parallel system — so a token change reaches them. Rules when editing either page:
+
+- **Never re-import the Google Fonts** or redefine the font stacks; `tokens.css` owns both. (Both pages used to, with a stale weight list that omitted Inter Tight 700.)
+- Stay inside the app's visual language: no gradients, glass, or backdrop blur, one shadow (`--shadow-sm`), radii from `--radius`/`--radius-sm`/`--radius-xs`, hairlines from `--hairline`/`--hairline-soft`.
+- Micro-labels come in exactly two flavours, matching the app: a section eyebrow (mono `0.7rem`/`0.19em`) and a column/data label (mono `10px`/`0.16em`, 50% text). Don't add a third.
+- `--land-wrap` is deliberately 1200px, narrower than the app shell's `--page-max` — this page is prose-led and the wider measure breaks the hero headline's line breaks.
+- `contact.vue` hides its own marketing nav when `authStore.user` is set, since `App.vue`'s top bar is already above it.
 
 Two things it depends on:
 

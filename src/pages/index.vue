@@ -712,21 +712,21 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
-
+/* Fonts and the shared design tokens both come from src/styles/tokens.css —
+   this page is inside the same app shell, so it must not re-import either.
+   The local names below are thin aliases onto those tokens and the active
+   Vuetify theme, so the landing page tracks the light/dark toggle and any
+   token change lands here too. */
 .landing-root {
-  /* Sourced from the app's active Vuetify theme (light/dark), so the
-     landing page follows the same toggle/system-preference as the rest
-     of the app instead of being hardcoded to one look. */
   --bg: rgb(var(--v-theme-background));
   --bg-2: rgb(var(--v-theme-surface-variant));
   --card: rgb(var(--v-theme-surface));
   --card-2: rgb(var(--v-theme-surface-variant));
-  --rule: rgba(var(--v-theme-outline), 0.9);
-  --rule-soft: rgba(var(--v-theme-outline), 0.5);
+  --rule: var(--hairline);
+  --rule-soft: var(--hairline-soft);
   --text: rgb(var(--v-theme-on-background));
   --text-2: rgba(var(--v-theme-on-background), 0.65);
-  --text-3: rgba(var(--v-theme-on-background), 0.45);
+  --text-3: rgba(var(--v-theme-on-background), 0.5);
   --blue: rgb(var(--v-theme-primary));
   --blue-dim: rgba(var(--v-theme-primary), 0.35);
   --on-blue: rgb(var(--v-theme-on-primary));
@@ -735,10 +735,12 @@ onUnmounted(() => {
   --red: rgb(var(--v-theme-error));
   --amber: rgb(var(--v-theme-warning));
 
-  --display: "Bricolage Grotesque", system-ui, sans-serif;
-  --body: "Inter Tight", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --display: var(--font-display);
+  --body: var(--font-sans);
+  --mono: var(--font-mono);
 
+  /* deliberately narrower than the app shell's --page-max: this page is
+     prose-led, and the wider measure broke the hero headline's line breaks */
   --land-wrap: 1200px;
   --land-pad: clamp(20px, 5vw, 48px);
 
@@ -746,19 +748,11 @@ onUnmounted(() => {
   background: var(--bg);
   color: var(--text);
   font-family: var(--body);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.6;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   position: relative;
-}
-.landing-root::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(760px 440px at 80% -10%, rgba(var(--v-theme-primary), 0.14), transparent 70%),
-    radial-gradient(520px 360px at 0% 26%, rgba(var(--v-theme-success), 0.06), transparent 72%);
 }
 .wrap {
   width: 100%;
@@ -821,9 +815,8 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 60;
-  background: rgba(var(--v-theme-background), 0.85);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--rule-soft);
+  background: rgb(var(--v-theme-surface));
+  border-bottom: 1px solid var(--rule);
 }
 .nav-in {
   display: flex;
@@ -840,15 +833,17 @@ onUnmounted(() => {
   letter-spacing: -0.02em;
   text-decoration: none;
 }
+/* the same tinted tile as the app's top-bar brand mark */
 .mark-glyph {
-  width: 29px;
-  height: 29px;
-  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-xs);
   flex: none;
-  background: linear-gradient(150deg, var(--blue), var(--blue-darken));
+  background: rgba(var(--v-theme-primary), 0.12);
+  border: 1px solid rgba(var(--v-theme-primary), 0.2);
   display: grid;
   place-items: center;
-  color: var(--on-blue);
+  color: var(--blue);
 }
 .mark-glyph svg {
   display: block;
@@ -887,7 +882,7 @@ onUnmounted(() => {
   font-size: 0.96rem;
   font-weight: 600;
   padding: 11px 19px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   border: 1px solid transparent;
   cursor: pointer;
@@ -896,11 +891,10 @@ onUnmounted(() => {
 .landing-root .btn-key {
   background: var(--blue);
   color: var(--on-blue);
-  box-shadow: 0 10px 26px -14px rgba(var(--v-theme-primary), 0.9);
+  box-shadow: var(--shadow-sm);
 }
 .landing-root .btn-key:hover {
-  filter: brightness(1.12);
-  transform: translateY(-1px);
+  background: var(--blue-darken);
 }
 .landing-root .btn-ghost {
   border-color: var(--rule);
@@ -960,17 +954,18 @@ onUnmounted(() => {
 .card {
   background: var(--card);
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: var(--radius);
   padding: 20px;
   box-shadow: none;
 }
 .card-label {
   font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-3);
   margin-bottom: 6px;
+  font-weight: 500;
 }
 /* the embedded dashboard components bring their own eyebrow + title, so the
    card's own label needs room rather than butting straight into theirs */
@@ -989,11 +984,11 @@ onUnmounted(() => {
 
 /* ---------- signature: the analysis ---------- */
 .analysis {
-  background: linear-gradient(180deg, var(--card) 0%, var(--bg-2) 100%);
+  background: var(--card);
   border: 1px solid var(--rule);
-  border-radius: 16px;
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 44px 100px -56px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-sm);
 }
 .an-head {
   display: flex;
@@ -1050,11 +1045,12 @@ onUnmounted(() => {
 }
 .an-sec .h {
   font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-3);
   margin-bottom: 6px;
+  font-weight: 500;
 }
 .an-sec p {
   font-size: 0.94rem;
@@ -1163,10 +1159,11 @@ onUnmounted(() => {
 }
 .feat-tag {
   font-family: var(--mono);
-  font-size: 0.69rem;
-  letter-spacing: 0.16em;
+  font-size: 0.7rem;
+  letter-spacing: 0.19em;
   text-transform: uppercase;
   color: var(--text-3);
+  font-weight: 500;
 }
 .feat-copy h3 {
   font-size: clamp(1.32rem, 2.3vw, 1.7rem);
@@ -1219,17 +1216,18 @@ onUnmounted(() => {
 .kpi div {
   padding: 12px 13px;
   border: 1px solid var(--rule);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: rgba(var(--v-theme-on-surface), 0.018);
 }
 .kpi span {
   display: block;
   font-family: var(--mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.13em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-3);
   margin-bottom: 5px;
+  font-weight: 500;
 }
 .kpi b {
   font-family: var(--mono);
@@ -1270,12 +1268,12 @@ onUnmounted(() => {
 .track {
   position: relative;
   height: 7px;
-  border-radius: 99px;
+  border-radius: 999px;
   background: var(--card-2);
 }
 .fill {
   height: 100%;
-  border-radius: 99px;
+  border-radius: 999px;
   background: var(--blue);
 }
 .fill.g {
@@ -1307,8 +1305,8 @@ onUnmounted(() => {
 }
 .tbl th {
   font-family: var(--mono);
-  font-size: 0.63rem;
-  letter-spacing: 0.12em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-3);
   font-weight: 500;
@@ -1340,11 +1338,12 @@ onUnmounted(() => {
 }
 .tbl-cap {
   font-family: var(--mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.13em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-3);
   margin: 16px 0 8px;
+  font-weight: 500;
 }
 .tbl-cap:first-of-type {
   margin-top: 0;
@@ -1408,10 +1407,11 @@ onUnmounted(() => {
 }
 .rec-base span {
   font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-3);
+  font-weight: 500;
 }
 .up {
   color: var(--red);
@@ -1428,17 +1428,18 @@ onUnmounted(() => {
 .nw-3 div {
   padding: 11px 12px;
   border: 1px solid var(--rule);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: rgba(var(--v-theme-on-surface), 0.018);
 }
 .nw-3 span {
   display: block;
   font-family: var(--mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.12em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-3);
   margin-bottom: 5px;
+  font-weight: 500;
 }
 .nw-3 b {
   font-family: var(--mono);
@@ -1494,8 +1495,8 @@ onUnmounted(() => {
 }
 .hm th {
   font-family: var(--mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-3);
   font-weight: 500;
@@ -1566,7 +1567,7 @@ onUnmounted(() => {
   gap: 1px;
   background: var(--rule-soft);
   border: 1px solid var(--rule-soft);
-  border-radius: 14px;
+  border-radius: var(--radius);
   overflow: hidden;
 }
 .cell {
@@ -1587,7 +1588,7 @@ onUnmounted(() => {
 .cell-ico {
   width: 32px;
   height: 32px;
-  border-radius: 9px;
+  border-radius: var(--radius-xs);
   margin-bottom: 14px;
   display: grid;
   place-items: center;
@@ -1653,9 +1654,11 @@ onUnmounted(() => {
 
 /* ---------- data block ---------- */
 .data-wrap {
+  /* a surface card on the canvas, like every panel in the app */
   border: 1px solid var(--rule);
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--bg-2), rgba(var(--v-theme-surface-variant), 0.4));
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
   padding: clamp(24px, 4vw, 40px);
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -1744,7 +1747,7 @@ footer {
 .login-error {
   margin-top: 14px;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   border: 1px solid rgba(var(--v-theme-error), 0.3);
   background: rgba(var(--v-theme-error), 0.1);
   color: var(--red);
@@ -1762,9 +1765,10 @@ footer {
   margin: 18px 0;
   font-family: var(--mono);
   font-size: 0.7rem;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.19em;
   text-transform: uppercase;
   color: var(--text-3);
+  font-weight: 500;
 }
 .demo-divider::before,
 .demo-divider::after {

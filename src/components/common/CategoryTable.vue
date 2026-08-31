@@ -494,10 +494,17 @@ function onRowClick(row) {
           <span class="drill__narrow-only">{{ formatCurrency(row.amount) }}</span>
         </template>
         <template v-else-if="row.kind !== 'empty'">
-          <span>{{ formatCurrency(row.month1) }}</span>
-          <span class="drill__prevline">{{ monthLabels.m3 }} {{ formatCurrency(row.month3) }} · {{ monthLabels.m2 }} {{ formatCurrency(row.month2) }}</span>
+          {{ formatCurrency(row.month1) }}
         </template>
       </span>
+
+      <!-- Narrow layout only. Kept a sibling of the amount rather than a child
+           of it: nested, its width drove the amount column's `auto` track and
+           squeezed the name cell down to an ellipsis. -->
+      <span
+        v-if="row.kind !== 'tx' && row.kind !== 'empty'"
+        class="drill__prevline"
+      >{{ monthLabels.m3 }} {{ formatCurrency(row.month3) }} · {{ monthLabels.m2 }} {{ formatCurrency(row.month2) }}</span>
 
       <span
         class="drill__num drill__share"
@@ -512,10 +519,10 @@ function onRowClick(row) {
       <span class="drill__name">Total</span>
       <span class="drill__num drill__prev">{{ formatCurrency(totals.month3) }}</span>
       <span class="drill__num drill__prev">{{ formatCurrency(totals.month2) }}</span>
-      <span class="drill__num drill__amount">
-        <span>{{ formatCurrency(totals.month1) }}</span>
-        <span class="drill__prevline">{{ monthLabels.m3 }} {{ formatCurrency(totals.month3) }} · {{ monthLabels.m2 }} {{ formatCurrency(totals.month2) }}</span>
-      </span>
+      <span class="drill__num drill__amount">{{ formatCurrency(totals.month1) }}</span>
+      <span
+        class="drill__prevline"
+      >{{ monthLabels.m3 }} {{ formatCurrency(totals.month3) }} · {{ monthLabels.m2 }} {{ formatCurrency(totals.month2) }}</span>
       <span class="drill__num drill__share">100%</span>
     </div>
     <p
@@ -746,9 +753,13 @@ function onRowClick(row) {
    meta left, the focus month large on the right with the two prior months
    underneath. Never a horizontal scroll. */
 @media (max-width: 700px) {
+  /* Two rows: dot · name · amount, then the two prior months underneath,
+     spanning. Placement is explicit so the prior-months line can never
+     compete with the name for width. */
   .drill-row {
     grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 10px;
+    column-gap: 10px;
+    row-gap: 2px;
     padding: 12px 12px 12px 8px;
   }
   .drill__head,
@@ -757,6 +768,18 @@ function onRowClick(row) {
   .drill__edit {
     display: none;
   }
+  .drill__lead {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .drill__name-cell {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .drill__amount {
+    grid-column: 3;
+    grid-row: 1;
+  }
   .drill__wide-only {
     display: none;
   }
@@ -764,7 +787,12 @@ function onRowClick(row) {
     display: inline;
   }
   .drill__prevline {
+    grid-column: 2 / -1;
+    grid-row: 2;
     display: block;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
     font-size: 10.5px;
     font-weight: 400;
     color: rgba(var(--v-theme-on-surface), 0.5);

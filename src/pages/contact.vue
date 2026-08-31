@@ -1,6 +1,11 @@
 <template>
   <div class="landing-root">
-    <header class="nav">
+    <!-- Logged-in visitors already have App.vue's top bar above this page;
+         only logged-out ones need the page's own marketing nav. -->
+    <header
+      v-if="!authStore.user"
+      class="nav"
+    >
       <div class="wrap nav-in">
         <a
           class="mark"
@@ -149,6 +154,9 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
+
+const authStore = useAuthStore();
 
 const FORMSPREE_ENDPOINT = import.meta.env.VITE_FORMSPREE_ENDPOINT;
 
@@ -199,25 +207,26 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
-
+/* Same alias layer as pages/index.vue — fonts and tokens come from
+   src/styles/tokens.css; never re-import either here. */
 .landing-root {
   --bg: rgb(var(--v-theme-background));
   --bg-2: rgb(var(--v-theme-surface-variant));
   --card: rgb(var(--v-theme-surface));
-  --rule: rgba(var(--v-theme-outline), 0.9);
-  --rule-soft: rgba(var(--v-theme-outline), 0.5);
+  --rule: var(--hairline);
+  --rule-soft: var(--hairline-soft);
   --text: rgb(var(--v-theme-on-background));
   --text-2: rgba(var(--v-theme-on-background), 0.65);
-  --text-3: rgba(var(--v-theme-on-background), 0.45);
+  --text-3: rgba(var(--v-theme-on-background), 0.5);
   --blue: rgb(var(--v-theme-primary));
   --blue-dim: rgba(var(--v-theme-primary), 0.35);
   --on-blue: rgb(var(--v-theme-on-primary));
+  --blue-darken: rgb(var(--v-theme-primary-darken-1));
   --red: rgb(var(--v-theme-error));
 
-  --display: "Bricolage Grotesque", system-ui, sans-serif;
-  --body: "Inter Tight", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --display: var(--font-display);
+  --body: var(--font-sans);
+  --mono: var(--font-mono);
 
   --land-wrap: 1200px;
   --land-pad: clamp(20px, 5vw, 48px);
@@ -227,7 +236,7 @@ async function handleSubmit() {
   background: var(--bg);
   color: var(--text);
   font-family: var(--body);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   position: relative;
@@ -275,9 +284,8 @@ async function handleSubmit() {
   position: sticky;
   top: 0;
   z-index: 60;
-  background: rgba(var(--v-theme-background), 0.85);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--rule-soft);
+  background: rgb(var(--v-theme-surface));
+  border-bottom: 1px solid var(--rule);
 }
 .nav-in {
   display: flex;
@@ -296,11 +304,12 @@ async function handleSubmit() {
 .mark-glyph {
   width: 30px;
   height: 30px;
-  border-radius: 9px;
-  background: var(--blue);
+  border-radius: var(--radius-xs);
+  background: rgba(var(--v-theme-primary), 0.12);
+  border: 1px solid rgba(var(--v-theme-primary), 0.2);
   display: grid;
   place-items: center;
-  color: var(--on-blue);
+  color: var(--blue);
 }
 .mark-glyph svg {
   display: block;
@@ -331,7 +340,7 @@ async function handleSubmit() {
   font-size: 0.96rem;
   font-weight: 600;
   padding: 11px 19px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   border: 1px solid transparent;
   cursor: pointer;
@@ -340,7 +349,7 @@ async function handleSubmit() {
 .landing-root .btn-key {
   background: var(--blue);
   color: var(--on-blue);
-  box-shadow: 0 10px 26px -14px rgba(var(--v-theme-primary), 0.9);
+  box-shadow: var(--shadow-sm);
 }
 .landing-root .btn-key:hover:not(:disabled) {
   filter: brightness(1.12);
@@ -388,7 +397,7 @@ async function handleSubmit() {
 .card {
   background: var(--card);
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: var(--radius);
   padding: 24px;
 }
 .card-label {
@@ -429,7 +438,7 @@ async function handleSubmit() {
   color: var(--text);
   background: var(--bg);
   border: 1px solid var(--rule);
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   padding: 10px 12px;
   resize: vertical;
 }
@@ -453,7 +462,7 @@ async function handleSubmit() {
 .contact-error {
   margin: 0;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
   border: 1px solid rgba(var(--v-theme-error), 0.3);
   background: rgba(var(--v-theme-error), 0.1);
   color: var(--red);

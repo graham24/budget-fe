@@ -37,6 +37,7 @@ declare module 'vue' {
     NetWorthTrend: typeof import('./src/components/NetWorthTrend.vue')['default']
     OnboardingWizard: typeof import('./src/components/OnboardingWizard.vue')['default']
     ProfileForm: typeof import('./src/components/ProfileForm.vue')['default']
+    PullToRefresh: typeof import('./src/components/common/PullToRefresh.vue')['default']
     RecurringCosts: typeof import('./src/components/RecurringCosts.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

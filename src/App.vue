@@ -361,6 +361,13 @@ watch(themeName, (val) => {
   .top-bar__household {
     display: none;
   }
+}
+
+/* very narrow phones: the wordmark is the first thing that can go */
+@media (max-width: 380px) {
+  .top-bar__name {
+    display: none;
+  }
   .app-main {
     padding: 0 0 12px;
   }
