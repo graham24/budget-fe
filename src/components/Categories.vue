@@ -4,10 +4,12 @@ import SectionHeader from "./common/SectionHeader.vue";
 
 // One card, three stacked tables — the design keeps the drill-down flat
 // rather than nesting a card per group inside the section card.
+// Income first: what came in, then what it had to cover, then what was
+// left to choose. Reads top-to-bottom the way the month actually works.
 const groups = [
+  { label: "Income", title: "Primary earnings", type: "income", need: false },
   { label: "Must-Haves", title: "Rent, utilities, groceries", type: "expenses", need: true },
   { label: "Nice-to-Haves", title: "Dining out, travel, fun", type: "expenses", need: false },
-  { label: "Income", title: "Primary earnings", type: "income", need: false },
 ];
 </script>
 
