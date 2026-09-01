@@ -498,6 +498,7 @@ const focusMonthLabel = computed(() => {
               class="board"
               :class="{ 'is-refreshing': transactionsStore.isRefreshing }"
             >
+              <KpiStrip variant="mix" />
               <SurfaceCard class="panel-card">
                 <SectionHeader
                   label="Categories"

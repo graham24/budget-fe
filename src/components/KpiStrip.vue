@@ -3,6 +3,16 @@ import { computed } from "vue";
 import { useTransactionStore } from "../stores/transaction";
 import SurfaceCard from "./common/SurfaceCard.vue";
 
+const props = defineProps({
+  // "cashflow" = income / spending / net / savings rate (dashboard overview,
+  // landing page). "mix" = income / needs / wants / net, for the Insights tab
+  // where the tables below break spending down the same way.
+  variant: {
+    type: String,
+    default: "cashflow",
+  },
+});
+
 const transactionStore = useTransactionStore();
 
 const focus = computed(
@@ -23,7 +33,7 @@ function spendingOf(month) {
   return -((month?.expensesNeed ?? 0) + (month?.expensesWant ?? 0));
 }
 
-const tiles = computed(() => {
+const cashflowTiles = computed(() => {
   const f = focus.value;
   const p = prior.value;
 
@@ -64,6 +74,52 @@ const tiles = computed(() => {
     },
   ];
 });
+
+const mixTiles = computed(() => {
+  const f = focus.value;
+  const p = prior.value;
+
+  const income = f?.income ?? 0;
+  const needs = -(f?.expensesNeed ?? 0);
+  const wants = -(f?.expensesWant ?? 0);
+  const net = income - needs - wants;
+
+  const priorIncome = p?.income ?? 0;
+  const priorNeeds = -(p?.expensesNeed ?? 0);
+  const priorWants = -(p?.expensesWant ?? 0);
+  const priorNet = priorIncome - priorNeeds - priorWants;
+
+  return [
+    {
+      label: "Income",
+      value: income,
+      delta: p ? income - priorIncome : null,
+      goodWhenUp: true,
+    },
+    {
+      label: "Needs",
+      value: needs,
+      delta: p ? needs - priorNeeds : null,
+      goodWhenUp: false,
+    },
+    {
+      label: "Wants",
+      value: wants,
+      delta: p ? wants - priorWants : null,
+      goodWhenUp: false,
+    },
+    {
+      label: "Net",
+      value: net,
+      delta: p ? net - priorNet : null,
+      goodWhenUp: true,
+    },
+  ];
+});
+
+const tiles = computed(() =>
+  props.variant === "mix" ? mixTiles.value : cashflowTiles.value
+);
 
 function deltaClass(tile) {
   if (Math.abs(tile.delta) < 1) return "muted";
