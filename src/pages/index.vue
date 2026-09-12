@@ -656,6 +656,7 @@ import { useUserStore } from "@/stores/user";
 import { useNetWorthStore } from "@/stores/netWorth";
 import { TRIAL_DAYS } from "@/utils/billing";
 import { resetHouseholdStores } from "@/utils/session";
+import { pinDemoFocusMonth } from "@/utils/demoFocus";
 import BudgetAnalysisCard from "@/components/BudgetAnalysisCard.vue";
 import KpiStrip from "@/components/KpiStrip.vue";
 import FiftyThirtyTwenty from "@/components/FiftyThirtyTwenty.vue";
@@ -719,6 +720,10 @@ onMounted(async () => {
   try {
     await authStore.startPreview();
     await householdStore.fetchHousehold();
+    // The previews render the demo household through the same stores the
+    // dashboard uses, so they need the same pinned focus month or every
+    // figure on this page reads 0.
+    pinDemoFocusMonth(householdStore.household?.household);
     await Promise.all([
       accountStore.fetchAccounts(),
       transactionStore.fetchTransactions(),

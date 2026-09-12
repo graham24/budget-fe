@@ -34,13 +34,15 @@ The backend (`budget` repo) has an equivalent `budget-api.service`, see that rep
 
 ### Time Window Navigation
 
-The dashboard has a **3-month sliding window** controlled by `transactionStore.monthsAgo` (integer, 0–2). This is the central piece of state that all data components react to.
+The dashboard has a **sliding month window** controlled by `transactionStore.monthsAgo`. This is the central piece of state that all data components react to. The focus month is `monthsAgo + 1` months back from today, and the store **defaults to `-1`, so the focus month is the current calendar month**.
 
-- `monthsAgo = 0` → focus month is last month; window covers months 1–3 ago
-- `monthsAgo = 1` → focus month is 2 months ago; window covers months 2–4 ago
-- Navigation buttons in `index.vue` increment/decrement `monthsAgo` and trigger a re-fetch
+- `monthsAgo = -1` → focus month is this month (the default)
+- `monthsAgo = 0` → focus month is last month
+- The month pager in `dashboard.vue` steps it, clamped to `-1` at the near end and `maxMonthsAgo` at the far end (normally `2`, so three months back)
 
-**When `monthsAgo` changes**, `index.vue` watches it and calls `transactionsStore.fetchTransactions()`, which computes a `from_date` of `monthsAgo + 12` months ago, 12 months of history feed the cash-flow sparkline and recurring-charge detection, while display components filter to their own windows.
+**When `monthsAgo` changes**, `dashboard.vue` watches it and calls `transactionsStore.fetchTransactions()`, which computes a `from_date` of `max(monthsAgo + 12, 12)` months ago. 12 months of history feed the cash-flow sparkline and recurring-charge detection, while display components filter to their own windows.
+
+**The demo household pins its focus month** (`src/utils/demoFocus.ts`). Its transactions are a one-off static seed covering a single month, and nothing re-seeds them, so once the calendar moved past that month every figure read 0, on the demo dashboard and on the landing-page previews that share these stores. `pinDemoFocusMonth()` is called after the household loads and before transactions are fetched, in both `dashboard.vue` and `index.vue`. The offset is recomputed from a fixed target month on each load, so it keeps resolving to the same calendar month instead of drifting, and `maxMonthsAgo` widens for the demo so the pager can still reach it. This is a stopgap: the real fix is a backend seed script that writes transactions relative to today (`scripts/seed_demo_data.sql`, currently missing), after which `demoFocus.ts` can go.
 
 ### Transaction Store (`src/stores/transaction.ts`)
 

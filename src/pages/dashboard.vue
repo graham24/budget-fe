@@ -29,6 +29,7 @@ import { useAccountStore } from "../stores/account";
 import { useTransactionStore } from "../stores/transaction";
 import { useUserStore } from "../stores/user";
 import { useAuthStore } from "../stores/auth";
+import { DEMO_HOUSEHOLD_ID, pinDemoFocusMonth, isDemoHousehold } from "../utils/demoFocus";
 import { useNetWorthStore } from "../stores/netWorth";
 import { useDisplay } from "vuetify";
 import { useRoute, useRouter } from "vue-router";
@@ -53,9 +54,8 @@ const analysisRefreshTrigger = ref(0);
 const checkoutSnackbar = ref(false);
 const checkoutMessage = ref("");
 
-// Mirrors auth_utils.DEMO_USER_ID on the backend, the seeded demo
-// household is always exempt from the subscription gate.
-const DEMO_HOUSEHOLD_ID = -1;
+// The seeded demo household is always exempt from the subscription gate,
+// and its focus month is pinned (see utils/demoFocus).
 
 const activeSubscriptionStatuses = ["active", "trialing"];
 const needsSubscription = computed(() => {
@@ -106,6 +106,9 @@ onMounted(async () => {
   try {
     // Household first, users and transactions derive their IDs from it
     await householdStore.fetchHousehold();
+    // Demo data is a static seed, so its focus month is pinned rather than
+    // tracking today. Must happen before transactions are fetched.
+    pinDemoFocusMonth(householdStore.household?.household);
     if (returningFromCheckout) {
       for (
         let attempt = 0;
@@ -218,6 +221,14 @@ watch(
   }
 );
 
+// The pager normally looks back at most 3 months from today. The demo's
+// pinned month falls outside that as the calendar advances, so widen the
+// bound just far enough to still reach it.
+const maxMonthsAgo = computed(() => {
+  const pinned = isDemoHousehold(householdStore.household?.household);
+  return pinned ? Math.max(2, transactionsStore.monthsAgo) : 2;
+});
+
 const focusMonthLabel = computed(() => {
   const today = new Date();
   const month = new Date(
@@ -254,7 +265,7 @@ const focusMonthLabel = computed(() => {
                 variant="text"
                 density="comfortable"
                 aria-label="Previous month"
-                :disabled="transactionsStore.monthsAgo >= 2"
+                :disabled="transactionsStore.monthsAgo >= maxMonthsAgo"
                 @click="transactionsStore.monthsAgo += 1"
               />
               <span class="month-pager__label">
