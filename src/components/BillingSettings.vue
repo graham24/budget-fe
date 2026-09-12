@@ -70,7 +70,7 @@ async function subscribe() {
           class="muted"
           style="font-size: 0.8rem"
         >
-          Starts with a {{ TRIAL_DAYS }}-day free trial
+          Starts with a {{ TRIAL_DAYS }}-day free trial, no card required
         </p>
       </div>
       <v-chip

@@ -55,8 +55,8 @@
               >View the demo</a>
             </div>
             <p class="hero-note">
-              Free for {{ TRIAL_DAYS }} days, then $4.99/mo. Sign in with
-              Google — no passwords to manage.
+              Free for {{ TRIAL_DAYS }} days, no card required — then $4.99/mo.
+              Sign in with Google, no passwords to manage.
             </p>
           </div>
 
@@ -562,7 +562,8 @@
             @click.prevent="loginDialog = true"
           >Start {{ TRIAL_DAYS }} days free</a>
           <p class="fine">
-            Then $4.99/mo. Sign in with Google — no passwords to manage.
+            No card required. Then $4.99/mo. Sign in with Google — no
+            passwords to manage.
           </p>
         </div>
       </section>

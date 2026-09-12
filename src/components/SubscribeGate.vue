@@ -48,7 +48,7 @@ async function subscribe() {
         {{
           props.lapsed
             ? "Your last payment didn't go through, or the subscription was canceled. Resubscribe to get back into your dashboard."
-            : `Unlock your dashboard, imports, and AI budget analysis free for ${TRIAL_DAYS} days, then $4.99/mo per household.`
+            : `Unlock your dashboard, imports, and AI budget analysis free for ${TRIAL_DAYS} days — no card required. After that it's $4.99/mo per household.`
         }}
       </p>
       <v-btn
@@ -60,15 +60,18 @@ async function subscribe() {
       >
         {{ props.lapsed ? "Resubscribe" : "Start free trial" }}
       </v-btn>
-      <!-- Checkout collects a card up front, so say so rather than letting
-           it be a surprise on the Stripe page. -->
+      <!-- Checkout collects no card for a trial (payment_method_collection
+           "if_required"), and the trial cancels at the end if none was added
+           (missing_payment_method "cancel"). Say both plainly — losing access
+           shouldn't be the first time someone hears about it. -->
       <p
         v-if="!props.lapsed"
         class="muted mt-4"
         style="font-size: 0.8rem"
       >
-        We'll ask for a card now — you won't be charged until the trial ends,
-        and you can cancel any time before then.
+        No payment method needed to start, and nothing is charged
+        automatically. When the {{ TRIAL_DAYS }} days are up, access stops
+        unless you've added a card.
       </p>
       <p
         v-if="error"

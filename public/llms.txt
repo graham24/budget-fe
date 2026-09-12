@@ -21,7 +21,7 @@ Debrief is built for households (couples, roommates, families) who want a shared
 ## Pricing
 
 - $4.99/month per household, billed via Stripe
-- New households start with a 30-day free trial. A card is collected up front and the subscription converts automatically when the trial ends, so cancelling before then avoids any charge. The trial is offered once per household — resubscribing after a cancellation bills immediately
+- New households start with a 30-day free trial and no payment method is required to begin it. Nothing is charged automatically: if no card has been added by the time the trial ends, the subscription cancels and access stops. The trial is offered once per household — resubscribing after a cancellation requires a card and bills immediately
 - No ongoing free tier; a live demo (read-only, sample data) is available from the homepage without signing up
 
 ## Privacy & security
