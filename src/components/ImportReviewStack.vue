@@ -68,7 +68,7 @@ async function saveCurrent() {
     advance();
   } catch (err) {
     console.error("Error saving transaction:", err);
-    error.value = "Failed to save — try again";
+    error.value = "Failed to save. Try again";
   } finally {
     busy.value = false;
   }
@@ -85,7 +85,7 @@ async function forceImport() {
   error.value = null;
   try {
     const created = await forceImportTransaction(current.value.transaction);
-    // it's a real transaction now — flip the card to editable so it can be
+    // it's a real transaction now, flip the card to editable so it can be
     // categorized like any other import
     current.value.transaction = created;
     current.value.kind = "imported";

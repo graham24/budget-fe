@@ -206,7 +206,7 @@ const displayName = computed(
 const householdName = computed(
   () => householdStore.household?.household?.name ?? ""
 );
-// 32px avatar tile in the top bar — initials stand in for a photo
+// 32px avatar tile in the top bar, initials stand in for a photo
 const initials = computed(() => {
   const user = authStore.user;
   const letters = `${user?.first_name?.[0] ?? ""}${user?.last_name?.[0] ?? ""}`;
@@ -226,7 +226,7 @@ function closeProfileDialog() {
   namePrompt.value = false;
 }
 
-// Placeholder users (added to a household by email) have no name yet —
+// Placeholder users (added to a household by email) have no name yet , 
 // prompt for it on first login
 watch(
   () => authStore.user,

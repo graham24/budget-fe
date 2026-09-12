@@ -17,7 +17,7 @@ const showsTrial = computed(() => isTrialEligible(household.value));
 // subscription_status rather than stripe_customer_id_set: the backend mints
 // the Stripe Customer when a Checkout session is *created*, not completed,
 // so a household that opened checkout and abandoned it has a customer but
-// nothing to manage — sending it to the portal would strand it with no way
+// nothing to manage, sending it to the portal would strand it with no way
 // to subscribe from this panel.
 const hasSubscription = computed(() => !!household.value?.subscription_status);
 const statusLabel = computed(() => {
@@ -100,7 +100,7 @@ async function subscribe() {
       :loading="loading"
       @click="subscribe"
     >
-      {{ showsTrial ? "Start free trial" : "Subscribe — $4.99/mo" }}
+      {{ showsTrial ? "Start free trial" : "Subscribe for $4.99/mo" }}
     </v-btn>
 
     <p

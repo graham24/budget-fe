@@ -1,12 +1,12 @@
 import type { Household } from "../types";
 
-// Free-trial length shown in the UI. This is copy only — the trial actually
+// Free-trial length shown in the UI. This is copy only, the trial actually
 // granted is set server-side by STRIPE_TRIAL_DAYS in routes/billing.py, so
 // change both together or the marketing will lie.
 export const TRIAL_DAYS = 30;
 
 // The backend grants a trial only to households with no billing history at
-// all (see is_first_subscription in routes/billing.py) — a household that
+// all (see is_first_subscription in routes/billing.py), a household that
 // subscribed once and cancelled doesn't get a second free month. Advertise
 // it on the same terms, so nobody is promised a trial checkout won't apply.
 //

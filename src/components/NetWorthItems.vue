@@ -91,7 +91,7 @@ function stalenessTitle(item) {
   const days = daysSinceUpdate(item);
   if (days === null) return "No balance recorded yet";
   if (days <= STALE_WARNING_DAYS) return `Updated ${days} days ago`;
-  return `Updated ${days} days ago — use the balance button to refresh`;
+  return `Updated ${days} days ago. Use the balance button to refresh`;
 }
 
 function accountLabel(item) {
@@ -229,7 +229,7 @@ function accountLabel(item) {
 
     <Dialog
       v-model="showBalances"
-      :title="balanceItem ? `${balanceItem.name} — Balance history` : ''"
+      :title="balanceItem ? `${balanceItem.name}: Balance history` : ''"
       max-width="500"
     >
       <BalanceHistoryDialog

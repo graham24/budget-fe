@@ -41,7 +41,7 @@ const items = computed(() => simplefinStore.accounts);
 const current = computed(() => items.value[index.value] ?? null);
 const remaining = computed(() => items.value.length - index.value);
 
-// Bank accounts already linked to a different SimpleFin account — excluded
+// Bank accounts already linked to a different SimpleFin account, excluded
 // from the "link existing" options so the same account can't be double-linked.
 // The current card's own linked account (if any) stays selectable.
 const availableAccounts = computed(() => {

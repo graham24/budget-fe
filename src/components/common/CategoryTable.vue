@@ -121,14 +121,14 @@ const subRows = computed(() => {
     if (month) row.transactions.push({ tx: transaction, month });
   });
 
-  // Drop rows with no activity in any of the 3 displayed months — these come
+  // Drop rows with no activity in any of the 3 displayed months, these come
   // from transactions that exist in the store but fall outside the window
   const active = [...rowsByKey.values()].filter(
     (row) =>
       Math.abs(row.month1) + Math.abs(row.month2) + Math.abs(row.month3) > 0.005
   );
   for (const row of active) {
-    // sort on the parsed date — the API's date strings aren't
+    // sort on the parsed date, the API's date strings aren't
     // lexicographically ordered, so a string compare scrambles the months
     row.transactions.sort(
       (a, b) => new Date(b.tx.date) - new Date(a.tx.date)
@@ -299,7 +299,7 @@ function overspendTitle(item) {
 
 // Drill-down edits go to a local draft, not the store transaction, so the
 // tables don't recompute (and the row doesn't jump groups) mid-edit. The
-// draft commits ~1.5s after the field loses focus — moving between the
+// draft commits ~1.5s after the field loses focus, moving between the
 // row's two fields cancels the pending commit.
 const drafts = reactive({});
 const pendingCommits = new Map();
@@ -632,7 +632,7 @@ function onRowClick(row) {
   font-weight: 500;
   color: rgba(var(--v-theme-on-surface), 0.55);
 }
-/* a transaction's own figure isn't a comparison column — don't dim it just
+/* a transaction's own figure isn't a comparison column, don't dim it just
    because it landed under Jun or Jul */
 .drill__num--tx {
   font-size: 13.5px;
@@ -659,7 +659,7 @@ function onRowClick(row) {
   display: none;
 }
 
-/* Level 2 — sub-categories, indented onto a canvas-tinted band */
+/* Level 2, sub-categories, indented onto a canvas-tinted band */
 .drill-row--sub {
   padding-left: 34px;
   background: var(--row-tint);
@@ -669,7 +669,7 @@ function onRowClick(row) {
   font-weight: 600;
 }
 
-/* Level 3 — the transactions behind a sub-category's number */
+/* Level 3, the transactions behind a sub-category's number */
 .drill-row--tx,
 .drill-row--empty {
   padding-left: 60px;
@@ -690,7 +690,7 @@ function onRowClick(row) {
   color: rgba(var(--v-theme-on-surface), 0.55);
 }
 
-/* Category/sub-category editors sit under the merchant name — the month
+/* Category/sub-category editors sit under the merchant name, the month
    columns are spoken for by each transaction's own figure. */
 .drill__edit {
   display: flex;
@@ -749,7 +749,7 @@ function onRowClick(row) {
   line-height: 1.5;
 }
 
-/* Phone: the three-month table becomes one stacked row per line — name and
+/* Phone: the three-month table becomes one stacked row per line, name and
    meta left, the focus month large on the right with the two prior months
    underneath. Never a horizontal scroll. */
 @media (max-width: 700px) {

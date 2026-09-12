@@ -77,8 +77,8 @@ async function importTransactions() {
     >
       {{
         simplefinUrlSet
-          ? `Connected (••••${simplefinUrlSuffix}) — redeem a new setup token to reconnect`
-          : "Not connected — get a one-time setup token from your SimpleFin bridge and redeem it below"
+          ? `Connected (••••${simplefinUrlSuffix}). Redeem a new setup token to reconnect`
+          : "Not connected. Get a one-time setup token from your SimpleFin bridge and redeem it below"
       }}
     </p>
     <button
@@ -113,13 +113,13 @@ async function importTransactions() {
         and click "Create Setup Token".
       </li>
       <li class="mb-1">
-        Copy the token and paste it into the field below, then click Redeem —
+        Copy the token and paste it into the field below, then click Redeem.
         it's one-time use only, and once claimed you'll be walked through
         matching each SimpleFin account to one in this app.
       </li>
       <li>
         Lost or expired the token? Generate a new one from the same Apps page
-        and redeem it again — this replaces the old connection.
+        and redeem it again. This replaces the old connection.
       </li>
     </ol>
     <div class="d-flex ga-2">

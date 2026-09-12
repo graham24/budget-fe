@@ -12,8 +12,8 @@ const api = axios.create({
 });
 
 // Attach the session token to every request. Read from the auth store
-// (not localStorage directly) so a landing-page preview session — which
-// deliberately never touches localStorage, see authStore.startPreview —
+// (not localStorage directly) so a landing-page preview session, which
+// deliberately never touches localStorage, see authStore.startPreview , 
 // can still make authenticated calls.
 api.interceptors.request.use((config) => {
   const token = useAuthStore().token;
@@ -23,7 +23,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Expired/invalid token — bounce back to the login screen. Only applies to
+// Expired/invalid token, bounce back to the login screen. Only applies to
 // a real session: a preview session hitting a 401 (e.g. demo data isn't
 // seeded) shouldn't force a reload out from under a marketing-page visitor.
 api.interceptors.response.use(
@@ -40,7 +40,7 @@ api.interceptors.response.use(
 
 export default api;
 
-// Google Sign-In — verifies the ID token server-side and returns the user
+// Google Sign-In, verifies the ID token server-side and returns the user
 // plus our own session token
 export const googleLogin = async (
   credential: string
@@ -52,7 +52,7 @@ export const googleLogin = async (
   return response.data;
 };
 
-// Demo account login — no credential needed, mints a token for the seeded
+// Demo account login, no credential needed, mints a token for the seeded
 // demo household. 404s if the demo data hasn't been seeded server-side.
 export const demoLogin = async (): Promise<{ user: User; token: string }> => {
   const response = await api.post<{ user: User; token: string }>("/auth/demo/");

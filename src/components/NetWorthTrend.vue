@@ -23,7 +23,7 @@ const series = computed(() =>
   }))
 );
 
-// Debts going down is good — flip the trend color in debt mode
+// Debts going down is good, flip the trend color in debt mode
 const trendingGood = computed(() => {
   const points = series.value;
   if (points.length < 2) return true;

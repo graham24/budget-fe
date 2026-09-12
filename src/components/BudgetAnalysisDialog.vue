@@ -113,7 +113,7 @@ const formattedAnalysis = computed(() => {
   return analysisToHtml(analysis.value.analysis);
 });
 
-// from/to are date-only boundaries — render in UTC so they don't shift a day
+// from/to are date-only boundaries, render in UTC so they don't shift a day
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, {
     year: "numeric",

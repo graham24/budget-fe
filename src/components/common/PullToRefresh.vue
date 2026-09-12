@@ -40,7 +40,7 @@ function onTouchMove(event) {
   if (!tracking.value) return;
   const delta = event.touches[0].clientY - startY;
 
-  // Scrolling up, or the page moved off the top mid-gesture — hand it back.
+  // Scrolling up, or the page moved off the top mid-gesture, hand it back.
   if (delta <= 0 || !atTop()) {
     tracking.value = false;
     pull.value = 0;

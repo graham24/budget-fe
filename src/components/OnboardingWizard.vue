@@ -91,7 +91,7 @@ function finish() {
     <div v-else>
       <div class="stack-header">
         <div class="text-subtitle-1 font-weight-bold">
-          Welcome — let's set up your household
+          Welcome. Let's set up your household
         </div>
         <div class="counter muted">
           {{ step + 1 }} / {{ STEPS.length }}
@@ -106,7 +106,7 @@ function finish() {
           class="muted mb-3"
           style="font-size: 0.9rem"
         >
-          This is the name your household goes by — you can change it anytime
+          This is the name your household goes by. You can change it anytime
           in Settings.
         </p>
         <v-text-field
@@ -142,7 +142,7 @@ function finish() {
           class="muted mb-3"
           style="font-size: 0.9rem"
         >
-          Invite anyone else who shares this budget — optional, you can add
+          Invite anyone else who shares this budget. Optional, you can add
           people later from Settings.
         </p>
         <v-list
@@ -216,7 +216,7 @@ function finish() {
           style="font-size: 0.9rem"
         >
           Connect SimpleFin to pull in your real bank accounts and keep
-          transactions synced automatically — you'll be walked through
+          transactions synced automatically. You'll be walked through
           matching each one to an account here. Optional; skip to add
           accounts by hand instead.
         </p>
@@ -243,7 +243,7 @@ function finish() {
           class="muted mb-3"
           style="font-size: 0.9rem"
         >
-          Add at least one account to track — imported transactions and
+          Add at least one account to track. Imported transactions and
           manual entries both need to belong to one.
         </p>
         <v-table

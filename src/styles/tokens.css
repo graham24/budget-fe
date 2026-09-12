@@ -8,10 +8,10 @@
   --pad: 20px 22px;
   --gap: 16px;
 
-  /* page measure — the design's desktop shell */
+  /* page measure, the design's desktop shell */
   --page-max: 1312px;
 
-  /* layered hairline shadows — depth without drama */
+  /* layered hairline shadows, depth without drama */
   --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 12px rgba(16, 24, 40, 0.06);
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
 
@@ -30,7 +30,7 @@
   --font-display: "Bricolage Grotesque", var(--font-sans);
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  /* category palette (Material 400s) — donut slices, drill-down dots */
+  /* category palette (Material 400s), donut slices, drill-down dots */
   --cat-1: #42a5f5;
   --cat-2: #66bb6a;
   --cat-3: #ffa726;
@@ -48,6 +48,6 @@ body {
   background: rgb(var(--v-theme-background));
   color: rgb(var(--v-theme-on-background));
   min-height: 100vh;
-  /* digits align in columns everywhere — essential for a money app */
+  /* digits align in columns everywhere, essential for a money app */
   font-variant-numeric: tabular-nums;
 }

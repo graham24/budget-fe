@@ -129,7 +129,7 @@
               class="contact-success"
             >
               <p class="card-title">
-                Thanks — message sent.
+                Thanks, message sent.
               </p>
               <p class="hero-sub">
                 We read every message and will get back to you if a reply is needed.
@@ -167,7 +167,7 @@ const form = ref({
   email: "",
   topic: "Feedback",
   message: "",
-  company: "", // honeypot — real users never see or fill this
+  company: "", // honeypot, real users never see or fill this
 });
 const sending = ref(false);
 const submitted = ref(false);
@@ -175,12 +175,12 @@ const errorMessage = ref(null);
 
 async function handleSubmit() {
   if (form.value.company) {
-    // Honeypot tripped — silently pretend to succeed
+    // Honeypot tripped, silently pretend to succeed
     submitted.value = true;
     return;
   }
   if (!FORMSPREE_ENDPOINT) {
-    errorMessage.value = "Contact form isn't configured yet — please try again later.";
+    errorMessage.value = "Contact form isn't configured yet. Please try again later.";
     return;
   }
   errorMessage.value = null;
@@ -207,7 +207,7 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* Same alias layer as pages/index.vue — fonts and tokens come from
+/* Same alias layer as pages/index.vue, fonts and tokens come from
    src/styles/tokens.css; never re-import either here. */
 .landing-root {
   --bg: rgb(var(--v-theme-background));

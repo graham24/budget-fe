@@ -5,7 +5,7 @@ import { useTransactionStore } from "../stores/transaction";
 const transactionStore = useTransactionStore();
 
 // Mirrors the backend's normalize_description: drop tokens containing digits.
-// Memoized by transaction id — descriptions are never edited in place, so
+// Memoized by transaction id, descriptions are never edited in place, so
 // this avoids re-tokenizing all 12 months of history whenever an unrelated
 // transaction mutation (e.g. a category edit) invalidates this computed.
 const normalizedCache = new Map();
@@ -116,7 +116,7 @@ const monthlyBaseline = computed(() =>
     v-else
     class="muted text-caption"
   >
-    No recurring charges detected yet — needs 3+ months of similar charges.
+    No recurring charges detected yet. Needs 3+ months of similar charges.
   </div>
 </template>
 

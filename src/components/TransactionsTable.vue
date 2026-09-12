@@ -192,7 +192,7 @@ const groupedByDay = computed(() => {
 });
 
 // Flattened, uniform list for v-virtual-scroll (day headers interleaved with
-// their rows) — the grouped table/list markup above renders every row with
+// their rows), the grouped table/list markup above renders every row with
 // no windowing, which gets heavy once a 3-month window runs into the
 // hundreds/thousands of rows.
 const virtualRows = computed(() => {
@@ -207,7 +207,7 @@ const virtualRows = computed(() => {
 });
 
 // v-virtual-scroll's own scroll container isn't a <table>, so the desktop
-// row grid uses CSS grid instead — this template mirrors the old <th>/<td>
+// row grid uses CSS grid instead, this template mirrors the old <th>/<td>
 // column widths so header and rows stay aligned.
 const gridTemplateColumns = computed(() => {
   const cols = [];

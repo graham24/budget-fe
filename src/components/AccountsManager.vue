@@ -180,7 +180,7 @@ async function refreshAccount(account) {
 <template>
   <div class="accounts-manager">
     <p class="text-caption muted mb-4">
-      Import health lives here — the transactions page only surfaces problems.
+      Import health lives here. The transactions page only surfaces problems.
     </p>
 
     <div

@@ -80,7 +80,7 @@ const props = defineProps({
   },
   // Overview already renders targets as a live card ("Budget vs. actual"),
   // so it hides the AI's prose version of that section rather than saying
-  // the same thing twice with different numbers — the prose reads the whole
+  // the same thing twice with different numbers, the prose reads the whole
   // analysis window, the card reads the focus month. The dialog leaves it in.
   hideTargetsSection: {
     type: Boolean,
@@ -108,7 +108,7 @@ const formattedAnalysis = computed(() => {
   return analysisToHtml(body);
 });
 
-// from/to are date-only boundaries — render in UTC so they don't shift a day
+// from/to are date-only boundaries, render in UTC so they don't shift a day
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString(undefined, {
     year: "numeric",

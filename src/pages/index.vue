@@ -19,6 +19,7 @@
           <a href="#insights">Insights</a>
           <a href="#networth">Net worth</a>
           <a href="#transactions">Transactions</a>
+          <a href="#pricing">Pricing</a>
         </div>
         <a
           class="btn btn-ghost"
@@ -55,12 +56,12 @@
               >View the demo</a>
             </div>
             <p class="hero-note">
-              Free for {{ TRIAL_DAYS }} days, no card required — then $4.99/mo.
+              Free for {{ TRIAL_DAYS }} days, no card required. Then $4.99/mo.
               Sign in with Google, no passwords to manage.
             </p>
           </div>
 
-          <!-- signature: the written analysis — the real BudgetAnalysisCard,
+          <!-- signature: the written analysis, the real BudgetAnalysisCard
                fed by the read-only demo account (see startPreview above) -->
           <div class="analysis">
             <div class="an-head">
@@ -91,17 +92,6 @@
         </div>
       </section>
 
-      <!-- TAB STRIP -->
-      <section class="strip">
-        <div class="wrap strip-in">
-          <span><i /> Overview</span>
-          <span><i /> Insights</span>
-          <span><i /> Net worth</span>
-          <span><i /> Transactions</span>
-          <span style="color: var(--text-3)">Four screens. One clear picture.</span>
-        </div>
-      </section>
-
       <!-- OVERVIEW -->
       <section
         id="overview"
@@ -113,14 +103,11 @@
               Overview
             </p>
             <h2>Your month in four numbers you can act on</h2>
-            <p>Income, spending, what you kept, and how that compares to a healthy 50/30/20 split — enough to know exactly where you stand before you make a single decision.</p>
+            <p>Income, spending, what you kept, and how that compares to a healthy 50/30/20 split. Enough to know exactly where you stand before you make a single decision.</p>
           </div>
 
           <div class="feat">
             <div class="feat-copy">
-              <p class="feat-tag">
-                Headline numbers
-              </p>
               <h3>Watch your savings rate climb month over month</h3>
               <p>Four figures at the top of every month, each with a month-over-month change, so progress is visible the moment you make it.</p>
               <ul class="feat-list">
@@ -132,7 +119,7 @@
             </div>
             <div class="card">
               <p class="card-label">
-                This month — live demo data
+                This month, live demo data
               </p>
               <KpiStrip />
               <div class="rulecheck">
@@ -149,11 +136,8 @@
 
           <div class="feat feat-flip">
             <div class="feat-copy">
-              <p class="feat-tag">
-                Targets
-              </p>
               <h3>Set a plan per category, then watch yourself hit it</h3>
-              <p>Pick the categories that matter to you and set a number you believe in — informed by what you actually spend, not a guess. Progress sits right on the overview, updating as the month goes.</p>
+              <p>Pick the categories that matter to you and set a number you believe in, informed by what you actually spend rather than a guess. Progress sits right on the overview, updating as the month goes.</p>
               <ul class="feat-list">
                 <li>One target per category, editable inline as your plans change</li>
                 <li>Percentage used next to every bar, so a category on track looks like it</li>
@@ -163,7 +147,7 @@
             </div>
             <div class="card">
               <p class="card-label">
-                Plan vs actual — live demo data
+                Plan vs actual, live demo data
               </p>
               <p class="card-title">
                 This month against the demo household's plan
@@ -195,16 +179,13 @@
               Insights
             </p>
             <h2>Three months side by side, so patterns stop being a mystery</h2>
-            <p>Every category across the last three months with a running average, grouped into earnings, must-haves, and nice-to-haves — the numbers you need to build a plan you can actually keep.</p>
+            <p>Every category across the last three months with a running average, grouped into earnings, must-haves, and nice-to-haves. The numbers you need to build a plan you can actually keep.</p>
           </div>
 
           <div class="feat feat-stack">
             <div class="feat-copy">
-              <p class="feat-tag">
-                Spending by category
-              </p>
               <h3>Know what's essential and what's your choice</h3>
-              <p>Every expense is marked essential or optional as it comes in, so you can see how much of your month is genuinely yours to direct — and put more of it where you want it.</p>
+              <p>Every expense is marked essential or optional as it comes in, so you can see how much of your month is genuinely yours to direct, and put more of it where you want it.</p>
               <ul class="feat-list">
                 <li>Three months in columns with a fourth column for the average</li>
                 <li>Expand any category to see exactly what's inside it</li>
@@ -222,21 +203,18 @@
 
           <div class="feat feat-flip">
             <div class="feat-copy">
-              <p class="feat-tag">
-                Recurring charges
-              </p>
               <h3>Spot the subscriptions you meant to cancel</h3>
-              <p>Debrief finds every charge that lands three or more months in a row at a similar amount and totals them into one monthly baseline. It's the fastest money most households find — cancel two things you'd forgotten and the savings start immediately.</p>
+              <p>Debrief finds every charge that lands three or more months in a row at a similar amount and totals them into one monthly baseline. It's the fastest money most households find. Cancel two things you'd forgotten and the savings start immediately.</p>
               <ul class="feat-list">
                 <li>Shows how many months running each charge has appeared</li>
                 <li>Highlights any recurring charge that quietly went up in price</li>
                 <li>Catches subscriptions billed under names you'd never think to search for</li>
-                <li>Gives you one number for what your household costs to run — the baseline every plan starts from</li>
+                <li>Gives you one number for what your household costs to run, the baseline every plan starts from</li>
               </ul>
             </div>
             <div class="card">
               <p class="card-label">
-                Fixed costs — live demo data
+                Fixed costs, live demo data
               </p>
               <RecurringCosts />
             </div>
@@ -256,18 +234,15 @@
               Net worth
             </p>
             <h2>Watch the months add up to something</h2>
-            <p>A good month is worth noticing. A year of them is worth celebrating — and net worth is where you see it accumulate.</p>
+            <p>A good month is worth noticing. A year of them is worth celebrating, and net worth is where you see it accumulate.</p>
           </div>
 
           <div class="feat">
             <div class="feat-copy">
-              <p class="feat-tag">
-                Assets and debts
-              </p>
               <h3>Everything you own and owe, in one growing picture</h3>
-              <p>Add anything you own or owe. Because debts carry their real interest rate and minimum payment, the written analysis can tell you which one to clear first and what that saves you — using your numbers, not a rule of thumb.</p>
+              <p>Add anything you own or owe. Because debts carry their real interest rate and minimum payment, the written analysis can tell you which one to clear first and what that saves you, using your numbers rather than a rule of thumb.</p>
               <ul class="feat-list">
-                <li>A 12-month trend you can view as net worth, assets, or debts — watch the lines separate</li>
+                <li>A 12-month trend you can view as net worth, assets, or debts, so you can watch the lines separate</li>
                 <li>Balances on linked accounts update themselves every night, so progress shows up without effort</li>
                 <li>Manually tracked items show an "as of" date and a gentle nudge when it's time to refresh them</li>
                 <li>Each month keeps its own snapshot, so your history is real history you can look back on</li>
@@ -306,16 +281,13 @@
               Transactions
             </p>
             <h2>Every transaction, already sorted for you</h2>
-            <p>Income, essentials, discretionary spending, and transfers in four clear tables — searchable, editable in place, and yours to export whenever you like.</p>
+            <p>Income, essentials, discretionary spending, and transfers in four clear tables. Searchable, editable in place, and yours to export whenever you like.</p>
           </div>
 
           <div class="feat">
             <div class="feat-copy">
-              <p class="feat-tag">
-                Getting money in
-              </p>
               <h3>Connect once and your spending keeps itself current</h3>
-              <p>Link your accounts and new transactions arrive on their own each night — no monthly data-entry session. Prefer to keep banks disconnected? Drop in a CSV export instead; the formats your banks use are already handled.</p>
+              <p>Link your accounts and new transactions arrive on their own each night, with no monthly data-entry session. Prefer to keep banks disconnected? Drop in a CSV export instead; the formats your banks use are already handled.</p>
               <ul class="feat-list">
                 <li>Ready-made support for Wells Fargo, Chase, US Bank, Apple Card and Savings</li>
                 <li>An import-now button whenever you want today's numbers immediately</li>
@@ -325,7 +297,7 @@
             </div>
             <div class="card">
               <p class="card-label">
-                Import status — live demo data
+                Import status, live demo data
               </p>
               <p class="card-title">
                 Everything accounted for
@@ -336,11 +308,8 @@
 
           <div class="feat feat-flip feat-stack">
             <div class="feat-copy">
-              <p class="feat-tag">
-                Keeping it tidy
-              </p>
-              <h3>Categories arrive filled in — and your rules always win</h3>
-              <p>New transactions arrive already categorized, sub-categorized, and marked essential or optional, which means the picture is ready the moment you open it. Where you want a guaranteed answer, write a rule — your rules run first and are never overridden.</p>
+              <h3>Categories arrive filled in, and your rules always win</h3>
+              <p>New transactions arrive already categorized, sub-categorized, and marked essential or optional, which means the picture is ready the moment you open it. Where you want a guaranteed answer, write a rule. Your rules run first and are never overridden.</p>
               <ul class="feat-list">
                 <li>A short review queue gathers the handful worth a second look, with a count on the tab</li>
                 <li>Rules match on any part of a description, so one rule covers every variation of a payee</li>
@@ -351,7 +320,7 @@
             </div>
             <div class="card">
               <p class="card-label">
-                Live demo data — read-only preview
+                Live demo data, read-only preview
               </p>
               <Transactions read-only />
             </div>
@@ -388,7 +357,7 @@
                 /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
               </div>
               <h3>One household, one picture</h3>
-              <p>Invite your partner or roommates by email. Accounts are tagged with whose they are, and everyone works from the same targets, categories, and totals — one shared plan instead of two guesses.</p>
+              <p>Invite your partner or roommates by email. Accounts are tagged with whose they are, and everyone works from the same targets, categories, and totals. One shared plan instead of two guesses.</p>
             </div>
             <div class="cell">
               <div class="cell-ico">
@@ -468,7 +437,7 @@
                 /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
               </div>
               <h3>Credentials stay private</h3>
-              <p>Bank connections and API keys are encrypted and never sent back out — you see the last four characters, just enough to confirm which one is set.</p>
+              <p>Bank connections and API keys are encrypted and never sent back out. You see the last four characters, just enough to confirm which one is set.</p>
             </div>
           </div>
         </div>
@@ -496,12 +465,12 @@
             <div class="step">
               <span class="step-n">02</span>
               <h3>Add your accounts</h3>
-              <p>Link a bank for nightly syncing, or add the account and upload a CSV. Mix both freely — start with one account if you'd rather ease in.</p>
+              <p>Link a bank for nightly syncing, or add the account and upload a CSV. Mix both freely, and start with one account if you'd rather ease in.</p>
             </div>
             <div class="step">
               <span class="step-n">03</span>
               <h3>Confirm a few categories, then read your first debrief</h3>
-              <p>Skim the review queue on your first import — your choices teach it, and everything after arrives sorted your way. Then generate your first debrief and read three months of your household explained back to you.</p>
+              <p>Skim the review queue on your first import. Your choices teach it, and everything after arrives sorted your way. Then generate your first debrief and read three months of your household explained back to you.</p>
             </div>
           </div>
         </div>
@@ -531,7 +500,7 @@
             <ul class="data-list">
               <li>
                 <h3>Credentials stay encrypted</h3>
-                <p>Bank connections and API keys are encrypted in the database and never sent back out — you only ever see the last four characters to confirm which one is set.</p>
+                <p>Bank connections and API keys are encrypted in the database and never sent back out. You only ever see the last four characters to confirm which one is set.</p>
               </li>
               <li>
                 <h3>Private to your household</h3>
@@ -546,6 +515,61 @@
         </div>
       </section>
 
+      <!-- PRICING -->
+      <section
+        id="pricing"
+        class="sec"
+      >
+        <div class="wrap">
+          <div class="sec-head">
+            <p class="eyebrow">
+              Pricing
+            </p>
+            <h2>One price, everything included</h2>
+            <p>No tiers to compare and nothing held back for a higher plan. Every household gets the same app.</p>
+          </div>
+
+          <div class="price-row">
+            <div class="card price-card">
+              <p class="price-fig">
+                $4.99<span>/month</span>
+              </p>
+              <p class="price-sub">
+                Per household, not per person. Invite your partner or roommates
+                at no extra cost.
+              </p>
+              <ul class="feat-list price-list">
+                <li>Nightly bank sync, or CSV upload for banks you'd rather not link</li>
+                <li>Automatic categorization, with your own rules taking precedence</li>
+                <li>Budget targets, recurring-charge detection, and net worth tracking</li>
+                <li>A written monthly debrief of where your money actually went</li>
+                <li>Export any table to CSV whenever you want</li>
+              </ul>
+              <a
+                class="btn btn-key btn-lg price-btn"
+                href="#signin"
+                @click.prevent="loginDialog = true"
+              >Start {{ TRIAL_DAYS }} days free</a>
+              <p class="price-fine">
+                No card required to start. When the {{ TRIAL_DAYS }} days are up,
+                access stops unless you've added one. Nothing is charged
+                automatically.
+              </p>
+            </div>
+
+            <div class="price-aside">
+              <h3>Want to look first?</h3>
+              <p>The demo is the real app running on a sample household. Every screen above it on this page is live demo data, not a screenshot.</p>
+              <a
+                class="btn btn-ghost"
+                href="#signin"
+                @click.prevent="handleDemoLogin"
+              >View the demo</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section
         id="signin"
         class="cta-final"
@@ -555,14 +579,14 @@
             Start now
           </p>
           <h2>Get your first debrief this week</h2>
-          <p>Connect one account and you'll have three months of sorted spending, your real monthly baseline, and a plan worth following — before you've finished your coffee. Your first {{ TRIAL_DAYS }} days are free.</p>
+          <p>Connect one account and you'll have three months of sorted spending, your real monthly baseline, and a plan worth following, before you've finished your coffee. Your first {{ TRIAL_DAYS }} days are free.</p>
           <a
             class="btn btn-key btn-lg"
             href="#signin"
             @click.prevent="loginDialog = true"
           >Start {{ TRIAL_DAYS }} days free</a>
           <p class="fine">
-            No card required. Then $4.99/mo. Sign in with Google — no
+            No card required. Then $4.99/mo. Sign in with Google, no
             passwords to manage.
           </p>
         </div>
@@ -577,6 +601,7 @@
           <a href="#insights">Insights</a>
           <a href="#networth">Net worth</a>
           <a href="#transactions">Transactions</a>
+          <a href="#pricing">Pricing</a>
           <a href="/contact">Contact</a>
         </nav>
       </div>
@@ -685,7 +710,7 @@ async function handleDemoLogin() {
 }
 
 // Powers the live component previews below (KpiStrip, BudgetAnalysisCard,
-// Categories, etc. — the actual dashboard components, reading from the
+// Categories, etc. The actual dashboard components, reading from the
 // same Pinia stores dashboard.vue uses) without a real login: authStore
 // .startPreview() authenticates as the read-only demo account in memory
 // only (never touches localStorage), so App.vue keeps the marketing chrome
@@ -701,7 +726,7 @@ onMounted(async () => {
       netWorthStore.fetchAll(),
     ]);
   } catch (error) {
-    // Demo data not seeded, or the API is unreachable — preview sections
+    // Demo data not seeded, or the API is unreachable. Preview sections
     // just show their normal empty states, the marketing copy still reads fine.
     console.error("Demo preview unavailable:", error);
   }
@@ -713,7 +738,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Fonts and the shared design tokens both come from src/styles/tokens.css —
+/* Fonts and the shared design tokens both come from src/styles/tokens.css,
    this page is inside the same app shell, so it must not re-import either.
    The local names below are thin aliases onto those tokens and the active
    Vuetify theme, so the landing page tracks the light/dark toggle and any
@@ -1085,35 +1110,6 @@ onUnmounted(() => {
 }
 
 /* ---------- tab strip ---------- */
-.strip {
-  border-top: 1px solid var(--rule-soft);
-  border-bottom: 1px solid var(--rule-soft);
-  background: rgba(var(--v-theme-on-surface), 0.012);
-}
-.strip-in {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 26px;
-  padding: 18px 0;
-  font-family: var(--mono);
-  font-size: 0.79rem;
-  color: var(--text-2);
-  letter-spacing: 0.03em;
-}
-.strip-in span {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-}
-.strip-in i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--blue);
-  flex: none;
-  display: inline-block;
-}
-
 /* ---------- sections ---------- */
 .sec {
   padding: clamp(56px, 7.5vw, 92px) 0;
@@ -1147,7 +1143,7 @@ onUnmounted(() => {
   order: 2;
 }
 /* wide-table demos (Categories, Transactions) need the full wrap width
-   to avoid clipping columns — stack copy above the card instead of
+   to avoid clipping columns. Stack copy above the card instead of
    splitting the row into two narrow columns */
 .feat-stack {
   grid-template-columns: 1fr;
@@ -1158,17 +1154,9 @@ onUnmounted(() => {
 .feat-stack .card {
   max-width: 100%;
 }
-.feat-tag {
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.19em;
-  text-transform: uppercase;
-  color: var(--text-3);
-  font-weight: 500;
-}
 .feat-copy h3 {
   font-size: clamp(1.32rem, 2.3vw, 1.7rem);
-  margin: 11px 0 0;
+  margin: 0;
 }
 .feat-copy p {
   margin-top: 13px;
@@ -1781,5 +1769,69 @@ footer {
 .demo-btn {
   width: 100%;
   justify-content: center;
+}
+
+/* ---------- pricing ---------- */
+.price-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 34px);
+  align-items: start;
+}
+.price-card {
+  padding: clamp(24px, 3vw, 34px);
+}
+.price-fig {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(2.4rem, 5vw, 3.1rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.price-fig span {
+  font-family: var(--body);
+  font-weight: 500;
+  font-size: 1rem;
+  letter-spacing: 0;
+  color: var(--text-2);
+  margin-left: 4px;
+}
+.price-sub {
+  margin-top: 10px;
+  color: var(--text-2);
+  max-width: 44ch;
+}
+.price-list {
+  margin-top: 22px;
+}
+.price-btn {
+  margin-top: 26px;
+}
+.price-fine {
+  margin-top: 14px;
+  font-size: 0.83rem;
+  color: var(--text-3);
+  max-width: 46ch;
+}
+.price-aside {
+  padding-top: 6px;
+}
+.price-aside h3 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+.price-aside p {
+  margin-top: 10px;
+  color: var(--text-2);
+  font-size: 0.95rem;
+}
+.price-aside .btn {
+  margin-top: 18px;
+}
+@media (max-width: 860px) {
+  .price-row {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

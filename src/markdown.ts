@@ -66,7 +66,7 @@ export function analysisToHtml(markdown: string): string {
 // the next heading at the same or a higher level) from an analysis body.
 // Overview renders targets as their own card, so the AI's prose version of
 // that section would otherwise repeat it on the same tab with different
-// numbers — the prose reads the whole analysis window, the card reads the
+// numbers, the prose reads the whole analysis window, the card reads the
 // focus month.
 export function dropSection(markdown: string, headingPattern: RegExp): string {
   const lines = markdown.split("\n");

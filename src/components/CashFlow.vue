@@ -78,7 +78,7 @@ const seriesMap = computed(() => {
     });
 
   // build from oldest to newest so the sparkline runs left-to-right
-  // chronologically — up to 12 months ending at the focus month
+  // chronologically, up to 12 months ending at the focus month
   for (let i = 11; i >= 0; i--) {
     const entry = transactionStore.net_incomes?.[baseIndex + 1 + i];
     if (!entry) continue;

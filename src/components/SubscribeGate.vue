@@ -29,7 +29,7 @@ async function subscribe() {
     window.location.href = url;
   } catch (err) {
     error.value =
-      err.response?.data?.message || "Couldn't start checkout — try again";
+      err.response?.data?.message || "Couldn't start checkout. Try again";
     loading.value = false;
   }
 }
@@ -48,7 +48,7 @@ async function subscribe() {
         {{
           props.lapsed
             ? "Your last payment didn't go through, or the subscription was canceled. Resubscribe to get back into your dashboard."
-            : `Unlock your dashboard, imports, and AI budget analysis free for ${TRIAL_DAYS} days — no card required. After that it's $4.99/mo per household.`
+            : `Unlock your dashboard, imports, and AI budget analysis free for ${TRIAL_DAYS} days, no card required. After that it's $4.99/mo per household.`
         }}
       </p>
       <v-btn
@@ -62,7 +62,7 @@ async function subscribe() {
       </v-btn>
       <!-- Checkout collects no card for a trial (payment_method_collection
            "if_required"), and the trial cancels at the end if none was added
-           (missing_payment_method "cancel"). Say both plainly — losing access
+           (missing_payment_method "cancel"). Say both plainly, losing access
            shouldn't be the first time someone hears about it. -->
       <p
         v-if="!props.lapsed"

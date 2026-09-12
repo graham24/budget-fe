@@ -121,7 +121,7 @@ h1, h2, h3, h4, h5, h6,
   color: rgba(var(--v-theme-on-background), 0.65);
 }
 
-/* Quiet uppercase eyebrow label — global so components stop redefining it */
+/* Quiet uppercase eyebrow label, global so components stop redefining it */
 .pill {
   font-family: var(--font-mono);
   color: rgb(var(--v-theme-primary));
@@ -131,7 +131,7 @@ h1, h2, h3, h4, h5, h6,
   text-transform: uppercase;
 }
 
-/* Tabular, monospaced figures — matches the marketing site's number
+/* Tabular, monospaced figures, matches the marketing site's number
    treatment. Apply to amount/KPI-style values. */
 .mono {
   font-family: var(--font-mono);
@@ -147,7 +147,7 @@ h1, h2, h3, h4, h5, h6,
   line-height: 1.25;
 }
 
-/* Prose set to a fixed reading measure — AI analysis, narrative cards */
+/* Prose set to a fixed reading measure, AI analysis, narrative cards */
 .prose {
   font-size: 15px;
   line-height: 1.75;

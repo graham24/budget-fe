@@ -65,7 +65,7 @@ export const useSimplefinStore = defineStore("simplefin", {
         await accountStore.fetchAccounts();
       }
       // Backfill 3 months of history for the newly-linked account. Best
-      // effort — a failure here shouldn't undo the link itself.
+      // effort, a failure here shouldn't undo the link itself.
       if (updated.bank_account_id) {
         try {
           await this.refreshAccountTransactions(id, householdId);
@@ -111,7 +111,7 @@ export const useSimplefinStore = defineStore("simplefin", {
     },
     // Runs every linked account through the same per-account refresh, one at
     // a time, recording a result line each. A failing account is recorded and
-    // the run continues — one dead bank connection shouldn't stop the rest.
+    // the run continues, one dead bank connection shouldn't stop the rest.
     async refreshAllAccounts(
       householdId: number,
       labelFor?: (account: SimplefinAccount) => string

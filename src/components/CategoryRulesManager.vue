@@ -27,7 +27,7 @@ async function removeRule(rule) {
   <div class="rules-manager">
     <p class="text-caption muted mb-4">
       Rules categorize imported transactions whose description contains the
-      match text — they run before (and instead of) AI categorization.
+      match text. They run before (and instead of) AI categorization.
       The newest matching rule wins.
     </p>
 

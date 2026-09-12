@@ -20,7 +20,7 @@ function lowerBoundDescending(transactions: Transaction[], cutoff: Date): number
 }
 
 // Slices a descending-sorted transaction array to the half-open date range
-// [start, end). `transactions` must already be sorted descending by date —
+// [start, end). `transactions` must already be sorted descending by date , 
 // callers are responsible for that invariant (see src/stores/transaction.ts).
 export function sliceByDateRange(
   transactions: Transaction[],
