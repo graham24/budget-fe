@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useImportErrorStore } from "../stores/importError";
+import { simplefinFixLink } from "../utils/simplefin";
 
 const errorStore = useImportErrorStore();
 const dismissingId = ref(null);
@@ -46,12 +47,24 @@ async function dismiss(error) {
           />
         </template>
         <v-list-item-title class="text-wrap">
-          {{ error.message }}
+          {{ simplefinFixLink(error.message).text }}
         </v-list-item-title>
         <v-list-item-subtitle>
           {{ new Date(error.created).toLocaleString() }}
         </v-list-item-subtitle>
         <template #append>
+          <v-btn
+            :href="simplefinFixLink(error.message).url"
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="tonal"
+            color="error"
+            size="small"
+            append-icon="mdi-open-in-new"
+            class="mr-1"
+          >
+            Fix it
+          </v-btn>
           <v-btn
             icon="mdi-close"
             variant="text"

@@ -43,6 +43,23 @@ const tiles = computed(() => {
   ];
 });
 
+// The monthly series only carries asset/debt totals, so this tile shows the
+// two balances behind the ratio instead of a month-over-month delta.
+const cashToCards = computed(() => {
+  const cash = netWorthStore.cashTotal;
+  const cards = netWorthStore.creditCardTotal;
+  return {
+    cash,
+    cards,
+    ratio: cards > 0 ? cash / cards : null,
+  };
+});
+
+function ratioClass(ratio) {
+  if (ratio === null) return "muted";
+  return ratio >= 1 ? "text-success" : "text-error";
+}
+
 function deltaClass(tile) {
   if (Math.abs(tile.delta) < 1) return "muted";
   const improved = tile.delta > 0 === tile.goodWhenUp;
@@ -85,6 +102,28 @@ function deltaClass(tile) {
           No history yet
         </div>
       </SurfaceCard>
+      <SurfaceCard
+        class="kpi"
+        padding="16px 18px"
+      >
+        <div class="pill">
+          Cash to credit cards
+        </div>
+        <div
+          class="kpi__value"
+          :class="ratioClass(cashToCards.ratio)"
+        >
+          {{ cashToCards.ratio === null ? "—" : `${cashToCards.ratio.toFixed(1)}×` }}
+        </div>
+        <div class="kpi__delta muted">
+          <template v-if="cashToCards.ratio !== null">
+            {{ formatCurrency(cashToCards.cash) }} cash · {{ formatCurrency(cashToCards.cards) }} cards
+          </template>
+          <template v-else>
+            No credit card balances
+          </template>
+        </div>
+      </SurfaceCard>
     </div>
   </div>
 </template>
@@ -95,7 +134,7 @@ function deltaClass(tile) {
 }
 .kpi-strip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--gap);
 }
 .kpi {
@@ -117,13 +156,19 @@ function deltaClass(tile) {
   white-space: nowrap;
 }
 
-@container (max-width: 700px) {
+/* two-up once four tiles would crowd, one-up on a phone */
+@container (max-width: 820px) {
   .kpi-strip {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
   .kpi__value {
     font-size: 23px;
+  }
+}
+@container (max-width: 340px) {
+  .kpi-strip {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -131,7 +176,7 @@ function deltaClass(tile) {
 @supports not (container-type: inline-size) {
   @media (max-width: 960px) {
     .kpi-strip {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
     .kpi__value {

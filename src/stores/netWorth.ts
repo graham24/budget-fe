@@ -11,6 +11,13 @@ import {
 import { useHouseholdStore } from "./household";
 import type { NetWorthItem, NetWorthSummary } from "../types";
 
+// Item types are free text; match the form's "Cash" / "Credit Card" options
+// exactly. Loose matching (substrings, the linked account's type) pulled in
+// the wrong items.
+function hasType(item: NetWorthItem, type: string): boolean {
+  return item.type.trim().toLowerCase() === type;
+}
+
 function byBalanceDesc(a: NetWorthItem, b: NetWorthItem) {
   return (b.current_balance ?? 0) - (a.current_balance ?? 0);
 }
@@ -35,6 +42,17 @@ export const useNetWorthStore = defineStore("netWorth", {
     },
     netWorth(): number {
       return this.totalAssets - this.totalDebts;
+    },
+    // "Cash" assets vs. "Credit Card" debts, for the cash-to-cards KPI
+    cashTotal(): number {
+      return this.assets
+        .filter((i) => hasType(i, "cash"))
+        .reduce((sum, i) => sum + (i.current_balance ?? 0), 0);
+    },
+    creditCardTotal(): number {
+      return this.debts
+        .filter((i) => hasType(i, "credit card"))
+        .reduce((sum, i) => sum + (i.current_balance ?? 0), 0);
     },
   },
   actions: {

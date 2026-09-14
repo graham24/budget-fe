@@ -764,8 +764,7 @@ function onRowClick(row) {
   }
   .drill__head,
   .drill__prev,
-  .drill__share,
-  .drill__edit {
+  .drill__share {
     display: none;
   }
   .drill__lead {
@@ -827,6 +826,32 @@ function onRowClick(row) {
   }
   .drill-row--total .drill__share {
     display: none;
+  }
+
+  /* Transaction rows: flatten the name cell so the editors can take their own
+     line under name + meta at the row's full width, instead of being squeezed
+     into the name column beside the amount. */
+  .drill-row--tx .drill__name-cell {
+    display: contents;
+  }
+  .drill-row--tx .drill__name {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+  }
+  .drill-row--tx .drill__meta {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    min-width: 0;
+  }
+  .drill__edit {
+    grid-column: 2 / -1;
+    grid-row: 3;
+    max-width: none;
+    margin-top: 4px;
+  }
+  .need-toggle {
+    padding: 6px 12px;
   }
 }
 </style>

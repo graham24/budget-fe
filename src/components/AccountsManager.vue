@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import { useDisplay } from "vuetify";
 import { useAccountStore } from "../stores/account";
 import { useHouseholdStore } from "../stores/household";
 import { useSimplefinStore } from "../stores/simplefin";
@@ -12,6 +13,7 @@ const householdStore = useHouseholdStore();
 const simplefinStore = useSimplefinStore();
 const transactionStore = useTransactionStore();
 const userStore = useUserStore();
+const { xs } = useDisplay();
 const showForm = ref(false);
 const editingAccount = ref(null);
 const refreshSummary = ref(null);
@@ -268,7 +270,7 @@ async function refreshAccount(account) {
       </div>
     </div>
     <div
-      v-else
+      v-if="showForm"
       class="form-panel mb-4"
     >
       <AccountForm
@@ -318,7 +320,75 @@ async function refreshAccount(account) {
         </div>
       </div>
 
-      <div class="table-wrapper">
+      <!-- Phones: one card per account instead of a sideways-scrolling table -->
+      <div
+        v-if="xs"
+        class="account-cards"
+      >
+        <div
+          v-for="row in healthRows"
+          :key="row.account.id"
+          class="account-card"
+          :class="{ 'row--stale': row.stale }"
+        >
+          <div class="account-card__head">
+            <div class="account-card__title">
+              <div class="font-weight-medium account-card__name">
+                {{ row.account.description }}
+              </div>
+              <div class="text-caption muted">
+                {{ [row.account.type, row.account.bank, ownerNames[row.account.user_id]].filter(Boolean).join(" · ") }}
+              </div>
+            </div>
+            <div class="account-card__actions">
+              <v-btn
+                v-if="row.simplefinAccount"
+                icon="mdi-refresh"
+                variant="text"
+                size="small"
+                :loading="simplefinStore.refreshingAccountId === row.simplefinAccount.id"
+                title="Refresh transactions"
+                @click="refreshAccount(row.account)"
+              />
+              <v-btn
+                icon="mdi-pencil-outline"
+                variant="text"
+                size="small"
+                title="Edit account"
+                @click="editAccount(row.account)"
+              />
+            </div>
+          </div>
+          <div class="account-card__foot">
+            <div class="account-card__months">
+              <div
+                v-for="month in months"
+                :key="month.key"
+                class="account-card__month"
+              >
+                <span class="col-head">{{ month.label }}</span>
+                <v-chip
+                  :color="countColor(row.counts[month.key])"
+                  :variant="row.counts[month.key] === 0 ? 'flat' : 'tonal'"
+                  size="small"
+                >
+                  {{ row.counts[month.key] }}
+                </v-chip>
+              </div>
+            </div>
+            <div
+              class="account-card__activity text-caption"
+              :class="row.stale ? 'text-warning' : 'muted'"
+            >
+              {{ relativeActivity(row.lastActivity) }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        v-else
+        class="table-wrapper"
+      >
         <v-table
           density="compact"
           class="health-table"
@@ -505,6 +575,56 @@ async function refreshAccount(account) {
 }
 .health-table {
   min-width: 640px;
+}
+.account-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.account-card {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 10px 6px 10px 12px;
+}
+.account-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.account-card__title {
+  flex: 1;
+  min-width: 0;
+}
+.account-card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-card__actions {
+  display: flex;
+  flex-shrink: 0;
+  margin-top: -4px;
+}
+.account-card__foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding-right: 6px;
+}
+.account-card__months {
+  display: flex;
+  gap: 12px;
+}
+.account-card__month {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.account-card__activity {
+  text-align: right;
 }
 .row--stale {
   background: rgba(var(--v-theme-warning), 0.08);
