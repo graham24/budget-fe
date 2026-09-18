@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { useTransactionStore } from "../stores/transaction";
+import { isExpense, useTransactionStore } from "../stores/transaction";
 
 const transactionStore = useTransactionStore();
 
@@ -17,11 +17,17 @@ const palette = [
 const slices = computed(() => {
   const byCategory = new Map();
   for (const t of transactionStore.focusMonthTransactions) {
-    if (t.amount >= 0 || t.category === "Transfer") continue;
+    // Refunds are expenses with a positive amount, so they net down
+    // their category here.
+    if (!isExpense(t)) continue;
     byCategory.set(t.category, (byCategory.get(t.category) ?? 0) - t.amount);
   }
 
-  const sorted = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
+  // A month where refunds outweighed spending leaves a category at or
+  // below zero, which has no slice to draw.
+  const sorted = [...byCategory.entries()]
+    .filter(([, v]) => v > 0)
+    .sort((a, b) => b[1] - a[1]);
   const top = sorted.slice(0, 6);
   const otherTotal = sorted.slice(6).reduce((sum, [, v]) => sum + v, 0);
   if (otherTotal > 0) top.push(["Other", otherTotal]);

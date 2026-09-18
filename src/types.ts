@@ -27,6 +27,10 @@ export interface Transaction {
   user_id: number;
   type: string;
   need: boolean;
+  // True for real earnings; false for spending and for money coming back
+  // against spending (refunds, returns, reimbursements), so a refund nets
+  // down its expense category instead of counting as income.
+  income: boolean;
   date: string;
   account_id: number;
   // When the row was written to our DB, i.e. when the import fetched it,
@@ -45,6 +49,8 @@ export interface DuplicateTransaction {
   sub_category: string;
   type: string;
   need: boolean;
+  // Skipped duplicates were never inserted, so the flag may be unset.
+  income: boolean | null;
   import_sequence: number;
 }
 
@@ -82,6 +88,7 @@ export interface CategoryRule {
   category: string;
   sub_category: string;
   need: boolean;
+  income: boolean;
   created: string;
   modified: string;
 }

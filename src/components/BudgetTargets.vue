@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useBudgetTargetStore } from "../stores/budgetTarget";
-import { useTransactionStore } from "../stores/transaction";
+import { isExpense, useTransactionStore } from "../stores/transaction";
 
 defineProps({
   readOnly: {
@@ -31,7 +31,8 @@ const categoryOptions = computed(() => transactionStore.knownExpenseCategories);
 const spentByCategory = computed(() => {
   const spent = new Map();
   for (const t of transactionStore.focusMonthTransactions) {
-    if (t.amount < 0 && t.category !== "Transfer") {
+    // Refunds (positive expenses) reduce the category's spend.
+    if (isExpense(t)) {
       spent.set(t.category, (spent.get(t.category) ?? 0) - t.amount);
     }
   }

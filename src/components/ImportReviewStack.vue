@@ -176,6 +176,13 @@ function onEnter() {
               density="compact"
               hide-details
             />
+            <v-checkbox
+              v-if="current.transaction.amount > 0 && current.transaction.category !== 'Transfer'"
+              v-model="current.transaction.income"
+              label="Income (uncheck for a refund)"
+              density="compact"
+              hide-details
+            />
           </div>
           <v-alert
             v-if="error"

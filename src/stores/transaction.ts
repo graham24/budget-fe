@@ -5,6 +5,16 @@ import { useHouseholdStore } from "./household";
 import { sliceByDateRange } from "../utils/dateWindow";
 import type { Transaction, Category, Sub_Category } from "../types";
 
+// Income / expense classification, shared by every component so the
+// dashboard agrees with itself. Transfers are neither. A refund is an
+// expense with a positive amount, so signed sums net it against spending.
+export const isTransfer = (t: Pick<Transaction, "category">) =>
+  t.category === "Transfer";
+export const isIncome = (t: Pick<Transaction, "category" | "income">) =>
+  !isTransfer(t) && t.income;
+export const isExpense = (t: Pick<Transaction, "category" | "income">) =>
+  !isTransfer(t) && !t.income;
+
 export const useTransactionStore = defineStore("transaction", {
   state: () => ({
     transactions: [] as Transaction[],
@@ -28,36 +38,23 @@ export const useTransactionStore = defineStore("transaction", {
     isRefreshing: false,
   }),
   getters: {
-    incomeTransactions: (state) =>
-      state.transactions.filter(
-        (transaction) =>
-          transaction.category !== "Transfer" && transaction.amount >= 0
-      ),
+    incomeTransactions: (state) => state.transactions.filter(isIncome),
     expenseNeedTransactions: (state) =>
       state.transactions.filter(
-        (transaction) =>
-          transaction.category !== "Transfer" &&
-          transaction.amount < 0 &&
-          transaction.need
+        (transaction) => isExpense(transaction) && transaction.need
       ),
     expenseWantTransactions: (state) =>
       state.transactions.filter(
-        (transaction) =>
-          transaction.category !== "Transfer" &&
-          transaction.amount < 0 &&
-          !transaction.need
+        (transaction) => isExpense(transaction) && !transaction.need
       ),
-    transferTransactions: (state) =>
-      state.transactions.filter(
-        (transaction) => transaction.category === "Transfer"
-      ),
+    transferTransactions: (state) => state.transactions.filter(isTransfer),
     // Distinct expense category names seen across loaded transactions, a
     // single cached pass, shared by any component that just needs category
     // suggestions rather than rescanning the whole array itself.
     knownExpenseCategories: (state): string[] => {
       const names = new Set<string>();
       for (const t of state.transactions) {
-        if (t.amount < 0 && t.category && t.category !== "Transfer") {
+        if (t.category && isExpense(t)) {
           names.add(t.category);
         }
       }
@@ -100,7 +97,7 @@ export const useTransactionStore = defineStore("transaction", {
         if (!result[n]) {
           result[n] = { income: 0, expensesNeed: 0, expensesWant: 0 };
         }
-        if (tx.amount >= 0) {
+        if (tx.income) {
           result[n].income += tx.amount;
         } else if (tx.need) {
           result[n].expensesNeed += tx.amount;

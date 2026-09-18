@@ -65,6 +65,7 @@ async function removeRule(rule) {
           <th>Category</th>
           <th>Sub-category</th>
           <th>Need</th>
+          <th>Income</th>
           <th />
         </tr>
       </thead>
@@ -83,6 +84,13 @@ async function removeRule(rule) {
               :icon="rule.need ? 'mdi-check' : 'mdi-minus'"
               size="small"
               :color="rule.need ? 'success' : undefined"
+            />
+          </td>
+          <td>
+            <v-icon
+              :icon="rule.income ? 'mdi-check' : 'mdi-minus'"
+              size="small"
+              :color="rule.income ? 'success' : undefined"
             />
           </td>
           <td class="text-right">

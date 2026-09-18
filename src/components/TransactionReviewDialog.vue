@@ -35,7 +35,7 @@ const categoryItems = computed(() => {
   if (!currentTransaction.value) return [];
   const type =
     (currentTransaction.value.type ??
-      (currentTransaction.value.amount >= 0 ? "Income" : "Expenses"))
+      (currentTransaction.value.income ? "Income" : "Expenses"))
       .toLowerCase();
   return transactionStore.categories[type] ?? [];
 });
@@ -72,9 +72,9 @@ function advance() {
 function normalizeType(tx) {
   if (tx.category === "Transfer") {
     tx.type = "Transfer";
-  } else if (tx.amount >= 0) {
+  } else if (tx.income) {
     tx.type = "Income";
-  } else if (tx.amount < 0) {
+  } else {
     tx.type = "Expenses";
   }
 }
@@ -168,6 +168,14 @@ async function mark(status) {
             label="Need?"
             density="compact"
             hide-details
+          />
+          <v-checkbox
+            v-if="currentTransaction.amount > 0 && currentTransaction.category !== 'Transfer'"
+            v-model="currentTransaction.income"
+            label="Income (uncheck for a refund)"
+            density="compact"
+            hide-details
+            @update:model-value="normalizeType(currentTransaction)"
           />
         </div>
 

@@ -48,7 +48,8 @@ The dashboard has a **sliding month window** controlled by `transactionStore.mon
 
 The store holds all fetched transactions and exposes:
 
-- **Filtered getters**: `incomeTransactions`, `expenseNeedTransactions`, `expenseWantTransactions`, `transferTransactions`, filter the raw array by type/need flag
+- **Classification helpers**: `isIncome` / `isExpense` / `isTransfer` (exported from the store module) are the single definition of income vs expense. Transfer is `category === "Transfer"`. Otherwise the backend's `income` flag decides, **not the amount's sign**: a refund is an expense with a positive amount, so it nets down its category in every signed sum. Any new component that splits income from spending must use these helpers, not `amount >= 0`. Keep `amount >= 0` only for colouring (money in is still green).
+- **Filtered getters**: `incomeTransactions`, `expenseNeedTransactions`, `expenseWantTransactions`, `transferTransactions`, built on the helpers above
 - **`net_incomes` getter**: Array where `net_incomes[n]` = `{ income, expensesNeed, expensesWant }` aggregated for the month that is `n` months ago from today (`[0]` = current partial month). The focus month is `net_incomes[monthsAgo + 1]`. Used by `NetIncome`, `NetTrend`, and `SavingsRate`.
 - **`monthsAgo`**: The active window offset, all display components derive their date ranges from this
 
@@ -87,14 +88,16 @@ All focus-month cards read `transactionStore.focusMonthTransactions` (a getter f
 - **`RecurringCosts.vue`**: client-side recurring-charge detection (same description normalization as the backend: digit tokens stripped; 3+ months, amounts within ±30%), with price-increase flags. Sits on **Overview** beside `BudgetTargets`, below the AI summary
 - **`CategoryTable.vue`**: focus-month cells flag overspend (25%+ and ≥$25 above the prior two months' average). `Categories.vue` stacks three of them (Must-Haves / Nice-to-Haves / Income) inside a single full-width card on the Insights tab, no card-per-group nesting
 - **`Transactions.vue`**: debounced search, CSV export of the active window, and a "Review (N)" queue that opens `TransactionReviewDialog` with a snapshot of `unknownTransactions`
-- **`ImportReviewStack.vue`**: post-upload card stack shown by `ImportForm`, imported transactions first (editable category/sub-category/need; Enter or "Save & Next" persists and advances), duplicates at the back with warning styling and Force Import / Skip actions. A force-imported duplicate flips in place into an editable card.
+- **`ImportReviewStack.vue`**: post-upload card stack shown by `ImportForm`, imported transactions first (editable category/sub-category/need, plus an Income checkbox on positive rows to mark a refund; Enter or "Save & Next" persists and advances), duplicates at the back with warning styling and Force Import / Skip actions. A force-imported duplicate flips in place into an editable card.
 
 ### Category Rules
 
-User-defined categorization rules ("description contains X → category/sub-category/need") that the backend applies during import before falling back to AI. Managed two ways:
+User-defined categorization rules ("description contains X → category/sub-category/need/income") that the backend applies during import before falling back to AI. Managed two ways:
 
 - **`CategoryRulesManager.vue`**: list/add/delete rules, opened from the "Rules" button in the page header
 - **`TransactionsTable.vue`**: per-row tag button opens a `CategoryRuleForm` pre-filled from that transaction
+
+**Income vs refund editing** lives in `TransactionsTable.vue`. The desktop kind chip is a menu offering Income / Refund · Need / Refund · Want on positive rows (Need / Want on debits). The mobile detail sheet has an Income/Refund toggle. The bulk bar gets "Mark as refund" / "Mark as income" when the selection includes positive rows. The rule form's "Income source" checkbox sets the rule's `income`; leave it off for merchants so their refunds import as expenses.
 
 `CategoryRuleForm.vue` owns the create call via `useCategoryRuleStore`; the store resolves `household_id` from the household store. Rules are not retroactively applied to existing transactions.
 

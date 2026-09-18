@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, computed, watch } from "vue";
 import { useDisplay } from "vuetify";
-import { useTransactionStore } from "../stores/transaction";
+import { isExpense, isIncome, isTransfer, useTransactionStore } from "../stores/transaction";
 import { useAccountStore } from "../stores/account";
 import { sliceByDateRange } from "../utils/dateWindow";
 import Dialog from "./common/Dialog.vue";
@@ -96,10 +96,10 @@ function decorationFor(id) {
 
 function matchesTab(t, tab) {
   if (tab === "all") return true;
-  if (tab === "income") return t.category !== "Transfer" && t.amount >= 0;
-  if (tab === "needs") return t.category !== "Transfer" && t.amount < 0 && t.need;
-  if (tab === "wants") return t.category !== "Transfer" && t.amount < 0 && !t.need;
-  if (tab === "transfers") return t.category === "Transfer";
+  if (tab === "income") return isIncome(t);
+  if (tab === "needs") return isExpense(t) && t.need;
+  if (tab === "wants") return isExpense(t) && !t.need;
+  if (tab === "transfers") return isTransfer(t);
   if (tab === "review") return t.category === "Unknown" || t.sub_category === "Unknown";
   return true;
 }
@@ -254,7 +254,7 @@ function rememberEdit(transaction) {
 function normalizeType(transaction) {
   if (transaction.category === "Transfer") {
     transaction.type = "Transfer";
-  } else if (transaction.amount >= 0) {
+  } else if (transaction.income) {
     transaction.type = "Income";
   } else {
     transaction.type = "Expenses";
@@ -278,7 +278,7 @@ function saveIfChanged(transaction) {
 
 function typeKey(transaction) {
   if (transaction.category === "Transfer") return "transfers";
-  return transaction.amount >= 0 ? "income" : "expenses";
+  return transaction.income ? "income" : "expenses";
 }
 function categoryItems(transaction) {
   return (transactionStore.categories[typeKey(transaction)] ?? []).map((c) => c.name);
@@ -290,9 +290,30 @@ function subCategoryItems(transaction) {
     )?.sub_categories ?? []
   );
 }
+// Choosing Need/Want also makes the row an expense, which is how a positive
+// row gets reclassified from income to a refund.
 function setNeed(transaction, need) {
   transaction.need = need;
+  transaction.income = false;
   saveTransaction(transaction);
+}
+function setIncome(transaction) {
+  transaction.income = true;
+  transaction.need = false;
+  saveTransaction(transaction);
+}
+// Only money coming in can be income or a refund; debits are always expenses.
+function canBeIncome(transaction) {
+  return !isTransfer(transaction) && transaction.amount > 0;
+}
+function kindColor(transaction) {
+  if (isIncome(transaction)) return "success";
+  return transaction.need ? "primary" : undefined;
+}
+function kindLabel(transaction) {
+  if (isIncome(transaction)) return "Income";
+  const kind = transaction.need ? "Need" : "Want";
+  return transaction.amount > 0 ? `Refund · ${kind}` : kind;
 }
 function isReview(transaction) {
   return transaction.category === "Unknown" || transaction.sub_category === "Unknown";
@@ -345,8 +366,22 @@ function applyBulkCategory() {
 }
 function bulkMarkNeed() {
   for (const t of selectedTransactions.value) {
-    if (t.category !== "Transfer" && t.amount < 0) {
+    if (isExpense(t)) {
       t.need = true;
+      saveTransaction(t);
+    }
+  }
+  clearSelection();
+}
+// Positive rows only: flips them between income and refund (expense).
+const selectionHasCredits = computed(() =>
+  selectedTransactions.value.some(canBeIncome)
+);
+function bulkSetIncome(income) {
+  for (const t of selectedTransactions.value) {
+    if (canBeIncome(t) && t.income !== income) {
+      t.income = income;
+      if (income) t.need = false;
       saveTransaction(t);
     }
   }
@@ -609,42 +644,44 @@ function exportCsv() {
                 >
                   Transfer
                 </v-chip>
-                <v-chip
-                  v-else-if="row.item.amount >= 0"
-                  size="small"
-                  color="success"
-                  variant="tonal"
-                >
-                  Income
-                </v-chip>
                 <v-menu v-else-if="!readOnly">
                   <template #activator="{ props: menuProps }">
                     <v-chip
                       v-bind="menuProps"
                       size="small"
-                      :color="row.item.need ? 'primary' : undefined"
+                      :color="kindColor(row.item)"
                       variant="tonal"
                       append-icon="mdi-chevron-down"
                     >
-                      {{ row.item.need ? "Need" : "Want" }}
+                      {{ kindLabel(row.item) }}
                     </v-chip>
                   </template>
                   <v-list density="compact">
+                    <v-list-item
+                      v-if="canBeIncome(row.item)"
+                      @click="setIncome(row.item)"
+                    >
+                      <v-list-item-title>Income</v-list-item-title>
+                    </v-list-item>
                     <v-list-item @click="setNeed(row.item, true)">
-                      <v-list-item-title>Need</v-list-item-title>
+                      <v-list-item-title>
+                        {{ canBeIncome(row.item) ? "Refund · Need" : "Need" }}
+                      </v-list-item-title>
                     </v-list-item>
                     <v-list-item @click="setNeed(row.item, false)">
-                      <v-list-item-title>Want</v-list-item-title>
+                      <v-list-item-title>
+                        {{ canBeIncome(row.item) ? "Refund · Want" : "Want" }}
+                      </v-list-item-title>
                     </v-list-item>
                   </v-list>
                 </v-menu>
                 <v-chip
                   v-else
                   size="small"
-                  :color="row.item.need ? 'primary' : undefined"
+                  :color="kindColor(row.item)"
                   variant="tonal"
                 >
-                  {{ row.item.need ? "Need" : "Want" }}
+                  {{ kindLabel(row.item) }}
                 </v-chip>
               </div>
               <div
@@ -733,20 +770,12 @@ function exportCsv() {
               Transfer
             </v-chip>
             <v-chip
-              v-else-if="row.item.amount >= 0"
-              size="x-small"
-              color="success"
-              variant="tonal"
-            >
-              Income
-            </v-chip>
-            <v-chip
               v-else
               size="x-small"
-              :color="row.item.need ? 'primary' : undefined"
+              :color="kindColor(row.item)"
               variant="tonal"
             >
-              {{ row.item.need ? "Need" : "Want" }}
+              {{ kindLabel(row.item) }}
             </v-chip>
             <span class="muted">{{ row.item.category }} · {{ accountLabel(row.item.account_id) }}</span>
           </div>
@@ -780,6 +809,22 @@ function exportCsv() {
       >
         Mark as need
       </v-btn>
+      <template v-if="selectionHasCredits">
+        <v-btn
+          variant="tonal"
+          size="small"
+          @click="bulkSetIncome(false)"
+        >
+          Mark as refund
+        </v-btn>
+        <v-btn
+          variant="tonal"
+          size="small"
+          @click="bulkSetIncome(true)"
+        >
+          Mark as income
+        </v-btn>
+      </template>
       <v-btn
         variant="tonal"
         size="small"
@@ -807,6 +852,7 @@ function exportCsv() {
         :initial-category="ruleSource.category"
         :initial-sub-category="ruleSource.sub_category"
         :initial-need="ruleSource.need"
+        :initial-income="!!ruleSource.income"
         @saved="ruleSource = null"
         @cancel="ruleSource = null"
       />
@@ -865,7 +911,22 @@ function exportCsv() {
         </div>
 
         <v-btn-toggle
-          v-if="detailTransaction.category !== 'Transfer' && detailTransaction.amount < 0"
+          v-if="canBeIncome(detailTransaction)"
+          v-model="detailTransaction.income"
+          mandatory
+          color="primary"
+          class="detail-sheet__toggle"
+        >
+          <v-btn :value="true">
+            Income
+          </v-btn>
+          <v-btn :value="false">
+            Refund
+          </v-btn>
+        </v-btn-toggle>
+
+        <v-btn-toggle
+          v-if="isExpense(detailTransaction)"
           v-model="detailTransaction.need"
           mandatory
           color="primary"

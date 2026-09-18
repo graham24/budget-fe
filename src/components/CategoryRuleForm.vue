@@ -19,6 +19,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  initialIncome: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(["saved", "cancel"]);
@@ -28,6 +32,7 @@ const matchText = ref(props.initialMatchText);
 const category = ref(props.initialCategory);
 const subCategory = ref(props.initialSubCategory);
 const need = ref(props.initialNeed);
+const income = ref(props.initialIncome);
 const saving = ref(false);
 const error = ref(null);
 
@@ -44,6 +49,7 @@ async function save() {
       category: category.value.trim(),
       sub_category: subCategory.value.trim(),
       need: need.value,
+      income: income.value,
     });
     emit("saved");
   } catch (err) {
@@ -86,6 +92,14 @@ async function save() {
       label="Essential expense (need)"
       density="compact"
       hide-details
+      class="mb-2"
+    />
+    <v-checkbox
+      v-model="income"
+      label="Income source (e.g. payroll)"
+      hint="Leave unchecked for merchants: money back from them is treated as a refund, not income"
+      persistent-hint
+      density="compact"
       class="mb-2"
     />
     <v-alert

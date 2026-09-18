@@ -30,6 +30,7 @@ export const useCategoryRuleStore = defineStore("categoryRule", {
       category: string;
       sub_category: string;
       need: boolean;
+      income: boolean;
     }) {
       const householdStore = useHouseholdStore();
       const householdId = householdStore.household?.household?.id;

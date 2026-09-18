@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { useTransactionStore } from "../stores/transaction";
+import { isExpense, useTransactionStore } from "../stores/transaction";
 
 const transactionStore = useTransactionStore();
 
@@ -31,7 +31,9 @@ function monthKey(dateStr) {
 const recurring = computed(() => {
   const groups = new Map();
   for (const t of transactionStore.transactions) {
-    if (t.amount >= 0 || t.category === "Transfer") continue;
+    // Charges only: a refund is an expense too, but folding it in would
+    // break the consistent-amount check below.
+    if (!isExpense(t) || t.amount >= 0) continue;
     const key = normalizeDescription(t);
     if (!key) continue;
     let group = groups.get(key);

@@ -350,7 +350,7 @@ function commitDraft(transaction) {
   transactionStore.saveTransaction(transaction);
   if (transaction.category === "Transfer") {
     transaction.type = "Transfer";
-  } else if (transaction.amount >= 0) {
+  } else if (transaction.income) {
     transaction.type = "Income";
   } else {
     transaction.type = "Expenses";
