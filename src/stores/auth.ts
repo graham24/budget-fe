@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import type { User } from "../types";
-import { demoLogin, googleLogin, updateUser } from "../api";
+import { demoLogin, emailLogin, updateUser } from "../api";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -22,9 +22,9 @@ export const useAuthStore = defineStore("auth", {
   }),
   actions: {
     // Errors propagate so the login screen can show them
-    async loginWithGoogle(credential: string) {
+    async loginWithEmail(email: string) {
       this.authGeneration++;
-      const { user, token } = await googleLogin(credential);
+      const { user, token } = await emailLogin(email);
       this.user = user;
       this.token = token;
       this.previewing = false;

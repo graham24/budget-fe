@@ -57,7 +57,7 @@
             </div>
             <p class="hero-note">
               Free for {{ TRIAL_DAYS }} days, no card required. Then $4.99/mo.
-              Sign in with Google, no passwords to manage.
+              Sign in with your email, no passwords to manage.
             </p>
           </div>
 
@@ -370,8 +370,8 @@
                   stroke-width="2"
                 ><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6z" /></svg>
               </div>
-              <h3>Sign in with Google</h3>
-              <p>No password to create, forget, or reuse from another site. Nothing about your Google account is kept beyond identifying you.</p>
+              <h3>Sign in with your email</h3>
+              <p>No password to create, forget, or reuse from another site.</p>
             </div>
             <div class="cell">
               <div class="cell-ico">
@@ -460,7 +460,7 @@
             <div class="step">
               <span class="step-n">01</span>
               <h3>Sign in and name your household</h3>
-              <p>One click with Google and your household exists. Add your partner or roommates now or whenever you're ready.</p>
+              <p>Sign in with your email and your household is ready. Add your partner or roommates now or whenever you're ready.</p>
             </div>
             <div class="step">
               <span class="step-n">02</span>
@@ -586,7 +586,7 @@
             @click.prevent="loginDialog = true"
           >Start {{ TRIAL_DAYS }} days free</a>
           <p class="fine">
-            No card required. Then $4.99/mo. Sign in with Google, no
+            No card required. Then $4.99/mo. Sign in with your email, no
             passwords to manage.
           </p>
         </div>
@@ -618,7 +618,7 @@
         </p>
         <h3>Sign in to Debrief</h3>
         <p class="login-sub">
-          Use your Google account to sign in or create a new household.
+          Enter the email on your account.
         </p>
         <p
           v-if="loginError"
@@ -626,9 +626,26 @@
         >
           {{ loginError }}
         </p>
-        <div class="google-login-wrap">
-          <GoogleLogin :callback="handleGoogleLogin" />
-        </div>
+        <form
+          class="email-login"
+          @submit.prevent="handleEmailLogin"
+        >
+          <input
+            v-model="email"
+            type="email"
+            class="email-input"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          >
+          <button
+            type="submit"
+            class="btn btn-key email-btn"
+            :disabled="loggingIn"
+          >
+            Sign in
+          </button>
+        </form>
         <div class="demo-divider">
           <span>or</span>
         </div>
@@ -647,7 +664,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import { GoogleLogin } from "vue3-google-login";
 import { useAuthStore } from "@/stores/auth";
 import { useHouseholdStore } from "@/stores/household";
 import { useAccountStore } from "@/stores/account";
@@ -679,13 +695,16 @@ const netWorthStore = useNetWorthStore();
 
 const loginDialog = ref(false);
 const loginError = ref(null);
+const email = ref("");
+const loggingIn = ref(false);
 const year = computed(() => new Date().getFullYear());
 const householdId = computed(() => householdStore.household?.household?.id ?? null);
 
-async function handleGoogleLogin(response) {
+async function handleEmailLogin() {
   loginError.value = null;
+  loggingIn.value = true;
   try {
-    await authStore.loginWithGoogle(response.credential);
+    await authStore.loginWithEmail(email.value);
     // The preview above filled these stores with the demo household's data;
     // clear it so the dashboard starts empty and refetches as this user.
     resetHouseholdStores();
@@ -693,6 +712,8 @@ async function handleGoogleLogin(response) {
     router.push("/dashboard");
   } catch (error) {
     loginError.value = error.response?.data?.message || "Login failed";
+  } finally {
+    loggingIn.value = false;
   }
 }
 
@@ -1747,10 +1768,24 @@ footer {
   color: var(--red);
   font-size: 0.85rem;
 }
-.google-login-wrap {
+.email-login {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 20px;
+}
+.email-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.email-btn {
+  width: 100%;
+  justify-content: center;
 }
 .demo-divider {
   display: flex;

@@ -14,8 +14,9 @@ const props = defineProps({
 
 const emit = defineEmits(["saved", "cancel"]);
 
-// Must match the backend importer keys
-const BANKS = ["Wells Fargo", "Chase", "US Bank", "Apple", "SimpleFin"];
+// Banks with a CSV importer (importers/importer.py); any other name is
+// accepted but can only sync through SimpleFin
+const BANKS = ["Wells Fargo", "Chase", "US Bank", "Apple"];
 const TYPES = ["Checking", "Savings", "Credit Card"];
 
 const accountStore = useAccountStore();
@@ -34,7 +35,7 @@ function ownerName(user) {
 }
 
 async function save() {
-  if (!description.value.trim() || !type.value.trim() || !bank.value) {
+  if (!description.value.trim() || !type.value.trim() || !bank.value?.trim()) {
     error.value = "Description, type, and bank are required";
     return;
   }
@@ -44,7 +45,7 @@ async function save() {
     const payload = {
       description: description.value.trim(),
       type: type.value.trim(),
-      bank: bank.value,
+      bank: bank.value.trim(),
       user_id: userId.value,
     };
     if (props.account) {
@@ -81,11 +82,11 @@ async function save() {
         variant="outlined"
         hide-details
       />
-      <v-select
+      <v-combobox
         v-model="bank"
         :items="BANKS"
         label="Bank"
-        hint="Determines the CSV import format"
+        hint="Pick one for CSV import, or type any bank name"
         persistent-hint
         density="compact"
         variant="outlined"

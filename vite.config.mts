@@ -50,6 +50,12 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Proxy API calls to the local Flask backend so the page and the API
+    // share one origin — works from any device on the LAN without CORS or
+    // a hardcoded localhost API URL (VITE_API_BASE_URL=/api).
+    proxy: {
+      '/api': 'http://localhost:5000',
+    },
   },
   css: {
     preprocessorOptions: {

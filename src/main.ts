@@ -18,18 +18,12 @@ import "@/styles/global.css";
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 
-// Google Sign-In
-import vue3GoogleLogin from "vue3-google-login";
-
 // Auth
 import { useAuthStore } from "@/stores/auth";
 
 const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);
-app.use(vue3GoogleLogin, {
-  clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-});
 
 // Restore the session before the router's first navigation runs so the
 // auth guard (router/index.ts) sees the correct logged-in state.

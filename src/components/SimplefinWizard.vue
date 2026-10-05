@@ -20,8 +20,8 @@ const authStore = useAuthStore();
 const userStore = useUserStore();
 
 const TYPES = ["Checking", "Savings", "Credit Card"];
-// Must match the backend Bank literal (models/end_points/account.py)
-const BANKS = ["SimpleFin", "Wells Fargo", "Chase", "US Bank", "Apple"];
+// Suggestions only; any institution name is accepted
+const BANKS = ["Wells Fargo", "Chase", "US Bank", "Apple"];
 
 const loading = ref(true);
 const index = ref(0);
@@ -34,7 +34,7 @@ const mode = ref("existing"); // "existing" | "new"
 const existingAccountId = ref(null);
 const newDescription = ref("");
 const newType = ref("");
-const newBank = ref("SimpleFin");
+const newBank = ref("");
 const newUserId = ref(null);
 
 const items = computed(() => simplefinStore.accounts);
@@ -71,7 +71,7 @@ function resetCardState() {
   }
   newDescription.value = current.value?.name ?? "";
   newType.value = "";
-  newBank.value = "SimpleFin";
+  newBank.value = current.value?.org_name ?? "";
   newUserId.value = authStore.user?.id ?? null;
 }
 
@@ -115,7 +115,7 @@ async function save() {
     error.value = "Choose an account to link";
     return;
   }
-  if (mode.value === "new" && (!newDescription.value.trim() || !newType.value.trim() || !newBank.value || !newUserId.value)) {
+  if (mode.value === "new" && (!newDescription.value.trim() || !newType.value.trim() || !newBank.value?.trim() || !newUserId.value)) {
     error.value = "Description, type, bank, and owner are required";
     return;
   }
@@ -129,7 +129,7 @@ async function save() {
             new_account: {
               description: newDescription.value.trim(),
               type: newType.value.trim(),
-              bank: newBank.value,
+              bank: newBank.value.trim(),
               user_id: newUserId.value,
             },
           };
@@ -250,7 +250,7 @@ function formatBalance(account) {
             variant="outlined"
             hide-details
           />
-          <v-select
+          <v-combobox
             v-model="newBank"
             :items="BANKS"
             label="Bank"

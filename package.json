@@ -12,14 +12,12 @@
     "lint": "eslint . --fix"
   },
   "dependencies": {
-    "@react-oauth/google": "^0.12.2",
     "axios": "^1.8.4",
     "core-js": "^3.37.1",
     "material-design-icons-iconfont": "^6.7.0",
     "pinia": "^3.0.1",
     "roboto-fontface": "*",
     "vue": "^3.4.31",
-    "vue3-google-login": "^2.0.37",
     "vuetify": "^3.6.14"
   },
   "devDependencies": {

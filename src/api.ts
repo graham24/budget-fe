@@ -40,14 +40,14 @@ api.interceptors.response.use(
 
 export default api;
 
-// Google Sign-In, verifies the ID token server-side and returns the user
-// plus our own session token
-export const googleLogin = async (
-  credential: string
+// Email-only login (no password, local-only app), returns the user plus
+// our own session token. 404s for an email with no account.
+export const emailLogin = async (
+  email: string
 ): Promise<{ user: User; token: string }> => {
   const response = await api.post<{ user: User; token: string }>(
-    "/auth/google/",
-    { credential }
+    "/auth/email/",
+    { email }
   );
   return response.data;
 };
